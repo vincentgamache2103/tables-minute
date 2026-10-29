@@ -1,0 +1,25 @@
+{
+  "name": "Tables minute",
+  "short_name": "Tables minute",
+  "description": "Tables de multiplication chronométrées pour la tablette : tables au choix, 2, 3 ou 4 minutes, nombres manquants et correction.",
+  "lang": "fr-CA",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E3E9F2",
+  "theme_color": "#E3E9F2",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
