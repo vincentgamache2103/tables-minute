@@ -1,7 +1,7 @@
 {
   "name": "Tables minute",
   "short_name": "Tables minute",
-  "description": "Tables de multiplication chronométrées pour la tablette : tables au choix, 2, 3 ou 4 minutes, nombres manquants et correction.",
+  "description": "Tables minute chronométrées pour la tablette : ×, ÷, + et −, tables au choix, 2, 3 ou 4 minutes, nombres manquants et correction.",
   "lang": "fr-CA",
   "start_url": "./",
   "scope": "./",

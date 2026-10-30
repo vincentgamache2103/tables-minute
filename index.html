@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tables minute</title>
-<meta name="description" content="Tables de multiplication chronométrées pour la tablette : tables au choix, 2, 3 ou 4 minutes, nombres manquants et correction.">
+<meta name="description" content="Tables minute chronométrées pour la tablette : ×, ÷, + et −, tables au choix, 2, 3 ou 4 minutes, nombres manquants et correction.">
 <meta name="theme-color" content="#E3E9F2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101814" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -17,7 +17,7 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_CA">
 <meta property="og:title" content="Tables minute">
-<meta property="og:description" content="Tables de multiplication chronométrées pour la tablette : tables au choix, 2, 3 ou 4 minutes, nombres manquants et correction.">
+<meta property="og:description" content="Tables minute chronométrées pour la tablette : ×, ÷, + et −, tables au choix, 2, 3 ou 4 minutes, nombres manquants et correction.">
 <meta property="og:url" content="https://vincentgamache2103.github.io/tables-minute/">
 <style>
 :root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Grandstander:wght@800;900&family=Patrick+Hand&display=swap">
 <style>
-/* Mise en page : une feuille quadrillée posée sur un pupitre. Pendant l'exercice, la feuille à gauche et le clavier à droite (paysage), ou le clavier en dessous (portrait). Le chrono est un crayon qui raccourcit. */
+/* Mise en page : une feuille quadrillée posée sur un pupitre. Pendant l'exercice, la feuille à gauche et le clavier à droite (paysage), ou le clavier en dessous (portrait). Le chrono est un crayon qui raccourcit. Les idées s'écrivent sur un papillon collé sous la feuille. */
 :root {
   /* Couleurs : papier quadrillé (clair), tableau vert (sombre) */
   --desk: #E3E9F2;
@@ -56,6 +56,8 @@
   --ferrule-deep: #8C95A3;
   --wood: #EDC793;
   --graphite: #3A404A;
+  --note: #FFF7D1;
+  --tape: rgba(163, 174, 190, .45);
 
   /* Caractères : titres ronds, chiffres très lisibles, réponses écrites au crayon */
   --font-display: "Grandstander", ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
@@ -91,6 +93,8 @@
     --ferrule-deep: #6E7785;
     --wood: #D9B27E;
     --graphite: #59606B;
+    --note: #252B1D;
+    --tape: rgba(237, 242, 236, .16);
     color-scheme: dark;
   }
 }
@@ -122,6 +126,8 @@
   --ferrule-deep: #6E7785;
   --wood: #D9B27E;
   --graphite: #59606B;
+  --note: #252B1D;
+  --tape: rgba(237, 242, 236, .16);
   color-scheme: dark;
 }
 
@@ -140,7 +146,7 @@ body {
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
-button, input { font: inherit; color: inherit; }
+button, input, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; touch-action: manipulation; }
 :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
@@ -242,6 +248,32 @@ button { cursor: pointer; touch-action: manipulation; }
 .choice input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .choice input:focus-visible + span { outline: 3px solid var(--ink); outline-offset: 3px; }
 
+.ops { display: flex; flex-wrap: wrap; gap: 8px; }
+.op-chip span {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  min-height: 52px;
+  padding: 0 1.15rem 0 .5rem;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: var(--key);
+  font-weight: 700;
+  transition: background-color .12s, color .12s, border-color .12s;
+}
+.op-chip .sym {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--select);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+.op-chip input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.op-chip input:checked + span .sym { background: var(--pencil); color: var(--on-pencil); }
+
 .bubbles { display: flex; flex-wrap: wrap; gap: 8px; }
 .bubble span {
   display: grid;
@@ -315,6 +347,7 @@ button { cursor: pointer; touch-action: manipulation; }
   user-select: none;
 }
 .btn svg { width: 1.1em; height: 1.1em; flex: none; }
+.btn:disabled { opacity: .6; cursor: default; }
 .btn--go {
   min-height: 58px;
   padding: 0 1.9rem;
@@ -344,9 +377,70 @@ button { cursor: pointer; touch-action: manipulation; }
 .h-what { min-width: 0; overflow-wrap: anywhere; }
 .h-score { font-family: var(--font-hand); font-size: 1.45rem; line-height: 1; color: var(--red); }
 .empty { margin: 0; color: var(--ink-soft); }
-
 .fine { margin: 0; padding-top: 6px; font-size: .82rem; color: var(--ink-soft); }
 .fine a { color: inherit; text-underline-offset: 3px; }
+
+/* ---------- Boîte à idées (papillon collé) ---------- */
+.ideas {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 28px 24px 22px;
+  background: var(--note);
+  border-radius: 4px 4px 16px 4px;
+  box-shadow: var(--shadow);
+}
+.ideas::before {
+  content: "";
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  width: 104px;
+  height: 24px;
+  margin-left: -52px;
+  background: var(--tape);
+  border-radius: 2px;
+  transform: rotate(-2.5deg);
+  pointer-events: none;
+}
+.ideas h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; line-height: 1.15; text-wrap: balance; }
+.ideas .hint { max-width: 62ch; }
+.idea-form { display: grid; gap: 12px; }
+.idea-msg {
+  width: 100%;
+  min-height: 6rem;
+  padding: 10px 12px;
+  resize: vertical;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-hand);
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+.idea-field { display: grid; gap: 6px; max-width: 420px; }
+.idea-field label { font-size: .92rem; font-weight: 700; }
+.idea-field label span { font-weight: 400; color: var(--ink-soft); }
+.idea-mail {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 1rem;
+}
+.idea-msg::placeholder, .idea-mail::placeholder { color: var(--ink-soft); opacity: .7; }
+.idea-msg:focus-visible, .idea-mail:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.idea-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.idea-status { margin: 0; font-weight: 700; }
+.idea-status:empty { display: none; }
+.idea-status.is-ok { color: var(--green); }
+.idea-status.is-err { color: var(--red); }
+.hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; opacity: 0; }
 
 /* ---------- Cases de la feuille ---------- */
 .grid { display: grid; gap: 4px 14px; }
@@ -431,8 +525,8 @@ button { cursor: pointer; touch-action: manipulation; }
 .screen--test { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 12px; padding-block: 12px 14px; }
 .bar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px 22px; }
 .bar-title { display: grid; gap: 2px; min-width: 0; }
-.bar-title h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: clamp(1.15rem, 2.2vw, 1.5rem); line-height: 1.1; white-space: nowrap; }
-.bar-title p { margin: 0; color: var(--ink-soft); font-size: .92rem; white-space: nowrap; }
+.bar-title h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: clamp(1.15rem, 2.2vw, 1.5rem); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-title p { margin: 0; color: var(--ink-soft); font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar-title b { color: var(--ink); }
 .clock { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .clock-label { display: none; font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
@@ -600,6 +694,7 @@ button { cursor: pointer; touch-action: manipulation; }
   .grid--sheet { grid-template-columns: repeat(auto-fill, minmax(min(100%, 136px), 1fr)); column-gap: 8px; }
   .grid--preview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cell { padding: 8px 6px; }
+  .ideas { padding: 26px 16px 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
@@ -632,6 +727,14 @@ button { cursor: pointer; touch-action: manipulation; }
           </header>
 
           <div class="fields">
+            <div class="field">
+              <p class="field-label" id="lbl-ops">Quelle opération?</p>
+              <div class="field-body">
+                <div class="ops" id="ops" role="group" aria-labelledby="lbl-ops"></div>
+                <p class="hint" id="ops-hint">Tu peux en choisir plusieurs.</p>
+              </div>
+            </div>
+
             <div class="field">
               <p class="field-label" id="lbl-tables">Quelles tables?</p>
               <div class="field-body">
@@ -693,6 +796,25 @@ button { cursor: pointer; touch-action: manipulation; }
           <ol id="history"></ol>
           <p class="empty" id="history-empty">Ton premier résultat va apparaître ici.</p>
           <p class="fine">Compteur de visites anonyme (GoatCounter) : aucun témoin, aucune adresse IP conservée. <a href="https://www.goatcounter.com/privacy" rel="noopener">Détails</a></p>
+        </section>
+
+        <section class="ideas" id="ideas" aria-labelledby="ideas-title" hidden>
+          <h2 id="ideas-title">Une idée pour Tables minute?</h2>
+          <p class="hint">Une opération à ajouter, un problème, une autre idée? Écris-la ici. Vincent, le papa qui a créé le site, la reçoit par courriel.</p>
+          <form class="idea-form" id="idea-form" novalidate>
+            <label class="sr-only" for="idea-msg">Ton idée</label>
+            <textarea class="idea-msg" id="idea-msg" name="suggestion" rows="3" maxlength="1000" placeholder="Ex. : ajouter les tables de 11 et 12"></textarea>
+            <div class="idea-field">
+              <label for="idea-email">Ton courriel <span>(facultatif, si tu veux une réponse)</span></label>
+              <input class="idea-mail" id="idea-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" maxlength="120">
+            </div>
+            <input class="hp" type="checkbox" id="idea-bot" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <div class="idea-actions">
+              <button type="submit" class="btn btn--alt" id="idea-send">Envoyer</button>
+              <p class="idea-status" id="idea-status" role="status" aria-live="polite"></p>
+            </div>
+          </form>
+          <p class="fine">Ton message va seulement à Vincent. Pas besoin d’écrire ton nom.</p>
         </section>
       </div>
     </div>
@@ -804,15 +926,27 @@ button { cursor: pointer; touch-action: manipulation; }
 
   const KEY_SETTINGS = 'tablesMinute.settings.v1';
   const KEY_HISTORY = 'tablesMinute.history.v1';
+  const KEY_FIRST = 'tablesMinute.firstSeen';
+  const KEY_LAST = 'tablesMinute.lastSeen';
   const TABLES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const MINUTES = [2, 3, 4];
   const COUNTS = [12, 24, 36];
   const KINDS = ['product', 'missing', 'mix'];
-  const DEFAULTS = { tables: [4], minutes: 4, kind: 'mix', count: 24, name: '' };
+  const OP_KEYS = ['mul', 'div', 'add', 'sub'];
+  const OPS = {
+    mul: { sym: '×', word: 'fois', name: 'Multiplication', plural: 'multiplications', event: 'operation-multiplication' },
+    div: { sym: '÷', word: 'divisé par', name: 'Division', plural: 'divisions', event: 'operation-division' },
+    add: { sym: '+', word: 'plus', name: 'Addition', plural: 'additions', event: 'operation-addition' },
+    sub: { sym: '−', word: 'moins', name: 'Soustraction', plural: 'soustractions', event: 'operation-soustraction' }
+  };
+  const DEFAULTS = { ops: ['mul'], tables: [4], minutes: 4, kind: 'mix', count: 24, name: '' };
   const NBSP = ' ';
   const EXAMPLE_K = 7;
+  const CONFIG = (window.TABLES_MINUTE && typeof window.TABLES_MINUTE === 'object') ? window.TABLES_MINUTE : {};
+  const FEEDBACK_KEY = typeof CONFIG.feedbackKey === 'string' ? CONFIG.feedbackKey.trim() : '';
+  const FEEDBACK_URL = 'https://api.web3forms.com/submit';
 
-  /* ---------- Préférences gardées sur la tablette ---------- */
+  /* ---------- Préférences gardées sur l'appareil ---------- */
   const store = {
     get(key, fallback) {
       try { const raw = window.localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
@@ -823,9 +957,16 @@ button { cursor: pointer; touch-action: manipulation; }
     }
   };
 
+  function opsList(ops) {
+    const list = Array.isArray(ops) ? ops : [];
+    return OP_KEYS.filter((k) => list.indexOf(k) >= 0);
+  }
+
   function cleanSettings(raw) {
-    const s = { tables: DEFAULTS.tables.slice(), minutes: DEFAULTS.minutes, kind: DEFAULTS.kind, count: DEFAULTS.count, name: DEFAULTS.name };
+    const s = { ops: DEFAULTS.ops.slice(), tables: DEFAULTS.tables.slice(), minutes: DEFAULTS.minutes, kind: DEFAULTS.kind, count: DEFAULTS.count, name: DEFAULTS.name };
     if (!raw || typeof raw !== 'object') return s;
+    const o = opsList(raw.ops);
+    if (o.length) s.ops = o;
     if (Array.isArray(raw.tables)) {
       const t = Array.from(new Set(raw.tables.map(Number).filter((n) => TABLES.indexOf(n) >= 0))).sort((a, b) => a - b);
       if (t.length) s.tables = t;
@@ -850,7 +991,7 @@ button { cursor: pointer; touch-action: manipulation; }
   }
   const factKey = (f) => Math.min(f.t, f.k) + 'x' + Math.max(f.t, f.k);
 
-  // Chaque fait (4 × 1 à 4 × 10) revient à tour de rôle, jamais deux fois de suite.
+  // Chaque fait (4 et 1 à 4 et 10) revient à tour de rôle, jamais deux fois de suite.
   function pickFacts(tables, count) {
     const pool = [];
     tables.forEach((t) => { for (let k = 1; k <= 10; k++) pool.push({ t: t, k: k }); });
@@ -867,34 +1008,60 @@ button { cursor: pointer; touch-action: manipulation; }
     return seq;
   }
 
-  // Réponse : 4 × 7 = ▢. Nombre manquant : 4 × ▢ = 28 ou ▢ × 4 = 28 (la table reste visible).
-  function makeQuestion(f, kind) {
-    const tableFirst = Math.random() < 0.5;
-    const a = tableFirst ? f.t : f.k;
-    const b = tableFirst ? f.k : f.t;
-    const c = f.t * f.k;
-    if (kind === 'product') return { a: a, b: b, c: c, hide: 'c', answer: c, t: f.t, k: f.k };
-    return { a: a, b: b, c: c, hide: tableFirst ? 'b' : 'a', answer: f.k, t: f.t, k: f.k };
+  // Une question s'écrit a (opération) b = c, avec une case vide.
+  // × et + : la table reste visible (4 × 7 = ▢, 4 × ▢ = 28).
+  // ÷ et − : a est le tout (28 ou 11), b la table (4) : 28 ÷ 4 = ▢, ▢ ÷ 4 = 7, 28 ÷ ▢ = 4.
+  function makeQuestion(f, kind, op) {
+    const t = f.t, k = f.k;
+    const flip = Math.random() < 0.5;
+    if (op === 'mul' || op === 'add') {
+      const c = op === 'mul' ? t * k : t + k;
+      const a = flip ? t : k;
+      const b = flip ? k : t;
+      if (kind === 'product') return { op: op, a: a, b: b, c: c, hide: 'c', answer: c, t: t, k: k };
+      return { op: op, a: a, b: b, c: c, hide: flip ? 'b' : 'a', answer: k, t: t, k: k };
+    }
+    const whole = op === 'div' ? t * k : t + k;
+    if (kind === 'product') return { op: op, a: whole, b: t, c: k, hide: 'c', answer: k, t: t, k: k };
+    if (flip) return { op: op, a: whole, b: t, c: k, hide: 'a', answer: whole, t: t, k: k };
+    return { op: op, a: whole, b: k, c: t, hide: 'b', answer: k, t: t, k: k };
+  }
+
+  function spread(list, n) {
+    const out = [];
+    for (let i = 0; i < n; i++) out.push(list[i % list.length]);
+    return shuffle(out);
   }
 
   function buildQuestions(s, count) {
     const n = count || s.count;
     const facts = pickFacts(s.tables, n);
-    let kinds;
-    if (s.kind === 'mix') {
-      kinds = [];
-      for (let i = 0; i < n; i++) kinds.push(i % 2 ? 'missing' : 'product');
-      shuffle(kinds);
-    } else {
-      kinds = new Array(n).fill(s.kind);
-    }
-    return facts.map((f, i) => makeQuestion(f, kinds[i]));
+    const ops = spread(s.ops, n);
+    const kinds = s.kind === 'mix' ? spread(['product', 'missing'], n) : new Array(n).fill(s.kind);
+    return facts.map((f, i) => makeQuestion(f, kinds[i], ops[i]));
+  }
+
+  // Forme habituelle d'un fait, pour les exemples et les faits à revoir.
+  function canonical(op, t, k) {
+    if (op === 'add') return { op: op, a: t, b: k, c: t + k };
+    if (op === 'div') return { op: op, a: t * k, b: t, c: k };
+    if (op === 'sub') return { op: op, a: t + k, b: t, c: k };
+    return { op: 'mul', a: t, b: k, c: t * k };
+  }
+  function exampleQ(op, t, k, kind) {
+    const q = canonical(op, t, k);
+    const factorOp = q.op === 'mul' || q.op === 'add';
+    if (kind === 'product') q.hide = 'c';
+    else if (kind === 'missing') q.hide = factorOp ? 'b' : 'a';
+    else if (factorOp) { q.a = k; q.b = t; q.hide = 'a'; }
+    else { q.b = k; q.c = t; q.hide = 'b'; }
+    return q;
   }
 
   /* ---------- Libellés ---------- */
-  function listFr(nums) {
-    if (nums.length === 1) return String(nums[0]);
-    return nums.slice(0, -1).join(', ') + ' et ' + nums[nums.length - 1];
+  function listFr(items) {
+    if (items.length === 1) return String(items[0]);
+    return items.slice(0, -1).join(', ') + ' et ' + items[items.length - 1];
   }
   function tablesLabel(tables, lower) {
     const t = (tables || []).filter((n) => TABLES.indexOf(n) >= 0).sort((a, b) => a - b);
@@ -907,6 +1074,18 @@ button { cursor: pointer; touch-action: manipulation; }
       s = contiguous ? 'Tables de ' + t[0] + ' à ' + t[t.length - 1] : 'Tables de ' + listFr(t);
     }
     return lower ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+  }
+  function opsOrDefault(ops) {
+    const o = opsList(ops);
+    return o.length ? o : ['mul'];
+  }
+  function opsSymbols(ops) {
+    return opsOrDefault(ops).map((k) => OPS[k].sym).join(' ');
+  }
+  function opsLabel(ops, capital) {
+    const o = opsOrDefault(ops);
+    const s = o.length === 4 ? 'les 4 opérations' : listFr(o.map((k) => OPS[k].plural));
+    return capital ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   }
   function fmtDuration(ms) {
     const s = Math.max(0, Math.round(ms / 1000));
@@ -924,19 +1103,21 @@ button { cursor: pointer; touch-action: manipulation; }
 
   /* ---------- Dessin des équations ---------- */
   function eqHTML(q, inner, boxClass, extra) {
+    const op = OPS[q.op] || OPS.mul;
     const part = (key) => key === q.hide
       ? '<span class="box' + (boxClass ? ' ' + boxClass : '') + '"><span class="ans">' + inner + '</span>' + (extra || '') + '</span>'
       : '<span class="n">' + q[key] + '</span>';
-    return '<span class="cell-in"><span class="eq">' + part('a') + '<span class="op">×</span>' + part('b') + '<span class="op">=</span>' + part('c') + '</span></span>';
+    return '<span class="cell-in"><span class="eq">' + part('a') + '<span class="op">' + op.sym + '</span>' + part('b') + '<span class="op">=</span>' + part('c') + '</span></span>';
   }
   function spoken(q) {
+    const op = OPS[q.op] || OPS.mul;
     const w = (key) => (key === q.hide ? 'combien' : String(q[key]));
-    return w('a') + ' fois ' + w('b') + ' égale ' + w('c');
+    return w('a') + ' ' + op.word + ' ' + w('b') + ' égale ' + w('c');
   }
-  function miniEq(a, b, hide) {
-    const vals = { a: a, b: b, c: a * b };
-    const p = (key) => (key === hide ? '<span class="mini-box"></span>' : '<span>' + vals[key] + '</span>');
-    return '<span class="mini">' + p('a') + '<span class="op">×</span>' + p('b') + '<span class="op">=</span>' + p('c') + '</span>';
+  function miniEq(q) {
+    const op = OPS[q.op] || OPS.mul;
+    const p = (key) => (key === q.hide ? '<span class="mini-box"></span>' : '<span>' + q[key] + '</span>');
+    return '<span class="mini">' + p('a') + '<span class="op">' + op.sym + '</span>' + p('b') + '<span class="op">=</span>' + p('c') + '</span>';
   }
 
   /* ---------- État ---------- */
@@ -956,6 +1137,13 @@ button { cursor: pointer; touch-action: manipulation; }
     if (name !== 'test') {
       const sc = $(name).querySelector('.scroll');
       if (sc) sc.scrollTop = 0;
+      // La boîte à idées suit l'écran affiché (accueil ou résultats).
+      const wrap = $(name).querySelector('.wrap');
+      const ideas = $('ideas');
+      if (wrap && ideas && ideas.parentNode !== wrap) {
+        wrap.appendChild(ideas);
+        setIdeaStatus('', '');
+      }
     }
   }
 
@@ -970,12 +1158,59 @@ button { cursor: pointer; touch-action: manipulation; }
     el.classList.add('pop');
   }
 
-  // Statistiques anonymes : actives seulement sur le site public (GoatCounter).
+  /* ---------- Statistiques anonymes (GoatCounter, site public seulement) ---------- */
+  const pending = [];
+  let gcWait = 0;
+  const gcReady = () => {
+    const gc = window.goatcounter;
+    return !!(gc && typeof gc.count === 'function');
+  };
+  function sendCount(item) {
+    try { window.goatcounter.count({ path: item.path, title: item.title, event: true }); } catch (e) { /* pas de statistiques */ }
+  }
   function track(path, title) {
+    if (gcReady()) { sendCount({ path: path, title: title }); return; }
+    pending.push({ path: path, title: title });
+    if (gcWait) return;
+    let tries = 0;
+    gcWait = setInterval(() => {
+      tries += 1;
+      if (gcReady()) {
+        clearInterval(gcWait);
+        gcWait = 0;
+        pending.splice(0).forEach(sendCount);
+      } else if (tries > 60) {
+        clearInterval(gcWait);
+        gcWait = 0;
+        pending.length = 0;
+      }
+    }, 250);
+  }
+
+  // Une seule fois par appareil : « nouvel-appareil ». Puis une fois par jour : « visite-de-retour ».
+  // Rien d'identifiant n'est envoyé; seule une date reste sur l'appareil.
+  function dayKey(d) {
+    const x = d || new Date();
+    return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+  }
+  function countDevice() {
+    const today = dayKey();
     try {
-      const gc = window.goatcounter;
-      if (gc && typeof gc.count === 'function') gc.count({ path: path, title: title, event: true });
-    } catch (e) { /* pas de statistiques */ }
+      const ls = window.localStorage;
+      if (!ls.getItem(KEY_FIRST)) {
+        const knew = !!(ls.getItem(KEY_SETTINGS) || ls.getItem(KEY_HISTORY));
+        ls.setItem(KEY_FIRST, knew ? 'avant' : today);
+        ls.setItem(KEY_LAST, today);
+        if (!ls.getItem(KEY_FIRST)) return;
+        if (knew) track('visite-de-retour', 'Visite de retour');
+        else track('nouvel-appareil', 'Nouvel appareil');
+        return;
+      }
+      if (ls.getItem(KEY_LAST) !== today) {
+        ls.setItem(KEY_LAST, today);
+        track('visite-de-retour', 'Visite de retour');
+      }
+    } catch (e) { /* stockage indisponible : on ne compte pas l'appareil */ }
   }
 
   /* ---------- Son de fin (doux, optionnel) ---------- */
@@ -1010,12 +1245,16 @@ button { cursor: pointer; touch-action: manipulation; }
 
   /* ---------- Écran des réglages ---------- */
   function buildSetup() {
+    $('ops').innerHTML = OP_KEYS.map((k) =>
+      '<label class="choice op-chip"><input type="checkbox" id="op-' + k + '" value="' + k + '"><span><b class="sym" aria-hidden="true">' + OPS[k].sym + '</b>' + OPS[k].name + '</span></label>'
+    ).join('');
     $('tables').innerHTML = TABLES.map((t) =>
       '<label class="choice bubble"><input type="checkbox" id="tbl-' + t + '" value="' + t + '" aria-label="Table de ' + t + '"><span>' + t + '</span></label>'
     ).join('');
   }
 
   function syncSetup() {
+    OP_KEYS.forEach((k) => { $('op-' + k).checked = settings.ops.indexOf(k) >= 0; });
     TABLES.forEach((t) => { $('tbl-' + t).checked = settings.tables.indexOf(t) >= 0; });
     $('min-' + settings.minutes).checked = true;
     $('kind-' + settings.kind).checked = true;
@@ -1027,10 +1266,11 @@ button { cursor: pointer; touch-action: manipulation; }
 
   function refreshSetup() {
     const t = settings.tables[0];
-    $('eq-product').innerHTML = miniEq(t, EXAMPLE_K, 'c');
-    $('eq-missing').innerHTML = miniEq(t, EXAMPLE_K, 'b');
-    $('eq-mix').innerHTML = miniEq(t, EXAMPLE_K, 'c') + miniEq(EXAMPLE_K, t, 'a');
-    $('summary').textContent = settings.count + ' questions · ' + settings.minutes + ' minutes · ' + tablesLabel(settings.tables, true);
+    const op = settings.ops[0];
+    $('eq-product').innerHTML = miniEq(exampleQ(op, t, EXAMPLE_K, 'product'));
+    $('eq-missing').innerHTML = miniEq(exampleQ(op, t, EXAMPLE_K, 'missing'));
+    $('eq-mix').innerHTML = miniEq(exampleQ(op, t, EXAMPLE_K, 'product')) + miniEq(exampleQ(op, t, EXAMPLE_K, 'missing2'));
+    $('summary').textContent = settings.count + ' questions · ' + settings.minutes + ' minutes · ' + opsLabel(settings.ops) + ' · ' + tablesLabel(settings.tables, true);
     $('preview').innerHTML = buildQuestions(settings, 4).map((q) => '<div class="cell">' + eqHTML(q, '', '') + '</div>').join('');
   }
 
@@ -1048,7 +1288,7 @@ button { cursor: pointer; touch-action: manipulation; }
       d.textContent = fmtShort(new Date(h.at || Date.now()));
       const w = document.createElement('span');
       w.className = 'h-what';
-      w.textContent = (h.name ? h.name + ' · ' : '') + tablesLabel(h.tables) + ' · ' + h.minutes + ' min';
+      w.textContent = (h.name ? h.name + ' · ' : '') + tablesLabel(h.tables) + ' · ' + opsSymbols(h.ops) + ' · ' + h.minutes + ' min';
       const sc = document.createElement('span');
       sc.className = 'h-score';
       sc.textContent = h.score + '/' + h.total;
@@ -1065,7 +1305,7 @@ button { cursor: pointer; touch-action: manipulation; }
     const raw = store.get(KEY_HISTORY, []);
     const list = Array.isArray(raw) ? raw : [];
     list.unshift({
-      at: Date.now(), name: run.name || '', tables: run.tables, minutes: run.minutes,
+      at: Date.now(), name: run.name || '', ops: run.ops, tables: run.tables, minutes: run.minutes,
       score: g.score, total: g.total, usedS: Math.round(g.usedMs / 1000), reason: run.reason
     });
     store.set(KEY_HISTORY, list.slice(0, 30));
@@ -1081,6 +1321,7 @@ button { cursor: pointer; touch-action: manipulation; }
       current: 0,
       fresh: true,
       practice: !!practice,
+      ops: settings.ops.slice(),
       tables: settings.tables.slice(),
       minutes: settings.minutes,
       kind: settings.kind,
@@ -1092,7 +1333,10 @@ button { cursor: pointer; touch-action: manipulation; }
       reason: '',
       phase: 'countdown'
     };
-    if (!practice) track('feuille-commencee', 'Feuille commencée');
+    if (!practice) {
+      track('feuille-commencee', 'Feuille commencée');
+      settings.ops.forEach((k) => track(OPS[k].event, OPS[k].name));
+    }
     renderTest();
     show('test');
     countdown(beginLive);
@@ -1103,7 +1347,7 @@ button { cursor: pointer; touch-action: manipulation; }
     announced = {};
     lastClock = '';
     lastWidth = -1;
-    $('test-title').textContent = run.practice ? 'Pratique' : tablesLabel(run.tables);
+    $('test-title').textContent = run.practice ? 'Pratique' : tablesLabel(run.tables) + ' · ' + opsSymbols(run.ops);
     const clock = $('clock');
     clock.classList.toggle('is-practice', run.practice);
     clock.classList.remove('is-low');
@@ -1369,10 +1613,14 @@ button { cursor: pointer; touch-action: manipulation; }
     return 'ON CONTINUE!';
   }
 
+  function runLabel(run) {
+    return opsLabel(run.ops, true) + ' · ' + tablesLabel(run.tables, true) + ' · ' + run.minutes + ' minutes';
+  }
+
   function showResults() {
     const run = S.run;
     const g = run.graded;
-    $('r-eyebrow').textContent = run.practice ? 'Pratique · questions manquées' : tablesLabel(run.tables) + ' · ' + run.minutes + ' minutes';
+    $('r-eyebrow').textContent = run.practice ? 'Pratique · questions manquées' : runLabel(run);
     $('r-name-row').hidden = !run.name;
     $('r-name').textContent = run.name || '';
     $('r-date').textContent = fmtLong(new Date());
@@ -1399,14 +1647,18 @@ button { cursor: pointer; touch-action: manipulation; }
     retry.hidden = !missed.length;
     retry.textContent = missed.length === 1 ? 'Reprendre la question manquée' : 'Reprendre les ' + missed.length + ' questions manquées';
 
+    // Faits à revoir, écrits sous leur forme habituelle (4 × 7 = 28, 28 ÷ 4 = 7…).
     const seen = {};
     const facts = [];
     missed.forEach((x) => {
-      const key = factKey(x.q);
-      if (!seen[key]) { seen[key] = true; facts.push(x.q); }
+      const q = x.q;
+      const op = OPS[q.op] ? q.op : 'mul';
+      const commutes = op === 'mul' || op === 'add';
+      const key = op + ':' + (commutes ? Math.min(q.t, q.k) + '-' + Math.max(q.t, q.k) : q.t + '-' + q.k);
+      if (!seen[key]) { seen[key] = true; facts.push(canonical(op, q.t, q.k)); }
     });
-    facts.sort((a, b) => (a.t - b.t) || (a.k - b.k));
-    $('review').innerHTML = facts.map((q) => '<li>' + q.t + ' × ' + q.k + ' = ' + (q.t * q.k) + '</li>').join('');
+    facts.sort((a, b) => (OP_KEYS.indexOf(a.op) - OP_KEYS.indexOf(b.op)) || (a.a - b.a) || (a.b - b.b));
+    $('review').innerHTML = facts.map((f) => '<li>' + f.a + ' ' + OPS[f.op].sym + ' ' + f.b + ' = ' + f.c + '</li>').join('');
     $('review-wrap').hidden = !facts.length;
 
     $('corrected').innerHTML = g.items.map(resultCell).join('');
@@ -1417,8 +1669,100 @@ button { cursor: pointer; touch-action: manipulation; }
     stamp.classList.add('is-stamping');
   }
 
+  /* ---------- Boîte à idées : envoyée par courriel à Vincent (Web3Forms) ---------- */
+  let lastSentAt = 0;
+  function setIdeaStatus(text, kind) {
+    const el = $('idea-status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'idea-status' + (kind ? ' is-' + kind : '');
+  }
+  function deviceKind() {
+    const ua = navigator.userAgent || '';
+    if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'iPad';
+    if (/iPhone|iPod/.test(ua)) return 'iPhone';
+    if (/Android/.test(ua)) return /Mobile/.test(ua) ? 'Cellulaire Android' : 'Tablette Android';
+    if (/CrOS/.test(ua)) return 'Chromebook';
+    return 'Ordinateur';
+  }
+  function ideaContext() {
+    const run = S.run;
+    if (S.screen === 'results' && run && run.graded) {
+      const what = run.practice ? 'Pratique des questions manquées' : runLabel(run);
+      return 'Après une feuille : ' + what + ' · ' + run.graded.score + '/' + run.graded.total;
+    }
+    return 'Page d’accueil';
+  }
+  async function sendIdea(e) {
+    e.preventDefault();
+    const msgEl = $('idea-msg');
+    const mailEl = $('idea-email');
+    const btn = $('idea-send');
+    const msg = msgEl.value.trim();
+    const mail = mailEl.value.trim();
+    if (btn.disabled) return;
+    if (msg.length < 3) { setIdeaStatus('Écris ton idée avant d’envoyer.', 'err'); msgEl.focus(); return; }
+    if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { setIdeaStatus('Vérifie ton courriel, ou laisse la case vide.', 'err'); mailEl.focus(); return; }
+    if (lastSentAt && Date.now() - lastSentAt < 20000) { setIdeaStatus('Attends quelques secondes avant d’envoyer une autre idée.', 'err'); return; }
+    if ($('idea-bot').checked) {
+      lastSentAt = Date.now();
+      msgEl.value = '';
+      setIdeaStatus('Merci! Ton idée est envoyée.', 'ok');
+      return;
+    }
+    const payload = {
+      access_key: FEEDBACK_KEY,
+      subject: 'Tables minute : nouvelle suggestion',
+      from_name: 'Tables minute',
+      Suggestion: msg,
+      Contexte: ideaContext(),
+      Appareil: deviceKind()
+    };
+    if (mail) payload.email = mail;
+    btn.disabled = true;
+    btn.textContent = 'Envoi…';
+    setIdeaStatus('', '');
+    try {
+      const res = await fetch(FEEDBACK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      let data = null;
+      try { data = await res.json(); } catch (err) { data = null; }
+      if (!res.ok || (data && data.success === false)) throw new Error('envoi refusé');
+      lastSentAt = Date.now();
+      msgEl.value = '';
+      setIdeaStatus('Merci! Ton idée est envoyée.', 'ok');
+      track('suggestion-envoyee', 'Suggestion envoyée');
+    } catch (err) {
+      setIdeaStatus('Le message n’est pas parti. Vérifie ta connexion Internet et réessaie.', 'err');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Envoyer';
+    }
+  }
+
   /* ---------- Branchements ---------- */
   function bind() {
+    $('ops').addEventListener('change', (e) => {
+      const input = e.target;
+      if (!input || input.type !== 'checkbox') return;
+      const chosen = OP_KEYS.filter((k) => $('op-' + k).checked);
+      const hint = $('ops-hint');
+      if (!chosen.length) {
+        input.checked = true;
+        hint.textContent = 'Garde au moins une opération.';
+        hint.classList.add('is-warn');
+        return;
+      }
+      hint.textContent = 'Tu peux en choisir plusieurs.';
+      hint.classList.remove('is-warn');
+      settings.ops = chosen;
+      saveSettings();
+      refreshSetup();
+    });
+
     $('tables').addEventListener('change', (e) => {
       const input = e.target;
       if (!input || input.type !== 'checkbox') return;
@@ -1527,6 +1871,8 @@ button { cursor: pointer; touch-action: manipulation; }
       }
     });
 
+    $('idea-form').addEventListener('submit', sendIdea);
+
     window.addEventListener('resize', () => {
       if (S.screen === 'test' && S.run) ensureVisible(cells[S.run.current]);
     });
@@ -1549,7 +1895,7 @@ button { cursor: pointer; touch-action: manipulation; }
       screen: S.screen,
       run: {
         questions: r.questions, answers: r.answers, current: r.current, practice: r.practice,
-        tables: r.tables, minutes: r.minutes, kind: r.kind, name: r.name,
+        ops: r.ops, tables: r.tables, minutes: r.minutes, kind: r.kind, name: r.name,
         durationMs: r.durationMs, startedAt: r.startedAt, endsAt: r.endsAt, finishedAt: r.finishedAt,
         reason: r.reason, phase: r.phase
       }
@@ -1579,9 +1925,11 @@ button { cursor: pointer; touch-action: manipulation; }
   function start(data) {
     if (started) return;
     started = true;
+    countDevice();
     buildSetup();
     syncSetup();
     renderHistory();
+    $('ideas').hidden = !FEEDBACK_KEY;
     bind();
     if (!restore(data && data.tablesMinute)) show('setup');
     try {
