@@ -461,6 +461,38 @@ button { cursor: pointer; touch-action: manipulation; }
 .idea-status.is-err { color: var(--red); }
 .hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; opacity: 0; }
 
+/* ---------- Conseil : ouvrir le site hors de Facebook, Messenger ou Instagram ---------- */
+.tip {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px 12px 20px;
+  background: var(--note);
+  border-left: 6px solid var(--pencil);
+  border-radius: 6px 14px 14px 6px;
+  box-shadow: var(--shadow);
+}
+.tip-title { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; line-height: 1.2; text-wrap: balance; }
+.tip-text { margin: 0; max-width: 62ch; line-height: 1.45; }
+.tip-how { margin: 0; max-width: 62ch; font-size: .95rem; line-height: 1.6; color: var(--ink-soft); }
+.tip-key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.9em;
+  height: 1.45em;
+  padding: 0 .3em;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  background: var(--key);
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: -.2em;
+}
+.tip-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding-top: 6px; }
+.tip-status { flex-basis: 100%; margin: 0; font-weight: 700; color: var(--green); overflow-wrap: anywhere; }
+.tip-status:empty { display: none; }
+.tip-status.is-err { color: var(--red); }
+
 /* ---------- Cases de la feuille ---------- */
 .grid { display: grid; gap: 4px 14px; }
 .grid--sheet { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); }
@@ -727,6 +759,17 @@ button { cursor: pointer; touch-action: manipulation; }
   <section class="screen" id="setup" aria-labelledby="setup-title">
     <div class="scroll">
       <div class="wrap">
+        <section class="tip" id="tip" aria-labelledby="tip-title" hidden>
+          <h2 class="tip-title" id="tip-title"></h2>
+          <p class="tip-text" id="tip-text"></p>
+          <p class="tip-how" id="tip-how"></p>
+          <div class="tip-actions">
+            <button type="button" class="btn btn--alt" id="tip-copy">Copier le lien</button>
+            <button type="button" class="btn btn--link" id="tip-close">Plus tard</button>
+            <p class="tip-status" id="tip-status" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+
         <article class="paper">
           <header class="paper-head">
             <div class="brand">
@@ -863,6 +906,10 @@ button { cursor: pointer; touch-action: manipulation; }
               <p>Oui, dans le navigateur d’une tablette, d’un cellulaire ou d’un ordinateur, sans rien installer. On peut aussi l’ajouter à l’écran d’accueil pour l’ouvrir comme une application.</p>
             </details>
             <details>
+              <summary>Où sont gardés les résultats?</summary>
+              <p>Dans le navigateur où la feuille a été faite, sur l’appareil. Le navigateur intégré à Facebook et Safari (ou Chrome) sont deux endroits séparés. Pour tout retrouver, ouvre toujours le site au même endroit, idéalement avec l’icône de l’écran d’accueil.</p>
+            </details>
+            <details>
               <summary>Qui a créé ce site?</summary>
               <p>Vincent, un papa qui voulait aider son garçon à pratiquer ses tables minute. Une idée ou un problème? Écris-lui avec la boîte à idées, plus haut.</p>
             </details>
@@ -997,6 +1044,46 @@ button { cursor: pointer; touch-action: manipulation; }
   const CONFIG = (window.TABLES_MINUTE && typeof window.TABLES_MINUTE === 'object') ? window.TABLES_MINUTE : {};
   const FEEDBACK_KEY = typeof CONFIG.feedbackKey === 'string' ? CONFIG.feedbackKey.trim() : '';
   const FEEDBACK_URL = 'https://api.web3forms.com/submit';
+
+  /* ---------- Navigateur intégré de Facebook, Messenger ou Instagram ---------- */
+  // Dans ces applications, le site s'ouvre dans un navigateur à part, séparé de Safari et de Chrome :
+  // les résultats y restent coincés et on a du mal à y revenir. On propose d'ouvrir le site ailleurs.
+  const UA = navigator.userAgent || '';
+  const IS_ANDROID = /Android/i.test(UA);
+  const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const IN_APP = /Instagram/i.test(UA) ? 'Instagram'
+    : /MessengerForiOS|Orca-Android|MessengerLite/i.test(UA) ? 'Messenger'
+    : /FBAN|FBAV|FB_IAB|FBIOS/.test(UA) ? 'Facebook' : '';
+  // Le lien de sortie porte « ?de=fb ». GoatCounter ignore ce paramètre.
+  const EXIT_PARAM = 'de';
+  const EXIT_VALUE = 'fb';
+  const KEY_TIP_LATER = 'tablesMinute.tipLater';
+  const KEY_HOME = 'tablesMinute.homeScreen';
+  const ARRIVED = !IN_APP && urlParam(EXIT_PARAM) === EXIT_VALUE;
+
+  function urlParam(name) {
+    try { return new URLSearchParams(window.location.search).get(name) || ''; } catch (e) { return ''; }
+  }
+
+  // Avant le compteur de visites (ce script passe avant celui de GoatCounter) :
+  // - dans Facebook, « de=fb » s'ajoute à l'adresse, que « Ouvrir dans le navigateur » emporte avec elle;
+  // - arrivé dans Safari ou Chrome, l'adresse redevient propre, pour ne pas compter deux fois
+  //   la même personne et le même groupe d'origine.
+  try {
+    if (IN_APP && !urlParam(EXIT_PARAM)) {
+      const u = new URL(window.location.href);
+      u.searchParams.set(EXIT_PARAM, EXIT_VALUE);
+      window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash);
+    } else if (ARRIVED) {
+      window.history.replaceState(window.history.state, '', window.location.pathname + window.location.hash);
+    }
+  } catch (e) { /* adresse inchangée */ }
+
+  function isStandalone() {
+    try {
+      return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    } catch (e) { return false; }
+  }
 
   /* ---------- Préférences gardées sur l'appareil ---------- */
   const store = {
@@ -1196,6 +1283,86 @@ button { cursor: pointer; touch-action: manipulation; }
         wrap.appendChild(ideas);
         setIdeaStatus('', '');
       }
+      // Le conseil « ouvre le site dans Safari ou Chrome » aussi : en haut de l'accueil, sous la feuille corrigée.
+      const tip = $('tip');
+      if (wrap && tip && !tip.hidden) {
+        $('tip-status').textContent = '';
+        if (name === 'setup') {
+          if (wrap.firstElementChild !== tip) wrap.insertBefore(tip, wrap.firstElementChild);
+        } else {
+          const paper = wrap.querySelector('.paper');
+          if (paper && paper.nextElementSibling !== tip) wrap.insertBefore(tip, paper.nextElementSibling);
+        }
+      }
+    }
+  }
+
+  /* ---------- Conseil : ouvrir le site hors de Facebook ---------- */
+  function setupTip() {
+    const tip = $('tip');
+    const key = (c) => '<span class="tip-key" aria-hidden="true">' + c + '</span>';
+    const quote = (s) => '«' + NBSP + s + NBSP + '»';
+    let later = false;
+    try { later = window.sessionStorage.getItem(KEY_TIP_LATER) === '1'; } catch (e) { /* rien */ }
+    if (IN_APP && !later) {
+      $('tip-title').textContent = 'Tu es dans ' + IN_APP;
+      $('tip-text').textContent = 'Pour garder tes résultats, ouvre le site dans Safari ou Chrome, puis ajoute-le à ton écran d’accueil.';
+      $('tip-how').innerHTML = 'Touche les trois points ' + key(IS_ANDROID ? '⋮' : '⋯') + ', puis ' + quote('Ouvrir dans le navigateur…') + '.';
+      tip.hidden = false;
+    } else if (ARRIVED && !isStandalone()) {
+      $('tip-title').textContent = 'Parfait!';
+      if (IS_IOS || IS_ANDROID) {
+        $('tip-text').textContent = 'Tes résultats vont rester dans ce navigateur. Pour revenir en un geste, ajoute le site à ton écran d’accueil.';
+        $('tip-how').innerHTML = IS_IOS
+          ? 'Touche Partager (parfois caché sous ' + key('⋯') + '), puis ' + quote('Sur l’écran d’accueil') + '.'
+          : 'Touche les trois points ' + key('⋮') + ', puis ' + quote('Ajouter à l’écran d’accueil') + '.';
+      } else {
+        $('tip-text').textContent = 'Tes résultats vont rester dans ce navigateur.';
+        $('tip-how').textContent = 'Ajoute le site à tes favoris pour le retrouver facilement.';
+      }
+      $('tip-copy').hidden = true;
+      $('tip-close').textContent = 'Compris';
+      $('tip-close').className = 'btn btn--alt';
+      tip.hidden = false;
+    }
+  }
+  function exitLink() {
+    return window.location.origin + window.location.pathname + '?' + EXIT_PARAM + '=' + EXIT_VALUE;
+  }
+  function copyText(text) {
+    const legacy = () => new Promise((resolve, reject) => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '0';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { ta.setSelectionRange(0, text.length); } catch (e) { /* rien */ }
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      if (ok) resolve(); else reject(new Error('copie'));
+    });
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).catch(legacy);
+    return legacy();
+  }
+  function copyExitLink() {
+    const url = exitLink();
+    const status = $('tip-status');
+    copyText(url).then(() => {
+      status.classList.remove('is-err');
+      status.textContent = 'Lien copié. Colle-le dans Safari ou Chrome.';
+    }, () => {
+      status.classList.add('is-err');
+      status.textContent = 'Copie impossible. Voici le lien' + NBSP + ': ' + url;
+    });
+  }
+  function closeTip() {
+    $('tip').hidden = true;
+    if (IN_APP) {
+      try { window.sessionStorage.setItem(KEY_TIP_LATER, '1'); } catch (e) { /* rien */ }
     }
   }
 
@@ -1241,21 +1408,31 @@ button { cursor: pointer; touch-action: manipulation; }
 
   // Une seule fois par appareil : « nouvel-appareil ». Puis une fois par jour : « visite-de-retour ».
   // Rien d'identifiant n'est envoyé; seule une date reste sur l'appareil.
+  // Une même personne n'est pas comptée deux fois quand elle passe de Facebook à Safari ou Chrome
+  // (« passage-navigateur »), ni quand elle ouvre l'icône de l'écran d'accueil (« ecran-accueil ») :
+  // sur iPhone, cette icône a sa propre mémoire, séparée de Safari.
   function dayKey(d) {
     const x = d || new Date();
     return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
   }
   function countDevice() {
     const today = dayKey();
+    if (IN_APP) track('navigateur-facebook', 'Ouvert dans Facebook, Messenger ou Instagram');
+    if (ARRIVED) track('passage-navigateur', 'Passé de Facebook à Safari ou Chrome');
     try {
       const ls = window.localStorage;
+      const home = isStandalone();
+      if (home && !ls.getItem(KEY_HOME)) {
+        ls.setItem(KEY_HOME, today);
+        if (ls.getItem(KEY_HOME)) track('ecran-accueil', 'Ouvert depuis l’écran d’accueil');
+      }
       if (!ls.getItem(KEY_FIRST)) {
         const knew = !!(ls.getItem(KEY_SETTINGS) || ls.getItem(KEY_HISTORY));
         ls.setItem(KEY_FIRST, knew ? 'avant' : today);
         ls.setItem(KEY_LAST, today);
         if (!ls.getItem(KEY_FIRST)) return;
         if (knew) track('visite-de-retour', 'Visite de retour');
-        else track('nouvel-appareil', 'Nouvel appareil');
+        else if (!ARRIVED && !home) track('nouvel-appareil', 'Nouvel appareil');
         return;
       }
       if (ls.getItem(KEY_LAST) !== today) {
@@ -1924,6 +2101,8 @@ button { cursor: pointer; touch-action: manipulation; }
     });
 
     $('idea-form').addEventListener('submit', sendIdea);
+    $('tip-copy').addEventListener('click', copyExitLink);
+    $('tip-close').addEventListener('click', closeTip);
 
     window.addEventListener('resize', () => {
       if (S.screen === 'test' && S.run) ensureVisible(cells[S.run.current]);
@@ -1982,6 +2161,7 @@ button { cursor: pointer; touch-action: manipulation; }
     syncSetup();
     renderHistory();
     $('ideas').hidden = !FEEDBACK_KEY;
+    setupTip();
     bind();
     if (!restore(data && data.tablesMinute)) show('setup');
     try {
