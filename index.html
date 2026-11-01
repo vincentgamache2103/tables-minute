@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tables minute</title>
-<meta name="description" content="Tables minute chronométrées pour la tablette : ×, ÷, + et −, tables au choix, 2, 3 ou 4 minutes, nombres manquants et correction.">
+<title>Tables minute en ligne : multiplication et division, gratuit</title>
+<meta name="description" content="Tables minute gratuites, comme à l’école au Québec : multiplication, division, addition et soustraction, 24 questions en 2 minutes. Sans compte ni pub.">
+<link rel="canonical" href="https://vincentgamache2103.github.io/tables-minute/">
 <meta name="theme-color" content="#E3E9F2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101814" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -16,9 +17,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_CA">
-<meta property="og:title" content="Tables minute">
-<meta property="og:description" content="Tables minute chronométrées pour la tablette : ×, ÷, + et −, tables au choix, 2, 3 ou 4 minutes, nombres manquants et correction.">
+<meta property="og:title" content="Tables minute : la pratique de l’école, à la maison">
+<meta property="og:description" content="24 questions en 2 minutes, comme à l’école : ×, ÷, + et −, nombres manquants et correction. Gratuit, sans compte ni pub.">
 <meta property="og:url" content="https://vincentgamache2103.github.io/tables-minute/">
+<meta property="og:image" content="https://vincentgamache2103.github.io/tables-minute/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Tables minute : 24 questions en 2 minutes, comme à l’école">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 </style>
@@ -380,6 +386,18 @@ button { cursor: pointer; touch-action: manipulation; }
 .empty { margin: 0; color: var(--ink-soft); }
 .fine { margin: 0; padding-top: 6px; font-size: .82rem; color: var(--ink-soft); }
 .fine a { color: inherit; text-underline-offset: 3px; }
+
+/* ---------- À propos et questions fréquentes (texte lisible par Google et les IA) ---------- */
+.wrap--about { padding-block: 0 56px; }
+.about { display: grid; gap: 12px; max-width: 68ch; padding: 22px 6px 0; border-top: 2px solid var(--key-edge); }
+.about h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; line-height: 1.15; text-wrap: balance; }
+.about h3 { margin: 10px 0 0; font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.about p, .about li { margin: 0; line-height: 1.55; }
+.about ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.faq { display: grid; border-top: 1px solid var(--key-edge); }
+.faq details { border-bottom: 1px solid var(--key-edge); }
+.faq summary { padding: 12px 2px; font-weight: 700; cursor: pointer; }
+.faq details p { padding: 0 2px 14px; color: var(--ink-soft); }
 
 /* ---------- Boîte à idées (papillon collé) ---------- */
 .ideas {
@@ -816,6 +834,39 @@ button { cursor: pointer; touch-action: manipulation; }
             </div>
           </form>
           <p class="fine">Ton message va seulement à Vincent. Pas besoin d’écrire ton nom.</p>
+        </section>
+      </div>
+
+      <div class="wrap wrap--about">
+        <section class="about" aria-labelledby="about-title">
+          <h2 id="about-title">C’est quoi, les tables minute?</h2>
+          <p>Au primaire, au Québec, les élèves font des «&nbsp;tables minute&nbsp;» en classe : une feuille d’opérations à remplir le plus vite possible, souvent 24 questions en 2 minutes. C’est une façon de pratiquer le répertoire mémorisé des tables d’addition, de soustraction, de multiplication et de division. Tables minute reprend ce format pour pratiquer à la maison, sur une tablette, un cellulaire ou un ordinateur.</p>
+          <h3>Comment ça marche</h3>
+          <ul>
+            <li>Choisis l’opération (multiplication, division, addition ou soustraction) et les tables, de&nbsp;1 à&nbsp;10.</li>
+            <li>Règle le chrono à 4, 3 ou 2 minutes pour arriver petit à petit au 2 minutes de l’école.</li>
+            <li>Réponds avec le clavier à l’écran. Une question peut demander la réponse (4 × 7 = ?) ou le nombre manquant (4 × ? = 28, 28 ÷ ? = 4).</li>
+            <li>À la fin, la feuille est corrigée : tu vois les faits à revoir et tu peux reprendre seulement tes erreurs.</li>
+          </ul>
+          <h3>Questions fréquentes</h3>
+          <div class="faq">
+            <details>
+              <summary>Est-ce que c’est vraiment gratuit?</summary>
+              <p>Oui. Il n’y a ni compte, ni publicité, ni donnée personnelle. Les résultats restent seulement sur l’appareil de l’enfant.</p>
+            </details>
+            <details>
+              <summary>Pour quels élèves?</summary>
+              <p>Pour les élèves du primaire qui apprennent leurs tables, surtout de la 2e à la 6e année : les additions et les soustractions d’abord, puis les multiplications et les divisions.</p>
+            </details>
+            <details>
+              <summary>Est-ce que ça fonctionne sur iPad ou sur Chromebook?</summary>
+              <p>Oui, dans le navigateur d’une tablette, d’un cellulaire ou d’un ordinateur, sans rien installer. On peut aussi l’ajouter à l’écran d’accueil pour l’ouvrir comme une application.</p>
+            </details>
+            <details>
+              <summary>Qui a créé ce site?</summary>
+              <p>Vincent, un papa qui voulait aider son garçon à pratiquer ses tables minute. Une idée ou un problème? Écris-lui avec la boîte à idées, plus haut.</p>
+            </details>
+          </div>
         </section>
       </div>
     </div>
