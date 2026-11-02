@@ -372,6 +372,16 @@ button { cursor: pointer; touch-action: manipulation; }
 /* ---------- Derniers essais ---------- */
 .history { display: grid; gap: 8px; padding: 0 6px; }
 .history h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; }
+
+/* ---------- Faire connaître le site : liens de partage simples, sans bouton de réseau social ni traceur ---------- */
+.share { display: grid; gap: 10px; padding: 0 6px; }
+.share h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; }
+.share-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.share-row .btn { min-height: 46px; padding: 0 1rem; font-size: .98rem; }
+.share-row a.btn { color: var(--ink); text-decoration: none; }
+.share-status { margin: 0; font-weight: 700; color: var(--green); overflow-wrap: anywhere; }
+.share-status:empty { display: none; }
+.share-status.is-err { color: var(--ink); font-weight: 400; }
 .history ol { list-style: none; margin: 0; padding: 0; display: grid; }
 .history li {
   display: grid;
@@ -863,6 +873,19 @@ button { cursor: pointer; touch-action: manipulation; }
           <p class="fine">Compteur de visites anonyme (GoatCounter) : aucun témoin, aucune adresse IP conservée. <a href="https://www.goatcounter.com/privacy" rel="noopener">Détails</a></p>
         </section>
 
+        <section class="share" id="share" aria-labelledby="share-title">
+          <h2 id="share-title">Faire connaître Tables minute</h2>
+          <p class="hint">Parents et profs : un partage aide d’autres familles à trouver le site. Gratuit, sans compte et sans pub.</p>
+          <div class="share-row">
+            <button type="button" class="btn btn--go" id="share-native" hidden>Partager</button>
+            <a class="btn btn--alt" id="share-fb" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Facebook</a>
+            <a class="btn btn--alt" id="share-pin" href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Pinterest</a>
+            <a class="btn btn--alt" id="share-mail" href="mailto:?subject=Tables%20minute&amp;body=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage">Courriel</a>
+            <button type="button" class="btn btn--alt" id="share-copy">Copier le lien</button>
+          </div>
+          <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
+        </section>
+
         <section class="ideas" id="ideas" aria-labelledby="ideas-title" hidden>
           <h2 id="ideas-title">Une idée pour Tables minute?</h2>
           <p class="hint">Une opération à ajouter, un problème, une autre idée? Écris-la ici. Vincent, le papa qui a créé le site, la reçoit par courriel.</p>
@@ -1290,6 +1313,12 @@ button { cursor: pointer; touch-action: manipulation; }
         wrap.appendChild(ideas);
         setIdeaStatus('', '');
       }
+      // Le bloc de partage aussi, juste avant la boîte à idées.
+      const share = $('share');
+      if (wrap && share && share.parentNode !== wrap) {
+        wrap.insertBefore(share, ideas && ideas.parentNode === wrap ? ideas : null);
+        $('share-status').textContent = '';
+      }
       // Le conseil « ouvre le site dans Safari ou Chrome » aussi : en haut de l'accueil, sous la feuille corrigée.
       const tip = $('tip');
       if (wrap && tip && !tip.hidden) {
@@ -1371,6 +1400,38 @@ button { cursor: pointer; touch-action: manipulation; }
     if (IN_APP) {
       try { window.sessionStorage.setItem(KEY_TIP_LATER, '1'); } catch (e) { /* rien */ }
     }
+  }
+
+  /* ---------- Faire connaître le site ---------- */
+  // Le lien partagé porte ?ref=partage pour qu'on voie ces visites dans GoatCounter.
+  const SHARE_URL = new URL('./', window.location.href).href + '?ref=partage';
+  const SHARE_TEXT = 'Tables minute : les tables minute de l’école, à la maison. Gratuit, sans compte et sans pub.';
+  function setupShare() {
+    const enc = encodeURIComponent;
+    const img = new URL('og-image.png', new URL('./', window.location.href)).href;
+    $('share-fb').href = 'https://www.facebook.com/sharer/sharer.php?u=' + enc(SHARE_URL);
+    $('share-pin').href = 'https://www.pinterest.com/pin/create/button/?url=' + enc(SHARE_URL) + '&media=' + enc(img) + '&description=' + enc(SHARE_TEXT);
+    $('share-mail').href = 'mailto:?subject=' + enc('Tables minute : pratiquer les tables à la maison') + '&body=' + enc(SHARE_TEXT + '\n\n' + SHARE_URL);
+    $('share-native').hidden = typeof navigator.share !== 'function';
+  }
+  function shareSay(text, plain) {
+    const s = $('share-status');
+    s.classList.toggle('is-err', !!plain);
+    s.textContent = text;
+  }
+  function shareNative() {
+    track('partage-natif', 'Partage avec le menu du téléphone');
+    try {
+      navigator.share({ title: 'Tables minute', text: SHARE_TEXT, url: SHARE_URL })
+        .then(() => shareSay('Merci de faire connaître Tables minute!'), () => { /* menu fermé */ });
+    } catch (e) { /* menu de partage indisponible */ }
+  }
+  function shareCopy() {
+    track('partage-lien', 'Lien copié pour partager');
+    const fail = () => shareSay('Voici le lien' + NBSP + ': ' + SHARE_URL, true);
+    try {
+      navigator.clipboard.writeText(SHARE_URL).then(() => shareSay('Lien copié.'), fail);
+    } catch (e) { fail(); }
   }
 
   function say(msg) {
@@ -2110,6 +2171,11 @@ button { cursor: pointer; touch-action: manipulation; }
     $('idea-form').addEventListener('submit', sendIdea);
     $('tip-copy').addEventListener('click', copyExitLink);
     $('tip-close').addEventListener('click', closeTip);
+    $('share-native').addEventListener('click', shareNative);
+    $('share-copy').addEventListener('click', shareCopy);
+    $('share-fb').addEventListener('click', () => track('partage-facebook', 'Partage sur Facebook'));
+    $('share-pin').addEventListener('click', () => track('partage-pinterest', 'Partage sur Pinterest'));
+    $('share-mail').addEventListener('click', () => track('partage-courriel', 'Partage par courriel'));
 
     window.addEventListener('resize', () => {
       if (S.screen === 'test' && S.run) ensureVisible(cells[S.run.current]);
@@ -2169,6 +2235,7 @@ button { cursor: pointer; touch-action: manipulation; }
     renderHistory();
     $('ideas').hidden = !FEEDBACK_KEY;
     setupTip();
+    setupShare();
     bind();
     if (!restore(data && data.tablesMinute)) show('setup');
     try {

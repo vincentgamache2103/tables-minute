@@ -162,6 +162,8 @@ h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1
   font-size: .98rem; line-height: 1.45;
 }
 .others { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.share-line { display: grid; gap: 8px; justify-items: start; padding-top: 16px; border-top: 1.5px dashed var(--line); }
+.share-line .status { overflow-wrap: anywhere; }
 .chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--key); font-weight: 700; }
 .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 
@@ -300,6 +302,11 @@ h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1
       </div>
       <div><button type="button" class="btn btn--link" id="another">Créer un code pour une autre classe</button></div>
     </section>
+
+    <div class="share-line">
+      <button type="button" class="btn" id="share-page">Partager cette page à un collègue</button>
+      <p class="status" id="share-status" role="status" aria-live="polite"></p>
+    </div>
   </article>
 
   <section class="preview" id="preview" aria-labelledby="preview-title" hidden>
@@ -540,7 +547,26 @@ h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1
     $('kit').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
+  // Partager la page à un collègue : menu du téléphone, sinon copie du lien.
+  function sharePage() {
+    const url = BASE + 'classe.html?ref=partage-prof';
+    const node = $('share-status');
+    track('partage-prof', 'Page enseignants partagée');
+    if (typeof navigator.share === 'function') {
+      try {
+        navigator.share({ title: 'Tables minute en classe', text: 'Une trousse gratuite pour la classe : un code QR et une feuille pour les parents.', url: url })
+          .then(() => say(node, 'Merci de faire connaître Tables minute!'), () => { /* menu fermé */ });
+        return;
+      } catch (e) { /* on copie le lien */ }
+    }
+    const plain = () => say(node, 'Voici le lien : ' + url);
+    try {
+      navigator.clipboard.writeText(url).then(() => say(node, 'Lien copié. Collez-le dans un courriel ou un message à vos collègues.'), plain);
+    } catch (e) { plain(); }
+  }
+
   $('create').addEventListener('click', create);
+  $('share-page').addEventListener('click', sharePage);
   $('another').addEventListener('click', create);
   $('print').addEventListener('click', () => { track('trousse-imprimee', 'Feuille parents imprimée'); window.print(); });
   $('copy-link').addEventListener('click', () => copy(classLink(state.current), $('status'), 'Lien copié.'));
