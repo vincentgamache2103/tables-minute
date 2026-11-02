@@ -214,6 +214,7 @@ button { cursor: pointer; touch-action: manipulation; }
 .title--sm { font-size: clamp(1.8rem, 4.6vw, 2.6rem); }
 .hl { background: linear-gradient(transparent 56%, var(--highlight) 56%, var(--highlight) 92%, transparent 92%); padding: 0 .06em; }
 .lede { margin: 0; max-width: 40ch; color: var(--ink-soft); font-size: 1.05rem; }
+.teach-link { justify-self: start; color: var(--ink); font-size: .95rem; font-weight: 700; text-decoration-color: var(--pencil-deep); text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .eyebrow { margin: 0; font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
 
 .nameplate { display: grid; gap: 10px; margin: 0; width: min(100%, 280px); }
@@ -398,6 +399,7 @@ button { cursor: pointer; touch-action: manipulation; }
 .faq details { border-bottom: 1px solid var(--key-edge); }
 .faq summary { padding: 12px 2px; font-weight: 700; cursor: pointer; }
 .faq details p { padding: 0 2px 14px; color: var(--ink-soft); }
+.faq a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }
 
 /* ---------- Boîte à idées (papillon collé) ---------- */
 .ideas {
@@ -775,6 +777,7 @@ button { cursor: pointer; touch-action: manipulation; }
             <div class="brand">
               <h1 class="title" id="setup-title">Tables <span class="hl">minute</span></h1>
               <p class="lede">Réponds au plus de questions possible avant que le crayon soit tout usé.</p>
+              <a class="teach-link" href="classe.html">Enseignant? La trousse gratuite pour votre classe →</a>
             </div>
             <dl class="nameplate">
               <div class="np-row">
@@ -908,6 +911,10 @@ button { cursor: pointer; touch-action: manipulation; }
             <details>
               <summary>Où sont gardés les résultats?</summary>
               <p>Dans le navigateur où la feuille a été faite, sur l’appareil. Le navigateur intégré à Facebook et Safari (ou Chrome) sont deux endroits séparés. Pour tout retrouver, ouvre toujours le site au même endroit, idéalement avec l’icône de l’écran d’accueil.</p>
+            </details>
+            <details>
+              <summary>Comment l’utiliser avec ma classe?</summary>
+              <p>Créez la <a href="classe.html">trousse de votre classe</a> : un code QR à projeter et une feuille d’une page pour les parents, à imprimer ou à envoyer en PDF. C’est gratuit et sans compte.</p>
             </details>
             <details>
               <summary>Qui a créé ce site?</summary>

@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tables minute en classe : la trousse gratuite pour les enseignants</title>
+<meta name="description" content="Créez la trousse de votre classe : un code QR à projeter et une feuille d’une page pour les parents. Gratuit, sans compte et sans pub.">
+<link rel="canonical" href="https://vincentgamache2103.github.io/tables-minute/classe.html">
+<meta name="theme-color" content="#E3E9F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101814" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_CA">
+<meta property="og:title" content="Tables minute en classe : la trousse gratuite">
+<meta property="og:description" content="Un code QR pour votre classe et une feuille d’une page pour les parents. Gratuit, sans compte et sans pub.">
+<meta property="og:image" content="https://vincentgamache2103.github.io/tables-minute/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Grandstander:wght@800;900&family=Patrick+Hand&display=swap">
+<style>
+/* Page pour les enseignants : le même pupitre et la même feuille quadrillée que le site. En haut, la trousse de la classe; dessous, l'aperçu de la feuille pour les parents, la seule chose qui s'imprime. */
+:root {
+  color-scheme: light;
+  --desk: #E3E9F2;
+  --paper: #FDFEFF;
+  --grid: #DCE6F3;
+  --margin: #F0ABAB;
+  --ink: #252A33;
+  --ink-soft: #5E6777;
+  --line: #A3AEBE;
+  --key: #FFFFFF;
+  --key-edge: #C3CCD9;
+  --pencil: #F7C21B;
+  --pencil-deep: #CF9806;
+  --on-pencil: #2A2104;
+  --highlight: rgba(255, 208, 0, .42);
+  --green: #1B8449;
+  --red: #CC2236;
+  --veil: rgba(227, 233, 242, .94);
+  --shadow: 0 1px 2px rgba(25, 35, 60, .08), 0 14px 30px -18px rgba(25, 35, 60, .35);
+  --font-display: "Grandstander", ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
+  --font-hand: "Patrick Hand", "Chalkboard SE", "Marker Felt", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #101814;
+    --paper: #19241F;
+    --grid: rgba(214, 232, 222, .07);
+    --margin: rgba(255, 130, 130, .34);
+    --ink: #EDF2EC;
+    --ink-soft: #A3B1A9;
+    --line: rgba(237, 242, 236, .42);
+    --key: #22302A;
+    --key-edge: #0A100D;
+    --pencil: #F4C944;
+    --pencil-deep: #B68C12;
+    --on-pencil: #241B02;
+    --highlight: rgba(244, 201, 68, .26);
+    --green: #7DDCA4;
+    --red: #FF8A7A;
+    --veil: rgba(16, 24, 20, .95);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 16px 32px -18px rgba(0, 0, 0, .8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #101814;
+  --paper: #19241F;
+  --grid: rgba(214, 232, 222, .07);
+  --margin: rgba(255, 130, 130, .34);
+  --ink: #EDF2EC;
+  --ink-soft: #A3B1A9;
+  --line: rgba(237, 242, 236, .42);
+  --key: #22302A;
+  --key-edge: #0A100D;
+  --pencil: #F4C944;
+  --pencil-deep: #B68C12;
+  --on-pencil: #241B02;
+  --highlight: rgba(244, 201, 68, .26);
+  --green: #7DDCA4;
+  --red: #FF8A7A;
+  --veil: rgba(16, 24, 20, .95);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 16px 32px -18px rgba(0, 0, 0, .8);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--desk);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  padding: env(safe-area-inset-top, 0px) max(16px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(16px, env(safe-area-inset-left, 0px));
+  -webkit-tap-highlight-color: transparent;
+}
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; touch-action: manipulation; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+.wrap { max-width: 960px; margin: 0 auto; padding-block: 20px 48px; display: grid; gap: 28px; }
+.paper {
+  position: relative;
+  display: grid;
+  gap: 20px;
+  padding: 26px 26px 30px 52px;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+.paper::before { content: ""; position: absolute; top: 0; bottom: 0; left: 32px; width: 2px; background: var(--margin); pointer-events: none; }
+.back { justify-self: start; color: var(--ink-soft); font-weight: 700; text-underline-offset: 4px; }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(2.2rem, 6vw, 3.4rem); line-height: .95; text-wrap: balance; }
+h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; line-height: 1.2; }
+.hl { background: linear-gradient(transparent 56%, var(--highlight) 56%, var(--highlight) 92%, transparent 92%); padding: 0 .06em; }
+.lede { margin: 0; max-width: 56ch; font-size: 1.1rem; color: var(--ink-soft); }
+.eyebrow { margin: 0; font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.fine { margin: 0; max-width: 62ch; font-size: .9rem; color: var(--ink-soft); }
+.hint { margin: 0; font-size: .92rem; color: var(--ink-soft); }
+.hint.is-warn { color: var(--red); font-weight: 700; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 1.2rem;
+  border-radius: 12px; border: 1px solid var(--key-edge); border-bottom-width: 4px;
+  background: var(--key); color: var(--ink);
+  font-weight: 700; font-size: 1rem; line-height: 1.1; text-align: center; text-decoration: none;
+  -webkit-user-select: none; user-select: none;
+}
+.btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+.btn--go { min-height: 56px; padding: 0 1.6rem; background: var(--pencil); color: var(--on-pencil); border-color: var(--pencil-deep); font-size: 1.12rem; }
+.btn--link { min-height: 44px; padding: 0 .3rem; border: 0; background: transparent; color: var(--ink-soft); text-decoration: underline; text-underline-offset: 4px; }
+.btn--link:active { transform: none; }
+
+.start { display: grid; gap: 12px; justify-items: start; }
+.kit { display: grid; gap: 22px; }
+.code-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.class-code { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: 2.6rem; line-height: 1; }
+.kit-grid { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.qr-card { margin: 0; display: grid; gap: 8px; justify-items: center; padding: 14px; background: #FFFFFF; border: 2px solid var(--line); border-radius: 14px; color: #252A33; }
+.qr-card svg { width: 100%; height: auto; display: block; }
+.qr-card figcaption { font-family: var(--font-display); font-weight: 800; font-size: 1rem; text-align: center; }
+.kit-actions { display: grid; gap: 12px; justify-items: start; min-width: 0; }
+.link-text { margin: 0; max-width: 100%; font-size: .92rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+.status { margin: 0; font-weight: 700; color: var(--green); }
+.status:empty { display: none; }
+.status.is-err { color: var(--red); }
+.msg { display: grid; gap: 10px; }
+.msg-box {
+  width: 100%; min-height: 9rem; padding: 12px; resize: vertical;
+  border: 1.5px solid var(--line); border-radius: 10px; background: var(--key);
+  font-size: .98rem; line-height: 1.45;
+}
+.others { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--key); font-weight: 700; }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+.preview { display: grid; gap: 10px; }
+.preview-frame { width: 100%; overflow: hidden; border-radius: 4px; box-shadow: var(--shadow); background: #FFFFFF; }
+.preview-scale { transform-origin: top left; }
+
+/* Grand code QR à projeter */
+.big {
+  position: fixed; inset: 0; z-index: 20;
+  display: grid; place-items: center; align-content: center; gap: 18px;
+  padding: max(20px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) max(20px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  background: #FFFFFF; color: #252A33; text-align: center;
+}
+.big-title { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(1.8rem, 5vw, 3.2rem); line-height: 1; }
+.big-qr { width: min(78vw, 62vh); }
+.big-qr svg { width: 100%; height: auto; display: block; }
+.big-code { margin: 0; font-size: 1.1rem; color: #5E6777; }
+.big .btn { background: #FFFFFF; color: #252A33; border-color: #C3CCD9; }
+
+/* ---------- La feuille pour les parents (aperçu à l'écran, seule page imprimée) ---------- */
+.sheet {
+  position: relative; width: 7.5in; height: 9.9in; overflow: hidden;
+  padding: .38in .45in .3in .82in;
+  background-color: #FFFFFF;
+  background-image: linear-gradient(#E9EFF7 1px, transparent 1px), linear-gradient(90deg, #E9EFF7 1px, transparent 1px);
+  background-size: .25in .25in;
+  display: flex; flex-direction: column; gap: .2in;
+  color: #252A33; font-family: var(--font-body);
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.sheet::before { content: ""; position: absolute; top: 0; bottom: 0; left: .56in; width: 2px; background: #F0ABAB; }
+.s-head { display: grid; gap: .05in; border-bottom: 2px solid #252A33; padding-bottom: .14in; }
+.s-title { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: 40pt; line-height: .95; }
+.s-title .hl { background: linear-gradient(transparent 56%, rgba(255, 208, 0, .55) 56%, rgba(255, 208, 0, .55) 92%, transparent 92%); }
+.s-sub { margin: 0; font-size: 13.5pt; color: #5E6777; }
+.s-chips { display: flex; gap: .09in; margin-top: .05in; }
+.s-chip { padding: .02in .13in; border: 1.5px solid #252A33; border-radius: 999px; font-weight: 700; font-size: 10pt; background: #FFFFFF; }
+.s-hello { margin: 0; font-size: 12.5pt; line-height: 1.45; }
+.s-mid { display: grid; grid-template-columns: minmax(0, 1fr) 2.55in; gap: .3in; align-items: start; }
+.s-h2 { margin: 0 0 .1in; font-family: var(--font-display); font-weight: 800; font-size: 16pt; }
+.s-steps { list-style: none; margin: 0 0 .2in; padding: 0; display: grid; gap: .1in; counter-reset: s; }
+.s-steps li { position: relative; padding-left: .44in; font-size: 12pt; line-height: 1.36; counter-increment: s; }
+.s-steps li::before {
+  content: counter(s); position: absolute; left: 0; top: -.01in; width: .3in; height: .3in; border-radius: 50%;
+  background: #F7C21B; border: 1.5px solid #CF9806; color: #2A2104;
+  font-family: var(--font-display); font-weight: 900; font-size: 12pt; line-height: .28in; text-align: center;
+}
+.s-tips { margin: 0; padding-left: .2in; display: grid; gap: .07in; font-size: 11.5pt; line-height: 1.36; }
+.s-right { display: grid; gap: .15in; }
+.s-card { display: grid; justify-items: center; gap: .07in; padding: .15in .15in .13in; background: #FFFFFF; border: 2px solid #252A33; border-radius: .13in; }
+.s-scan { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 15pt; }
+.s-qr { width: 2.15in; }
+.s-qr svg { width: 100%; height: auto; display: block; }
+.s-url { margin: 0; font-size: 9pt; line-height: 1.35; font-weight: 700; text-align: center; overflow-wrap: anywhere; }
+.s-code { margin: 0; font-size: 8.5pt; color: #5E6777; }
+.s-kinds { display: grid; gap: .08in; padding: .12in .14in; border: 1.5px dashed #A3AEBE; border-radius: .11in; background: #FFFFFF; }
+.s-kinds-title { margin: 0; font-weight: 700; font-size: 10pt; }
+.s-eq { display: flex; align-items: center; gap: .06in; font-weight: 700; font-size: 14pt; }
+.s-eq .op { font-weight: 400; color: #5E6777; }
+.s-box { display: inline-block; width: .38in; height: .27in; border: 2px dashed #A3AEBE; border-radius: .05in; }
+.s-kinds-note { margin: 0; font-size: 9pt; color: #5E6777; }
+.s-foot { margin-top: auto; display: grid; gap: .12in; }
+.s-pencil { display: flex; height: .26in; width: 5in; }
+.s-pencil .e { width: .3in; background: #F29CAD; border-radius: .09in 0 0 .09in; }
+.s-pencil .f { width: .23in; background: repeating-linear-gradient(90deg, #BEC5D0 0 .045in, #8C95A3 .045in .065in); }
+.s-pencil .b { flex: 1; background: linear-gradient(#FFDC66 0 33%, #F7C21B 33% 67%, #CF9806 67%); }
+.s-pencil .t { width: .46in; clip-path: polygon(0 0, 100% 50%, 0 100%); background: linear-gradient(90deg, #EDC793 0 62%, #3A404A 62%); }
+.s-sign { margin: 0; font-family: var(--font-hand); font-size: 18pt; line-height: 1.1; }
+.s-fine { margin: 0; font-size: 8.5pt; line-height: 1.4; color: #5E6777; }
+
+@media (max-width: 680px) {
+  .paper { padding: 20px 14px 24px 30px; }
+  .paper::before { left: 18px; }
+  .kit-grid { grid-template-columns: minmax(0, 1fr); }
+  .qr-card { max-width: 280px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .001ms !important; }
+}
+@page { size: letter; margin: .5in; }
+@media print {
+  html, body { background: #FFFFFF !important; padding: 0 !important; margin: 0 !important; }
+  .wrap { display: block; max-width: none; padding: 0; }
+  .wrap > :not(.preview), .preview > :not(.preview-frame), .big { display: none !important; }
+  .preview-frame { box-shadow: none; border-radius: 0; overflow: visible; width: auto !important; height: auto !important; }
+  .preview-scale { transform: none !important; }
+  .sheet { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <article class="paper" aria-labelledby="page-title">
+    <a class="back" href="./">← Retour aux tables minute</a>
+    <h1 id="page-title">Tables minute <span class="hl">en classe</span></h1>
+    <p class="lede">Une trousse gratuite pour votre classe : un code QR à projeter et une feuille d’une page pour les parents. Sans compte et sans pub.</p>
+
+    <section class="start" id="start" aria-label="Créer la trousse">
+      <button type="button" class="btn btn--go" id="create">Créer la trousse de ma classe</button>
+      <p class="fine">Votre classe reçoit un code, par exemple c-k7m2. Il sert seulement à compter, de façon anonyme, combien de classes utilisent le site. Rien n’est demandé sur vous ni sur vos élèves.</p>
+    </section>
+
+    <section class="kit" id="kit" aria-labelledby="kit-title" hidden>
+      <div class="code-line">
+        <p class="eyebrow" id="kit-title">Code de votre classe</p>
+        <p class="class-code" id="code"></p>
+      </div>
+      <p class="hint is-warn" id="inapp" hidden></p>
+      <div class="kit-grid">
+        <figure class="qr-card">
+          <div id="qr" aria-hidden="true"></div>
+          <figcaption>Scanne pour pratiquer tes tables</figcaption>
+        </figure>
+        <div class="kit-actions">
+          <button type="button" class="btn btn--go" id="print">Imprimer la feuille pour les parents</button>
+          <p class="hint">Dans la fenêtre d’impression, vous pouvez aussi l’enregistrer en PDF pour l’envoyer par courriel.</p>
+          <button type="button" class="btn" id="show-big">Afficher le code QR en grand</button>
+          <a class="btn" id="png" href="#" download="code-qr.png">Télécharger l’image du code QR</a>
+          <button type="button" class="btn" id="copy-link">Copier le lien de la classe</button>
+          <p class="link-text" id="link"></p>
+          <p class="status" id="status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="msg">
+        <h2 id="msg-title">Message à envoyer aux parents</h2>
+        <textarea class="msg-box" id="msg" readonly aria-labelledby="msg-title"></textarea>
+        <div><button type="button" class="btn" id="copy-msg">Copier le message</button></div>
+        <p class="status" id="msg-status" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="others" id="others" hidden>
+        <span class="hint">Vos classes :</span>
+        <span id="others-list" class="others"></span>
+      </div>
+      <div><button type="button" class="btn btn--link" id="another">Créer un code pour une autre classe</button></div>
+    </section>
+  </article>
+
+  <section class="preview" id="preview" aria-labelledby="preview-title" hidden>
+    <p class="eyebrow" id="preview-title">Aperçu de la feuille pour les parents</p>
+    <div class="preview-frame" id="frame">
+      <div class="preview-scale" id="scale">
+        <div class="sheet" id="sheet">
+          <header class="s-head">
+            <p class="s-title">Tables <span class="hl">minute</span></p>
+            <p class="s-sub">Pour pratiquer les tables minute de l’école, à la maison</p>
+            <div class="s-chips"><span class="s-chip">Gratuit</span><span class="s-chip">Sans compte</span><span class="s-chip">Sans pub</span></div>
+          </header>
+          <p class="s-hello">Bonjour! Je m’appelle Vincent et je suis papa. J’ai créé ce site pour que mon garçon pratique ses tables minute comme en classe : <b>24 questions, un crayon qui raccourcit, et la feuille se corrige toute seule.</b> Je l’offre gratuitement à toutes les familles.</p>
+          <div class="s-mid">
+            <div>
+              <p class="s-h2">Comment ça marche</p>
+              <ol class="s-steps">
+                <li>Scannez le code QR avec l’appareil photo de votre cellulaire ou de la tablette.</li>
+                <li>Votre enfant choisit l’opération, ses tables et son temps : 4, 3 ou 2 minutes.</li>
+                <li>À la fin, la feuille se corrige. Votre enfant voit ses erreurs et peut les reprendre tout de suite.</li>
+              </ol>
+              <p class="s-h2">Quelques trucs</p>
+              <ul class="s-tips">
+                <li>Commencez à 4 minutes, puis descendez vers 2 minutes, comme à l’école.</li>
+                <li>Ajoutez le site à l’écran d’accueil de la tablette pour le retrouver en un geste.</li>
+                <li>Pas de compte à créer : les résultats restent sur l’appareil de votre enfant.</li>
+              </ul>
+            </div>
+            <div class="s-right">
+              <div class="s-card">
+                <p class="s-scan">Scannez-moi</p>
+                <div class="s-qr" id="sheet-qr"></div>
+                <p class="s-url">vincentgamache2103.github.io/<br>tables-minute</p>
+                <p class="s-code" id="sheet-code"></p>
+              </div>
+              <div class="s-kinds">
+                <p class="s-kinds-title">Deux sortes de questions</p>
+                <div class="s-eq">4 <span class="op">×</span> 7 <span class="op">=</span> <span class="s-box"></span></div>
+                <div class="s-eq">4 <span class="op">×</span> <span class="s-box"></span> <span class="op">=</span> 28</div>
+                <p class="s-kinds-note">Trouver la réponse, ou le nombre manquant.</p>
+              </div>
+            </div>
+          </div>
+          <footer class="s-foot">
+            <div class="s-pencil" aria-hidden="true"><span class="e"></span><span class="f"></span><span class="b"></span><span class="t"></span></div>
+            <p class="s-sign">Bonne pratique! — Vincent</p>
+            <p class="s-fine">Une question ou une idée? Écrivez-moi avec la boîte à idées du site. Le code de classe sert seulement à compter, de façon anonyme, combien de classes utilisent le site.</p>
+          </footer>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="big" id="big" role="dialog" aria-modal="true" aria-labelledby="big-title" hidden>
+  <p class="big-title" id="big-title">Scanne pour pratiquer tes tables</p>
+  <div class="big-qr" id="big-qr"></div>
+  <p class="big-code" id="big-code"></p>
+  <button type="button" class="btn" id="close-big">Fermer</button>
+</div>
+
+<script src="qrcode.min.js"></script>
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const KEY = 'tablesMinute.classes.v1';
+  // Sans voyelles ni caractères ambigus (0, o, 1, l, i) : un code ne peut pas former de mot.
+  const ALPHA = 'bcdfghjkmnpqrstvwxz23456789';
+  const BASE = new URL('./', window.location.href).href;
+  const INK = '#252A33';
+  const UA = navigator.userAgent || '';
+  const IN_APP = /Instagram|FBAN|FBAV|FB_IAB|FBIOS|MessengerForiOS|Orca-Android/.test(UA);
+  const state = { codes: [], current: '' };
+
+  /* ---------- Statistiques anonymes (GoatCounter) ---------- */
+  const pending = [];
+  let wait = 0;
+  const ready = () => !!(window.goatcounter && typeof window.goatcounter.count === 'function');
+  const send = (it) => { try { window.goatcounter.count({ path: it.path, title: it.title, event: true }); } catch (e) { /* rien */ } };
+  function track(path, title) {
+    if (ready()) { send({ path, title }); return; }
+    pending.push({ path, title });
+    if (wait) return;
+    let tries = 0;
+    wait = setInterval(() => {
+      tries += 1;
+      if (ready()) { clearInterval(wait); wait = 0; pending.splice(0).forEach(send); }
+      else if (tries > 60) { clearInterval(wait); wait = 0; pending.length = 0; }
+    }, 250);
+  }
+
+  /* ---------- Codes de classe, gardés sur l'appareil ---------- */
+  function load() {
+    try {
+      const raw = JSON.parse(window.localStorage.getItem(KEY) || 'null');
+      if (raw && Array.isArray(raw.codes)) {
+        state.codes = raw.codes.filter((c) => typeof c === 'string' && /^c-[a-z0-9]{4}$/.test(c)).slice(-12);
+        state.current = state.codes.indexOf(raw.current) >= 0 ? raw.current : (state.codes[state.codes.length - 1] || '');
+      }
+    } catch (e) { /* stockage indisponible */ }
+  }
+  function save() {
+    try { window.localStorage.setItem(KEY, JSON.stringify({ codes: state.codes, current: state.current })); } catch (e) { /* rien */ }
+  }
+  function newCode() {
+    const a = new Uint32Array(4);
+    window.crypto.getRandomValues(a);
+    return 'c-' + Array.from(a, (x) => ALPHA.charAt(x % ALPHA.length)).join('');
+  }
+  const classLink = (code) => BASE + '?ref=' + code;
+
+  /* ---------- Code QR ---------- */
+  function matrix(text) {
+    const q = window.qrcode(0, 'M');
+    q.addData(text);
+    q.make();
+    const n = q.getModuleCount();
+    const rows = [];
+    for (let r = 0; r < n; r += 1) {
+      const row = [];
+      for (let c = 0; c < n; c += 1) row.push(q.isDark(r, c));
+      rows.push(row);
+    }
+    return rows;
+  }
+  function svg(m, label) {
+    const n = m.length, b = 4, size = n + 2 * b;
+    let d = '';
+    m.forEach((row, r) => row.forEach((on, c) => { if (on) d += 'M' + (c + b) + ' ' + (r + b) + 'h1v1h-1z'; }));
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + ' ' + size + '" shape-rendering="crispEdges" role="img" aria-label="' + label + '">' +
+      '<rect width="' + size + '" height="' + size + '" fill="#FFFFFF"/><path d="' + d + '" fill="' + INK + '"/></svg>';
+  }
+  function png(m, code) {
+    const W = 1080, H = 1350, n = m.length, cell = Math.floor(720 / (n + 8)), qs = cell * (n + 8);
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const g = cv.getContext('2d');
+    g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, W, H);
+    g.fillStyle = INK;
+    g.textAlign = 'center';
+    g.font = '900 104px Grandstander, system-ui, sans-serif';
+    g.fillText('Tables minute', W / 2, 180);
+    g.font = '800 46px Grandstander, system-ui, sans-serif';
+    g.fillText('Scanne pour pratiquer tes tables', W / 2, 268);
+    const x0 = (W - qs) / 2, y0 = 330;
+    m.forEach((row, r) => row.forEach((on, c) => { if (on) g.fillRect(x0 + (c + 4) * cell, y0 + (r + 4) * cell, cell, cell); }));
+    g.font = '700 30px "Atkinson Hyperlegible", Verdana, sans-serif';
+    g.fillText('vincentgamache2103.github.io/tables-minute', W / 2, y0 + qs + 70);
+    g.fillStyle = '#5E6777';
+    g.font = '400 28px "Atkinson Hyperlegible", Verdana, sans-serif';
+    g.fillText('Classe ' + code + ' · gratuit, sans compte, sans pub', W / 2, y0 + qs + 120);
+    return new Promise((ok) => cv.toBlob(ok, 'image/png'));
+  }
+
+  function parentMessage(code) {
+    return 'Bonjour! Pour pratiquer les tables minute à la maison, voici un site gratuit, sans compte et sans pub : ' + classLink(code) +
+      '\nVotre enfant choisit ses tables et son temps (2, 3 ou 4 minutes). La feuille se corrige toute seule, et on peut reprendre les erreurs.';
+  }
+
+  /* ---------- Affichage ---------- */
+  let pngUrl = '';
+  function fit() {
+    const frame = $('frame'), scale = $('scale'), sheet = $('sheet');
+    if ($('preview').hidden) return;
+    const s = Math.min(1, frame.clientWidth / sheet.offsetWidth);
+    scale.style.transform = 'scale(' + s + ')';
+    frame.style.height = Math.ceil(sheet.offsetHeight * s) + 'px';
+  }
+  function render() {
+    const has = !!state.current;
+    $('start').hidden = has;
+    $('kit').hidden = !has;
+    $('preview').hidden = !has;
+    if (!has) return;
+    const code = state.current;
+    const m = matrix(classLink(code));
+    $('code').textContent = code;
+    $('qr').innerHTML = svg(m, 'Code QR de la classe ' + code);
+    $('sheet-qr').innerHTML = svg(m, 'Code QR de la classe ' + code);
+    $('big-qr').innerHTML = svg(m, 'Code QR de la classe ' + code);
+    $('sheet-code').textContent = 'Code de classe : ' + code;
+    $('big-code').textContent = 'Classe ' + code;
+    $('link').textContent = classLink(code);
+    $('msg').value = parentMessage(code);
+    $('png').setAttribute('download', 'code-qr-' + code + '.png');
+    const others = state.codes.length > 1;
+    $('others').hidden = !others;
+    const list = $('others-list');
+    list.textContent = '';
+    if (others) {
+      state.codes.forEach((c) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip';
+        b.textContent = c;
+        b.setAttribute('aria-pressed', String(c === code));
+        b.addEventListener('click', () => { state.current = c; save(); render(); });
+        list.append(b);
+      });
+    }
+    if (IN_APP) {
+      $('inapp').hidden = false;
+      $('inapp').textContent = 'Pour imprimer ou télécharger, ouvrez cette page dans Safari ou Chrome : touchez les trois points, puis « Ouvrir dans le navigateur ».';
+    }
+    const fonts = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    fonts.then(() => png(m, code)).then((blob) => {
+      if (!blob || state.current !== code) return;
+      if (pngUrl) URL.revokeObjectURL(pngUrl);
+      pngUrl = URL.createObjectURL(blob);
+      $('png').href = pngUrl;
+    });
+    requestAnimationFrame(fit);
+  }
+
+  function say(node, text, err) {
+    node.classList.toggle('is-err', !!err);
+    node.textContent = text;
+  }
+  function copy(text, node, done, fallbackField) {
+    const fail = () => {
+      if (fallbackField) { fallbackField.focus(); fallbackField.select(); }
+      say(node, 'Copie automatique impossible : sélectionnez le texte et copiez-le.', true);
+    };
+    try {
+      navigator.clipboard.writeText(text).then(() => say(node, done), fail);
+    } catch (e) { fail(); }
+  }
+
+  function create() {
+    const code = newCode();
+    state.codes.push(code);
+    state.codes = state.codes.slice(-12);
+    state.current = code;
+    save();
+    track('trousse-creee', 'Trousse de classe créée');
+    render();
+    $('kit').scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  $('create').addEventListener('click', create);
+  $('another').addEventListener('click', create);
+  $('print').addEventListener('click', () => { track('trousse-imprimee', 'Feuille parents imprimée'); window.print(); });
+  $('copy-link').addEventListener('click', () => copy(classLink(state.current), $('status'), 'Lien copié.'));
+  $('copy-msg').addEventListener('click', () => copy($('msg').value, $('msg-status'), 'Message copié. Collez-le dans votre courriel aux parents.', $('msg')));
+  $('show-big').addEventListener('click', () => { $('big').hidden = false; $('close-big').focus(); });
+  $('close-big').addEventListener('click', () => { $('big').hidden = true; $('show-big').focus(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('big').hidden) { $('big').hidden = true; $('show-big').focus(); } });
+  window.addEventListener('resize', fit);
+
+  load();
+  render();
+})();
+</script>
+<script data-goatcounter="https://tablesminute.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
