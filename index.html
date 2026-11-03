@@ -446,6 +446,11 @@ button { cursor: pointer; touch-action: manipulation; }
 .about h3 { margin: 10px 0 0; font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
 .about p, .about li { margin: 0; line-height: 1.55; }
 .about ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+/* Témoignages : seulement des citations approuvées par leur auteur, sans nom d'enfant ni d'école. */
+.quote { margin: 0; display: grid; gap: 6px; padding: 14px 18px; border-left: 4px solid var(--pencil); border-radius: 0 12px 12px 0; background: var(--key); }
+.quote blockquote { margin: 0; font-family: var(--font-hand); font-size: 1.35rem; line-height: 1.3; }
+.quote figcaption { font-size: .9rem; font-weight: 700; color: var(--ink-soft); }
+.quote figcaption::before { content: "— "; }
 .faq { display: grid; border-top: 1px solid var(--key-edge); }
 .faq details { border-bottom: 1px solid var(--key-edge); }
 .faq summary { padding: 12px 2px; font-weight: 700; cursor: pointer; }
@@ -969,6 +974,11 @@ button { cursor: pointer; touch-action: manipulation; }
             <li>Réponds avec le clavier à l’écran. Une question peut demander la réponse (4 × 7 = ?) ou le nombre manquant (4 × ? = 28, 28 ÷ ? = 4).</li>
             <li>À la fin, la feuille est corrigée : tu vois les faits à revoir et tu peux reprendre seulement tes erreurs.</li>
           </ul>
+          <h3>Ce qu’on en dit</h3>
+          <figure class="quote">
+            <blockquote>« Je m’en sers en classe avec mes élèves de 5e année pour faire de la différenciation. »</blockquote>
+            <figcaption>Une enseignante de 5e année</figcaption>
+          </figure>
           <h3>Questions fréquentes</h3>
           <div class="faq">
             <details>
