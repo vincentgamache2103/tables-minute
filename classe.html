@@ -21,6 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Grandstander:wght@800;900&family=Patrick+Hand&display=swap">
+<script>window.TABLES_MINUTE = {"feedbackKey": "9626fcce-a4fd-4569-b817-1875faf6e05f"};</script>
 <style>
 /* Page pour les enseignants : le même pupitre et la même feuille quadrillée que le site. En haut, la trousse de la classe; dessous, l'aperçu de la feuille pour les parents, la seule chose qui s'imprime. */
 :root {
@@ -173,6 +174,18 @@ h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1
 .chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--key); font-weight: 700; }
 .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 
+/* Liste d'attente pour la version école : une carte bien visible, sous la trousse. */
+.wait { display: grid; gap: 12px; padding: 20px 20px 22px; border: 2px solid var(--ink); border-radius: 16px; background: var(--paper); box-shadow: 0 4px 0 var(--ink); }
+.wait-form { display: grid; gap: 8px; max-width: 460px; }
+.wait-form label { font-weight: 700; font-size: .95rem; }
+.wait-form label span { font-weight: 400; color: var(--ink-soft); }
+.wait-input { width: 100%; min-height: 48px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--key); font-size: 1rem; }
+textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
+.wait-input::placeholder { color: var(--ink-soft); opacity: .7; }
+.wait-form .btn { justify-self: start; margin-top: 8px; }
+.wait-done { margin: 0; font-weight: 700; color: var(--green); }
+.hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; opacity: 0; }
+
 .preview { display: grid; gap: 10px; }
 .preview-frame { width: 100%; overflow: hidden; border-radius: 4px; box-shadow: var(--shadow); background: #FFFFFF; }
 .preview-scale { transform-origin: top left; }
@@ -246,6 +259,8 @@ h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1
   .paper::before { left: 18px; }
   .kit-grid { grid-template-columns: minmax(0, 1fr); }
   .qr-card { max-width: 280px; }
+  .wait { padding: 18px 16px 20px; }
+  .wait-form .btn { width: 100%; padding: 0 1rem; font-size: 1.05rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: .001ms !important; }
@@ -311,6 +326,23 @@ h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1
         <span id="others-list" class="others"></span>
       </div>
       <div><button type="button" class="btn btn--link" id="another">Créer un code pour une autre classe</button></div>
+    </section>
+
+    <section class="wait" id="wait" aria-labelledby="wait-title">
+      <p class="eyebrow">Pour la suite</p>
+      <h2 id="wait-title">Une version pour les écoles se prépare</h2>
+      <p class="hint">Le site reste gratuit. Laissez votre courriel pour savoir quand la version pour les écoles sera prête.</p>
+      <form class="wait-form" id="wait-form" novalidate>
+        <label for="wait-email">Votre courriel</label>
+        <input class="wait-input" id="wait-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="nom@ecole.qc.ca">
+        <label for="wait-note">Qu’est-ce qui vous aiderait le plus en classe? <span>(facultatif)</span></label>
+        <textarea class="wait-input" id="wait-note" name="note" rows="2" maxlength="600" placeholder="Ex. : voir les résultats de mes élèves"></textarea>
+        <input class="hp" type="checkbox" id="wait-bot" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button type="submit" class="btn btn--go" id="wait-send">Tenez-moi au courant</button>
+        <p class="status" id="wait-status" role="status" aria-live="polite"></p>
+      </form>
+      <p class="wait-done" id="wait-done" role="status" aria-live="polite" hidden></p>
+      <p class="fine">Votre adresse sert seulement à vous écrire au sujet de la version école. Elle n’est jamais partagée. Pour la faire retirer, écrivez-le à Vincent dans la boîte à idées du site.</p>
     </section>
 
     <div class="share-line">
@@ -573,6 +605,63 @@ h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1
     try {
       navigator.clipboard.writeText(url).then(() => say(node, 'Lien copié. Collez-le dans un courriel ou un message à vos collègues.'), plain);
     } catch (e) { plain(); }
+  }
+
+  /* ---------- Liste d'attente pour la version école (courriel envoyé à Vincent par Web3Forms) ---------- */
+  const CONFIG = (window.TABLES_MINUTE && typeof window.TABLES_MINUTE === 'object') ? window.TABLES_MINUTE : {};
+  const FORM_KEY = typeof CONFIG.feedbackKey === 'string' ? CONFIG.feedbackKey.trim() : '';
+  const WAIT_KEY = 'tablesMinute.waitlist.v1';
+  let waitSentAt = 0;
+  function waitDone(text) {
+    $('wait-form').hidden = true;
+    $('wait-done').hidden = false;
+    $('wait-done').textContent = text;
+  }
+  async function joinWaitlist(e) {
+    e.preventDefault();
+    const mailEl = $('wait-email'), btn = $('wait-send'), node = $('wait-status');
+    const mail = mailEl.value.trim();
+    const note = $('wait-note').value.trim();
+    if (btn.disabled) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { say(node, 'Écrivez une adresse courriel valide.', true); mailEl.focus(); return; }
+    if (waitSentAt && Date.now() - waitSentAt < 20000) return;
+    if ($('wait-bot').checked) { waitDone('Merci! Vous êtes sur la liste.'); return; }
+    btn.disabled = true;
+    btn.textContent = 'Envoi…';
+    say(node, '');
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: FORM_KEY,
+          subject: 'Tables minute : liste d’attente version école',
+          from_name: 'Tables minute',
+          email: mail,
+          'Courriel du prof': mail,
+          'Ce qui l’aiderait en classe': note || '(rien d’indiqué)'
+        })
+      });
+      let data = null;
+      try { data = await res.json(); } catch (err) { data = null; }
+      if (!res.ok || (data && data.success === false)) throw new Error('envoi refusé');
+      waitSentAt = Date.now();
+      try { window.localStorage.setItem(WAIT_KEY, '1'); } catch (err) { /* rien */ }
+      track('liste-attente', 'Inscription à la liste d’attente (version école)');
+      waitDone('Merci! Vous êtes sur la liste. Vincent vous écrira quand la version pour les écoles sera prête.');
+    } catch (err) {
+      say(node, 'Le message n’est pas parti. Vérifiez votre connexion Internet et réessayez.', true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Tenez-moi au courant';
+    }
+  }
+  if (!FORM_KEY) $('wait').hidden = true;
+  else {
+    let already = false;
+    try { already = window.localStorage.getItem(WAIT_KEY) === '1'; } catch (e) { /* rien */ }
+    if (already) waitDone('Vous êtes sur la liste pour la version école. Merci!');
+    $('wait-form').addEventListener('submit', joinWaitlist);
   }
 
   $('create').addEventListener('click', create);
