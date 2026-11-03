@@ -308,6 +308,22 @@ button { cursor: pointer; touch-action: manipulation; }
 .bubbles { display: grid; grid-template-columns: repeat(6, minmax(0, 50px)); gap: 8px; }
 @media (max-width: 380px) { .bubbles { grid-template-columns: repeat(4, minmax(0, 50px)); } }
 .bubble { display: grid; }
+/* Tables pour chaque opération : une rangée par opération cochée. */
+.op-tables { display: grid; gap: 16px; }
+.op-row { display: grid; gap: 8px; }
+.op-row-name { margin: 0; display: flex; align-items: center; gap: .55rem; font-weight: 700; }
+.op-row-name .sym {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--select);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.split-toggle { display: inline-flex; align-items: center; gap: .6rem; min-height: 44px; justify-self: start; font-weight: 700; cursor: pointer; }
+.split-toggle input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--ink); cursor: pointer; }
 .bubble span {
   display: grid;
   place-items: center;
@@ -846,7 +862,9 @@ button { cursor: pointer; touch-action: manipulation; }
               <p class="field-label" id="lbl-tables">Quelles tables?</p>
               <div class="field-body">
                 <div class="bubbles" id="tables" role="group" aria-labelledby="lbl-tables"></div>
+                <div class="op-tables" id="op-tables" hidden></div>
                 <p class="hint" id="tables-hint">Touche une ou plusieurs tables.</p>
+                <label class="split-toggle" id="split-wrap" hidden><input type="checkbox" id="split"><span>Choisir les tables pour chaque opération</span></label>
               </div>
             </div>
 
@@ -946,6 +964,7 @@ button { cursor: pointer; touch-action: manipulation; }
           <h3>Comment ça marche</h3>
           <ul>
             <li>Choisis l’opération (multiplication, division, addition ou soustraction) et les tables, de&nbsp;1 à&nbsp;12.</li>
+            <li>Avec plusieurs opérations, tu peux choisir des tables différentes pour chacune : par exemple les multiplications de 6 à 9 et les divisions de 2 à 5.</li>
             <li>Règle le chrono à 4, 3 ou 2 minutes pour arriver petit à petit au 2 minutes de l’école.</li>
             <li>Réponds avec le clavier à l’écran. Une question peut demander la réponse (4 × 7 = ?) ou le nombre manquant (4 × ? = 28, 28 ÷ ? = 4).</li>
             <li>À la fin, la feuille est corrigée : tu vois les faits à revoir et tu peux reprendre seulement tes erreurs.</li>
@@ -971,6 +990,7 @@ button { cursor: pointer; touch-action: manipulation; }
             <details>
               <summary>Comment l’utiliser avec ma classe?</summary>
               <p>Créez la <a href="classe.html">trousse de votre classe</a> : un code QR à projeter et une feuille d’une page pour les parents, à imprimer ou à envoyer en PDF. C’est gratuit et sans compte.</p>
+              <p>Pour différencier, cochez plusieurs opérations, puis « Choisir les tables pour chaque opération » : chaque élève peut avoir, par exemple, ses multiplications de 6 à 9 et ses divisions de 2 à 5 sur la même feuille.</p>
             </details>
             <details>
               <summary>Qui a créé ce site?</summary>
@@ -1164,20 +1184,44 @@ button { cursor: pointer; touch-action: manipulation; }
     return OP_KEYS.filter((k) => list.indexOf(k) >= 0);
   }
 
+  function cleanTables(list) {
+    if (!Array.isArray(list)) return [];
+    return Array.from(new Set(list.map(Number).filter((n) => TABLES.indexOf(n) >= 0))).sort((a, b) => a - b);
+  }
+
+  // split : la case « Choisir les tables pour chaque opération ».
+  // opTables : les tables de chaque opération quand la case est cochée.
   function cleanSettings(raw) {
-    const s = { ops: DEFAULTS.ops.slice(), tables: DEFAULTS.tables.slice(), minutes: DEFAULTS.minutes, kind: DEFAULTS.kind, count: DEFAULTS.count, name: DEFAULTS.name };
-    if (!raw || typeof raw !== 'object') return s;
-    const o = opsList(raw.ops);
+    const s = { ops: DEFAULTS.ops.slice(), tables: DEFAULTS.tables.slice(), split: false, opTables: {}, minutes: DEFAULTS.minutes, kind: DEFAULTS.kind, count: DEFAULTS.count, name: DEFAULTS.name };
+    const r = raw && typeof raw === 'object' ? raw : {};
+    const o = opsList(r.ops);
     if (o.length) s.ops = o;
-    if (Array.isArray(raw.tables)) {
-      const t = Array.from(new Set(raw.tables.map(Number).filter((n) => TABLES.indexOf(n) >= 0))).sort((a, b) => a - b);
-      if (t.length) s.tables = t;
-    }
-    if (MINUTES.indexOf(Number(raw.minutes)) >= 0) s.minutes = Number(raw.minutes);
-    if (KINDS.indexOf(raw.kind) >= 0) s.kind = raw.kind;
-    if (COUNTS.indexOf(Number(raw.count)) >= 0) s.count = Number(raw.count);
-    if (typeof raw.name === 'string') s.name = raw.name.slice(0, 30);
+    const t = cleanTables(r.tables);
+    if (t.length) s.tables = t;
+    s.split = r.split === true;
+    OP_KEYS.forEach((k) => {
+      const own = cleanTables(r.opTables && r.opTables[k]);
+      s.opTables[k] = own.length ? own : s.tables.slice();
+    });
+    if (MINUTES.indexOf(Number(r.minutes)) >= 0) s.minutes = Number(r.minutes);
+    if (KINDS.indexOf(r.kind) >= 0) s.kind = r.kind;
+    if (COUNTS.indexOf(Number(r.count)) >= 0) s.count = Number(r.count);
+    if (typeof r.name === 'string') s.name = r.name.slice(0, 30);
     return s;
+  }
+
+  // Les tables par opération comptent seulement avec la case cochée et au moins deux opérations.
+  function isSplit(x) {
+    return !!(x && x.split && x.opTables && opsList(x.ops).length > 1);
+  }
+  function tablesFor(x, op) {
+    const own = isSplit(x) ? x.opTables[op] : null;
+    return Array.isArray(own) && own.length ? own : x.tables;
+  }
+  function copyOpTables(x) {
+    const o = {};
+    OP_KEYS.forEach((k) => { o[k] = (x.opTables && Array.isArray(x.opTables[k]) ? x.opTables[k] : x.tables).slice(); });
+    return o;
   }
 
   const settings = cleanSettings(store.get(KEY_SETTINGS, null));
@@ -1237,12 +1281,16 @@ button { cursor: pointer; touch-action: manipulation; }
     return shuffle(out);
   }
 
+  // Chaque opération tire ses faits de ses propres tables (les mêmes pour toutes, sauf si la case est cochée).
   function buildQuestions(s, count) {
     const n = count || s.count;
-    const facts = pickFacts(s.tables, n);
     const ops = spread(s.ops, n);
     const kinds = s.kind === 'mix' ? spread(['product', 'missing'], n) : new Array(n).fill(s.kind);
-    return facts.map((f, i) => makeQuestion(f, kinds[i], ops[i]));
+    const need = {};
+    ops.forEach((op) => { need[op] = (need[op] || 0) + 1; });
+    const facts = {};
+    Object.keys(need).forEach((op) => { facts[op] = pickFacts(tablesFor(s, op), need[op]); });
+    return ops.map((op, i) => makeQuestion(facts[op].shift(), kinds[i], op));
   }
 
   // Forme habituelle d'un fait, pour les exemples et les faits à revoir.
@@ -1267,17 +1315,29 @@ button { cursor: pointer; touch-action: manipulation; }
     if (items.length === 1) return String(items[0]);
     return items.slice(0, -1).join(', ') + ' et ' + items[items.length - 1];
   }
+  // « 6 à 9 », « 4 », « 2, 5 et 7 »
+  function tablesShort(tables) {
+    const t = cleanTables(tables);
+    if (t.length < 3) return listFr(t.length ? t : ['?']);
+    for (let i = 1; i < t.length; i++) if (t[i] !== t[i - 1] + 1) return listFr(t);
+    return t[0] + ' à ' + t[t.length - 1];
+  }
   function tablesLabel(tables, lower) {
-    const t = (tables || []).filter((n) => TABLES.indexOf(n) >= 0).sort((a, b) => a - b);
-    let s;
-    if (!t.length) s = 'Tables';
-    else if (t.length === 1) s = 'Table de ' + t[0];
-    else {
-      let contiguous = t.length >= 3;
-      for (let i = 1; i < t.length && contiguous; i++) if (t[i] !== t[i - 1] + 1) contiguous = false;
-      s = contiguous ? 'Tables de ' + t[0] + ' à ' + t[t.length - 1] : 'Tables de ' + listFr(t);
-    }
+    const n = cleanTables(tables).length;
+    const s = !n ? 'Tables' : (n === 1 ? 'Table de ' : 'Tables de ') + tablesShort(tables);
     return lower ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+  }
+  // Titre court d'une feuille : « Tables de 6 à 9 · × ÷ », ou « × 6 à 9 · ÷ 2 à 5 » avec des tables par opération.
+  function sheetShort(x) {
+    if (isSplit(x)) return opsOrDefault(x.ops).map((k) => OPS[k].sym + NBSP + tablesShort(tablesFor(x, k))).join(' · ');
+    return tablesLabel(x.tables) + ' · ' + opsSymbols(x.ops);
+  }
+  // En mots : « multiplications · tables de 6 à 9 », ou « multiplications (tables de 6 à 9) et divisions (table de 2) ».
+  function sheetWhat(x, capital) {
+    let s;
+    if (isSplit(x)) s = listFr(opsOrDefault(x.ops).map((k) => OPS[k].plural + ' (' + tablesLabel(tablesFor(x, k), true) + ')'));
+    else s = opsLabel(x.ops) + ' · ' + tablesLabel(x.tables, true);
+    return capital ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   }
   function opsOrDefault(ops) {
     const o = opsList(ops);
@@ -1602,11 +1662,45 @@ button { cursor: pointer; touch-action: manipulation; }
     $('tables').innerHTML = TABLES.map((t) =>
       '<label class="choice bubble"><input type="checkbox" id="tbl-' + t + '" value="' + t + '" aria-label="Table de ' + t + '"><span>' + t + '</span></label>'
     ).join('');
+    // Une rangée de tables par opération, montrée seulement avec la case « pour chaque opération ».
+    $('op-tables').innerHTML = OP_KEYS.map((k) =>
+      '<div class="op-row" id="row-' + k + '" hidden>' +
+        '<p class="op-row-name" id="row-name-' + k + '"><b class="sym" aria-hidden="true">' + OPS[k].sym + '</b>' + OPS[k].plural.charAt(0).toUpperCase() + OPS[k].plural.slice(1) + '</p>' +
+        '<div class="bubbles" role="group" aria-labelledby="row-name-' + k + '">' +
+          TABLES.map((t) =>
+            '<label class="choice bubble"><input type="checkbox" id="tbl-' + k + '-' + t + '" data-op="' + k + '" value="' + t + '" aria-label="' + OPS[k].plural + ', table de ' + t + '"><span>' + t + '</span></label>'
+          ).join('') +
+        '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  function syncOpTables() {
+    OP_KEYS.forEach((k) => {
+      TABLES.forEach((t) => { $('tbl-' + k + '-' + t).checked = settings.opTables[k].indexOf(t) >= 0; });
+    });
+  }
+  function syncSharedTables() {
+    TABLES.forEach((t) => { $('tbl-' + t).checked = settings.tables.indexOf(t) >= 0; });
+  }
+  // La case n'apparaît qu'avec au moins deux opérations. Cochée, chaque opération a sa rangée de tables.
+  function updateSplitUI() {
+    const on = isSplit(settings);
+    $('split-wrap').hidden = settings.ops.length < 2;
+    $('split').checked = settings.split;
+    $('tables').hidden = on;
+    $('op-tables').hidden = !on;
+    OP_KEYS.forEach((k) => { $('row-' + k).hidden = !on || settings.ops.indexOf(k) < 0; });
+    const hint = $('tables-hint');
+    hint.classList.remove('is-warn');
+    hint.textContent = on ? 'Choisis les tables de chaque opération.' : 'Touche une ou plusieurs tables.';
   }
 
   function syncSetup() {
     OP_KEYS.forEach((k) => { $('op-' + k).checked = settings.ops.indexOf(k) >= 0; });
-    TABLES.forEach((t) => { $('tbl-' + t).checked = settings.tables.indexOf(t) >= 0; });
+    syncSharedTables();
+    syncOpTables();
+    updateSplitUI();
     $('min-' + settings.minutes).checked = true;
     $('kind-' + settings.kind).checked = true;
     $('count-' + settings.count).checked = true;
@@ -1616,12 +1710,12 @@ button { cursor: pointer; touch-action: manipulation; }
   }
 
   function refreshSetup() {
-    const t = settings.tables[0];
     const op = settings.ops[0];
+    const t = tablesFor(settings, op)[0];
     $('eq-product').innerHTML = miniEq(exampleQ(op, t, EXAMPLE_K, 'product'));
     $('eq-missing').innerHTML = miniEq(exampleQ(op, t, EXAMPLE_K, 'missing'));
     $('eq-mix').innerHTML = miniEq(exampleQ(op, t, EXAMPLE_K, 'product')) + miniEq(exampleQ(op, t, EXAMPLE_K, 'missing2'));
-    $('summary').textContent = settings.count + ' questions · ' + settings.minutes + ' minutes · ' + opsLabel(settings.ops) + ' · ' + tablesLabel(settings.tables, true);
+    $('summary').textContent = settings.count + ' questions · ' + settings.minutes + ' minutes · ' + sheetWhat(settings);
     $('preview').innerHTML = buildQuestions(settings, 4).map((q) => '<div class="cell">' + eqHTML(q, '', '') + '</div>').join('');
   }
 
@@ -1639,7 +1733,7 @@ button { cursor: pointer; touch-action: manipulation; }
       d.textContent = fmtShort(new Date(h.at || Date.now()));
       const w = document.createElement('span');
       w.className = 'h-what';
-      w.textContent = (h.name ? h.name + ' · ' : '') + tablesLabel(h.tables) + ' · ' + opsSymbols(h.ops) + ' · ' + h.minutes + ' min';
+      w.textContent = (h.name ? h.name + ' · ' : '') + sheetShort(h) + ' · ' + h.minutes + ' min';
       const sc = document.createElement('span');
       sc.className = 'h-score';
       sc.textContent = h.score + '/' + h.total;
@@ -1655,10 +1749,12 @@ button { cursor: pointer; touch-action: manipulation; }
     const g = run.graded;
     const raw = store.get(KEY_HISTORY, []);
     const list = Array.isArray(raw) ? raw : [];
-    list.unshift({
+    const entry = {
       at: Date.now(), name: run.name || '', ops: run.ops, tables: run.tables, minutes: run.minutes,
       score: g.score, total: g.total, usedS: Math.round(g.usedMs / 1000), reason: run.reason
-    });
+    };
+    if (isSplit(run)) { entry.split = true; entry.opTables = run.opTables; }
+    list.unshift(entry);
     store.set(KEY_HISTORY, list.slice(0, 30));
   }
 
@@ -1674,6 +1770,8 @@ button { cursor: pointer; touch-action: manipulation; }
       practice: !!practice,
       ops: settings.ops.slice(),
       tables: settings.tables.slice(),
+      split: isSplit(settings),
+      opTables: copyOpTables(settings),
       minutes: settings.minutes,
       kind: settings.kind,
       name: settings.name,
@@ -1687,6 +1785,7 @@ button { cursor: pointer; touch-action: manipulation; }
     if (!practice) {
       track('feuille-commencee', 'Feuille commencée');
       settings.ops.forEach((k) => track(OPS[k].event, OPS[k].name));
+      if (isSplit(settings)) track('tables-par-operation', 'Feuille avec des tables par opération');
     }
     renderTest();
     show('test');
@@ -1698,7 +1797,7 @@ button { cursor: pointer; touch-action: manipulation; }
     announced = {};
     lastClock = '';
     lastWidth = -1;
-    $('test-title').textContent = run.practice ? 'Pratique' : tablesLabel(run.tables) + ' · ' + opsSymbols(run.ops);
+    $('test-title').textContent = run.practice ? 'Pratique' : sheetShort(run);
     const clock = $('clock');
     clock.classList.toggle('is-practice', run.practice);
     clock.classList.remove('is-low');
@@ -1965,7 +2064,7 @@ button { cursor: pointer; touch-action: manipulation; }
   }
 
   function runLabel(run) {
-    return opsLabel(run.ops, true) + ' · ' + tablesLabel(run.tables, true) + ' · ' + run.minutes + ' minutes';
+    return sheetWhat(run, true) + ' · ' + run.minutes + ' minutes';
   }
 
   function showResults() {
@@ -2109,7 +2208,45 @@ button { cursor: pointer; touch-action: manipulation; }
       }
       hint.textContent = 'Tu peux en choisir plusieurs.';
       hint.classList.remove('is-warn');
+      // Tables par opération, puis il n'en reste qu'une : ses tables deviennent les tables de la feuille.
+      if (isSplit(settings) && chosen.length === 1) {
+        settings.tables = settings.opTables[chosen[0]].slice();
+        syncSharedTables();
+      }
       settings.ops = chosen;
+      updateSplitUI();
+      saveSettings();
+      refreshSetup();
+    });
+
+    $('split').addEventListener('change', (e) => {
+      settings.split = e.target.checked;
+      // On part des tables déjà choisies, puis on ajuste chaque opération.
+      if (settings.split) {
+        settings.ops.forEach((k) => { settings.opTables[k] = settings.tables.slice(); });
+        syncOpTables();
+      }
+      updateSplitUI();
+      saveSettings();
+      refreshSetup();
+    });
+
+    $('op-tables').addEventListener('change', (e) => {
+      const input = e.target;
+      if (!input || input.type !== 'checkbox') return;
+      const op = input.getAttribute('data-op');
+      if (OP_KEYS.indexOf(op) < 0) return;
+      const chosen = TABLES.filter((t) => $('tbl-' + op + '-' + t).checked);
+      const hint = $('tables-hint');
+      if (!chosen.length) {
+        input.checked = true;
+        hint.textContent = 'Garde au moins une table pour chaque opération.';
+        hint.classList.add('is-warn');
+        return;
+      }
+      hint.textContent = 'Choisis les tables de chaque opération.';
+      hint.classList.remove('is-warn');
+      settings.opTables[op] = chosen;
       saveSettings();
       refreshSetup();
     });
@@ -2257,7 +2394,7 @@ button { cursor: pointer; touch-action: manipulation; }
       screen: S.screen,
       run: {
         questions: r.questions, answers: r.answers, current: r.current, practice: r.practice,
-        ops: r.ops, tables: r.tables, minutes: r.minutes, kind: r.kind, name: r.name,
+        ops: r.ops, tables: r.tables, split: r.split, opTables: r.opTables, minutes: r.minutes, kind: r.kind, name: r.name,
         durationMs: r.durationMs, startedAt: r.startedAt, endsAt: r.endsAt, finishedAt: r.finishedAt,
         reason: r.reason, phase: r.phase
       }
