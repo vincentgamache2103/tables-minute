@@ -8,8 +8,8 @@
 <link rel="canonical" href="https://vincentgamache2103.github.io/tables-minute/">
 <meta name="theme-color" content="#E3E9F2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101814" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon.svg?v=2" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -214,29 +214,40 @@ button { cursor: pointer; touch-action: manipulation; }
 .title--sm { font-size: clamp(1.8rem, 4.6vw, 2.6rem); }
 .hl { background: linear-gradient(transparent 56%, var(--highlight) 56%, var(--highlight) 92%, transparent 92%); padding: 0 .06em; }
 .lede { margin: 0; max-width: 40ch; color: var(--ink-soft); font-size: 1.05rem; }
-.teach-link { justify-self: start; color: var(--ink); font-size: .95rem; font-weight: 700; text-decoration-color: var(--pencil-deep); text-decoration-thickness: 2px; text-underline-offset: 4px; }
-.quick-share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.qs-label { font-size: .9rem; font-weight: 700; color: var(--ink-soft); }
-.qs {
+/* ---------- Barre du haut : profs à gauche, partager et menu à droite ---------- */
+.appbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; }
+.appbar-prof {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
-  padding: 0 .95rem;
+  gap: .55rem;
+  min-height: 46px;
+  padding: 0 1.05rem 0 .4rem;
   border-radius: 999px;
   border: 2px solid var(--line);
   background: var(--key);
   color: var(--ink);
-  font: inherit;
-  font-size: .92rem;
   font-weight: 700;
+  font-size: .98rem;
   text-decoration: none;
-  cursor: pointer;
-  transition: border-color .12s;
 }
-.qs:hover { border-color: var(--ink); }
-.qs:active { transform: translateY(1px); }
-.qs:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-.qs-status { font-size: .92rem; }
+.appbar-prof .ico { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--pencil); color: var(--on-pencil); }
+.appbar-prof .ico svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.appbar-actions { display: flex; gap: 8px; }
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: var(--key);
+  color: var(--ink);
+  cursor: pointer;
+}
+.icon-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.appbar-prof:hover, .icon-btn:hover { border-color: var(--ink); }
+.appbar-prof:focus-visible, .icon-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 .eyebrow { margin: 0; font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
 
 .nameplate { display: grid; gap: 10px; margin: 0; width: min(100%, 280px); }
@@ -392,6 +403,7 @@ button { cursor: pointer; touch-action: manipulation; }
   font-size: 1rem;
   line-height: 1.1;
   text-align: center;
+  text-decoration: none;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -417,9 +429,89 @@ button { cursor: pointer; touch-action: manipulation; }
 /* ---------- Faire connaître le site : liens de partage simples, sans bouton de réseau social ni traceur ---------- */
 .share { display: grid; gap: 10px; padding: 0 6px; }
 .share h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; }
-.share-row { display: flex; flex-wrap: wrap; gap: 10px; }
-.share-row .btn { min-height: 46px; padding: 0 1rem; font-size: .98rem; }
-.share-row a.btn { color: var(--ink); text-decoration: none; }
+.share-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 700px) {
+  .share-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .share-grid .sbtn--plain.sbtn--wide { grid-column: span 2; }
+}
+.sbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  min-height: 52px;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter .12s, transform .12s;
+}
+.sbtn svg { width: 21px; height: 21px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.sbtn:hover { filter: brightness(1.08); }
+.sbtn:active { transform: translateY(1px); }
+.sbtn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.sbtn--wide { grid-column: 1 / -1; }
+.sbtn--go { background: var(--pencil); color: var(--on-pencil); }
+.sbtn--fb { background: #1463D6; }
+.sbtn--ig { background: #B8317E; }
+.sbtn--pin { background: #C8001F; }
+.sbtn--plain { background: var(--key); color: var(--ink); border: 2px solid var(--line); }
+
+/* ---------- Panneaux (menu et partage) : ouverts par le bas sur un cellulaire ---------- */
+.sheet-dlg {
+  width: 100%;
+  max-width: 560px;
+  max-height: min(88vh, 720px);
+  margin: auto auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: 24px 24px 0 0;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, .28);
+  overflow-y: auto;
+}
+.sheet-dlg::backdrop { background: rgba(8, 14, 11, .5); }
+.sheet-dlg[open] { animation: sheet-up .22s ease-out; }
+@keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (min-width: 700px) {
+  .sheet-dlg { margin: auto; border-radius: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+  .sheet-grip { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .sheet-dlg[open] { animation: none; } }
+.sheet-in { display: grid; gap: 14px; padding: 10px 18px calc(22px + env(safe-area-inset-bottom, 0px)); }
+.sheet-grip { width: 46px; height: 5px; margin: 2px auto 0; border-radius: 3px; background: var(--line); }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sheet-head h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; }
+.menu-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.menu-item:hover { background: var(--key); }
+.menu-item:focus-visible { outline: 3px solid var(--ink); outline-offset: 1px; }
+.menu-item b { display: block; font-size: 1.05rem; line-height: 1.25; }
+.menu-item small { display: block; margin-top: 2px; color: var(--ink-soft); font-size: .9rem; line-height: 1.3; }
+.mi-ico { display: grid; place-items: center; width: 46px; height: 46px; flex: none; border-radius: 14px; background: var(--select); color: var(--ink); }
+.mi-ico svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.mi-ico--pro { background: var(--pencil); color: var(--on-pencil); }
 .share-status { margin: 0; font-weight: 700; color: var(--green); overflow-wrap: anywhere; }
 .share-status:empty { display: none; }
 .share-status.is-err { color: var(--ink); font-weight: 400; }
@@ -440,22 +532,35 @@ button { cursor: pointer; touch-action: manipulation; }
 .fine a { color: inherit; text-underline-offset: 3px; }
 
 /* ---------- À propos et questions fréquentes (texte lisible par Google et les IA) ---------- */
-.wrap--about { padding-block: 0 56px; }
-.about { display: grid; gap: 12px; max-width: 68ch; padding: 22px 6px 0; border-top: 2px solid var(--key-edge); }
-.about h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; line-height: 1.15; text-wrap: balance; }
-.about h3 { margin: 10px 0 0; font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
-.about p, .about li { margin: 0; line-height: 1.55; }
-.about ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.foot { padding-block: 4px 48px; gap: 10px; }
+.foot-links { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 18px 6px 0; border-top: 2px solid var(--key-edge); }
+.foot-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); font-weight: 700; text-underline-offset: 4px; text-decoration-color: var(--pencil-deep); text-decoration-thickness: 2px; }
+.foot .fine { padding: 0 6px; max-width: 68ch; }
+
+/* ---------- Carte « Pour les enseignants » : le témoignage près du bouton ---------- */
+.profs {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  padding: 22px 20px;
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: 0 4px 0 var(--ink);
+}
+.profs h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: clamp(1.3rem, 4.4vw, 1.6rem); line-height: 1.15; text-wrap: balance; }
+.profs-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.profs-list li { position: relative; padding-left: 1.7rem; line-height: 1.45; }
+.profs-list li::before { content: ""; position: absolute; left: 2px; top: .3em; width: .55rem; height: .95rem; border: solid var(--green); border-width: 0 3px 3px 0; transform: rotate(40deg); }
+.profs-go { width: 100%; min-height: 56px; padding: 0 1rem; font-size: 1.1rem; }
+.profs-go svg { width: 1.15em; height: 1.15em; }
 /* Témoignages : seulement des citations approuvées par leur auteur, sans nom d'enfant ni d'école. */
 .quote { margin: 0; display: grid; gap: 6px; padding: 14px 18px; border-left: 4px solid var(--pencil); border-radius: 0 12px 12px 0; background: var(--key); }
 .quote blockquote { margin: 0; font-family: var(--font-hand); font-size: 1.35rem; line-height: 1.3; }
 .quote figcaption { font-size: .9rem; font-weight: 700; color: var(--ink-soft); }
 .quote figcaption::before { content: "— "; }
-.faq { display: grid; border-top: 1px solid var(--key-edge); }
-.faq details { border-bottom: 1px solid var(--key-edge); }
-.faq summary { padding: 12px 2px; font-weight: 700; cursor: pointer; }
-.faq details p { padding: 0 2px 14px; color: var(--ink-soft); }
-.faq a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }
+.quote--card { width: 100%; padding: 16px 20px; background: var(--highlight); border-left-width: 6px; }
+.quote--card blockquote { font-size: clamp(1.35rem, 4.6vw, 1.6rem); }
 
 /* ---------- Boîte à idées (papillon collé) ---------- */
 .ideas {
@@ -817,6 +922,21 @@ button { cursor: pointer; touch-action: manipulation; }
   <section class="screen" id="setup" aria-labelledby="setup-title">
     <div class="scroll">
       <div class="wrap">
+        <header class="appbar">
+          <a class="appbar-prof" href="classe.html">
+            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21l4-5 4 5"/></svg></span>
+            Pour les profs
+          </a>
+          <div class="appbar-actions">
+            <button type="button" class="icon-btn" id="bar-share" aria-label="Partager Tables minute">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>
+            </button>
+            <button type="button" class="icon-btn" id="bar-menu" aria-label="Menu" aria-haspopup="dialog">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
+          </div>
+        </header>
+
         <section class="tip" id="tip" aria-labelledby="tip-title" hidden>
           <h2 class="tip-title" id="tip-title"></h2>
           <p class="tip-text" id="tip-text"></p>
@@ -833,14 +953,6 @@ button { cursor: pointer; touch-action: manipulation; }
             <div class="brand">
               <h1 class="title" id="setup-title">Tables <span class="hl">minute</span></h1>
               <p class="lede">Réponds au plus de questions possible avant que le crayon soit tout usé.</p>
-              <a class="teach-link" href="classe.html">Enseignant? La trousse gratuite pour votre classe →</a>
-              <div class="quick-share" role="group" aria-labelledby="qs-label">
-                <span class="qs-label" id="qs-label">Partager le site :</span>
-                <a class="qs" id="qs-fb" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Facebook</a>
-                <button type="button" class="qs" id="qs-ig">Instagram</button>
-                <button type="button" class="qs" id="qs-copy">Copier le lien</button>
-              </div>
-              <p class="share-status qs-status" id="qs-status" role="status" aria-live="polite"></p>
             </div>
             <dl class="nameplate">
               <div class="np-row">
@@ -921,6 +1033,24 @@ button { cursor: pointer; touch-action: manipulation; }
           </div>
         </article>
 
+        <section class="profs" aria-labelledby="profs-title">
+          <p class="eyebrow">Pour les enseignants</p>
+          <h2 id="profs-title">La trousse gratuite pour votre classe</h2>
+          <ul class="profs-list">
+            <li>Un code QR à projeter en classe</li>
+            <li>Une feuille d’une page pour les parents</li>
+            <li>Des tables différentes pour chaque opération, pour différencier</li>
+          </ul>
+          <figure class="quote quote--card">
+            <blockquote>« Je m’en sers en classe avec mes élèves de 5e année pour faire de la différenciation. »</blockquote>
+            <figcaption>Une enseignante de 5e année</figcaption>
+          </figure>
+          <a class="btn btn--go profs-go" href="classe.html">Créer ma trousse
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <p class="fine">Gratuit, sans compte. Rien n’est demandé sur vous ni sur vos élèves.</p>
+        </section>
+
         <section class="history" aria-labelledby="hist-title">
           <h2 id="hist-title">Derniers essais</h2>
           <ol id="history"></ol>
@@ -931,13 +1061,19 @@ button { cursor: pointer; touch-action: manipulation; }
         <section class="share" id="share" aria-labelledby="share-title">
           <h2 id="share-title">Faire connaître Tables minute</h2>
           <p class="hint">Parents et profs : un partage aide d’autres familles à trouver le site. Gratuit, sans compte et sans pub.</p>
-          <div class="share-row">
-            <button type="button" class="btn btn--go" id="share-native" hidden>Partager</button>
-            <a class="btn btn--alt" id="share-fb" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Facebook</a>
-            <button type="button" class="btn btn--alt" id="share-ig">Instagram</button>
-            <a class="btn btn--alt" id="share-pin" href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Pinterest</a>
-            <a class="btn btn--alt" id="share-mail" href="mailto:?subject=Tables%20minute&amp;body=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage">Courriel</a>
-            <button type="button" class="btn btn--alt" id="share-copy">Copier le lien</button>
+          <div class="share-grid">
+            <button type="button" class="sbtn sbtn--go sbtn--wide" id="share-native" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Partager
+            </button>
+            <a class="sbtn sbtn--fb" id="share-fb" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Facebook</a>
+            <button type="button" class="sbtn sbtn--ig" id="share-ig">Instagram</button>
+            <a class="sbtn sbtn--pin" id="share-pin" href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Pinterest</a>
+            <a class="sbtn sbtn--plain" id="share-mail" href="mailto:?subject=Tables%20minute&amp;body=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Courriel
+            </a>
+            <button type="button" class="sbtn sbtn--plain sbtn--wide" id="share-copy">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>Copier le lien
+            </button>
           </div>
           <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
         </section>
@@ -962,53 +1098,13 @@ button { cursor: pointer; touch-action: manipulation; }
         </section>
       </div>
 
-      <div class="wrap wrap--about">
-        <section class="about" aria-labelledby="about-title">
-          <h2 id="about-title">C’est quoi, les tables minute?</h2>
-          <p>Au primaire, au Québec, les élèves font des «&nbsp;tables minute&nbsp;» en classe : une feuille d’opérations à remplir le plus vite possible, souvent 24 questions en 2 minutes. C’est une façon de pratiquer le répertoire mémorisé des tables d’addition, de soustraction, de multiplication et de division. Tables minute reprend ce format pour pratiquer à la maison, sur une tablette, un cellulaire ou un ordinateur.</p>
-          <h3>Comment ça marche</h3>
-          <ul>
-            <li>Choisis l’opération (multiplication, division, addition ou soustraction) et les tables, de&nbsp;1 à&nbsp;12.</li>
-            <li>Avec plusieurs opérations, tu peux choisir des tables différentes pour chacune : par exemple les multiplications de 6 à 9 et les divisions de 2 à 5.</li>
-            <li>Règle le chrono à 4, 3 ou 2 minutes pour arriver petit à petit au 2 minutes de l’école.</li>
-            <li>Réponds avec le clavier à l’écran. Une question peut demander la réponse (4 × 7 = ?) ou le nombre manquant (4 × ? = 28, 28 ÷ ? = 4).</li>
-            <li>À la fin, la feuille est corrigée : tu vois les faits à revoir et tu peux reprendre seulement tes erreurs.</li>
-          </ul>
-          <h3>Ce qu’on en dit</h3>
-          <figure class="quote">
-            <blockquote>« Je m’en sers en classe avec mes élèves de 5e année pour faire de la différenciation. »</blockquote>
-            <figcaption>Une enseignante de 5e année</figcaption>
-          </figure>
-          <h3>Questions fréquentes</h3>
-          <div class="faq">
-            <details>
-              <summary>Est-ce que c’est vraiment gratuit?</summary>
-              <p>Oui. Il n’y a ni compte, ni publicité, ni donnée personnelle. Les résultats restent seulement sur l’appareil de l’enfant.</p>
-            </details>
-            <details>
-              <summary>Pour quels élèves?</summary>
-              <p>Pour les élèves du primaire qui apprennent leurs tables, surtout de la 2e à la 6e année : les additions et les soustractions d’abord, puis les multiplications et les divisions.</p>
-            </details>
-            <details>
-              <summary>Est-ce que ça fonctionne sur iPad ou sur Chromebook?</summary>
-              <p>Oui, dans le navigateur d’une tablette, d’un cellulaire ou d’un ordinateur, sans rien installer. On peut aussi l’ajouter à l’écran d’accueil pour l’ouvrir comme une application.</p>
-            </details>
-            <details>
-              <summary>Où sont gardés les résultats?</summary>
-              <p>Dans le navigateur où la feuille a été faite, sur l’appareil. Le navigateur intégré à Facebook et Safari (ou Chrome) sont deux endroits séparés. Pour tout retrouver, ouvre toujours le site au même endroit, idéalement avec l’icône de l’écran d’accueil.</p>
-            </details>
-            <details>
-              <summary>Comment l’utiliser avec ma classe?</summary>
-              <p>Créez la <a href="classe.html">trousse de votre classe</a> : un code QR à projeter et une feuille d’une page pour les parents, à imprimer ou à envoyer en PDF. C’est gratuit et sans compte.</p>
-              <p>Pour différencier, cochez plusieurs opérations, puis « Choisir les tables pour chaque opération » : chaque élève peut avoir, par exemple, ses multiplications de 6 à 9 et ses divisions de 2 à 5 sur la même feuille.</p>
-            </details>
-            <details>
-              <summary>Qui a créé ce site?</summary>
-              <p>Vincent, un papa qui voulait aider son garçon à pratiquer ses tables minute. Une idée ou un problème? Écris-lui avec la boîte à idées, plus haut.</p>
-            </details>
-          </div>
-        </section>
-      </div>
+      <footer class="wrap foot">
+        <nav class="foot-links" aria-label="Plus sur Tables minute">
+          <a href="apropos.html">À propos et questions</a>
+          <a href="classe.html">Pour les profs</a>
+        </nav>
+        <p class="fine">Tables minute : les tables minute de l’école au Québec, à la maison. Multiplication, division, addition et soustraction, tables de 1 à 12. Gratuit, sans compte et sans pub.</p>
+      </footer>
     </div>
   </section>
 
@@ -1055,6 +1151,7 @@ button { cursor: pointer; touch-action: manipulation; }
     </div>
 
     <div class="overlay" id="overlay" hidden><div class="overlay-inner"><span id="overlay-text"></span></div></div>
+
     <p class="sr-only" id="live" aria-live="polite"></p>
   </section>
 
@@ -1109,6 +1206,45 @@ button { cursor: pointer; touch-action: manipulation; }
     </div>
   </section>
 </div>
+
+<dialog class="sheet-dlg" id="menu-dlg" aria-labelledby="menu-title">
+  <div class="sheet-in">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <h2 id="menu-title">Menu</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Fermer le menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="menu-list">
+      <li><a class="menu-item" href="classe.html"><span class="mi-ico mi-ico--pro" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21l4-5 4 5"/></svg></span><span><b>Pour les profs</b><small>La trousse gratuite pour votre classe</small></span></a></li>
+      <li><button type="button" class="menu-item" id="menu-share"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></span><span><b>Partager le site</b><small>Facebook, Instagram, courriel…</small></span></button></li>
+      <li id="menu-idea-li"><button type="button" class="menu-item" id="menu-idea"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.4 1.1 2.2h5c0-.8.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/></svg></span><span><b>Une idée ou un problème?</b><small>Écris à Vincent, le papa qui a créé le site</small></span></button></li>
+      <li><a class="menu-item" href="apropos.html"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.7"/><path d="M12 17.2v.3"/></svg></span><span><b>À propos et questions</b><small>Comment ça marche, questions fréquentes</small></span></a></li>
+    </ul>
+  </div>
+</dialog>
+
+<dialog class="sheet-dlg" id="share-dlg" aria-labelledby="share-dlg-title">
+  <div class="sheet-in">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <h2 id="share-dlg-title">Partager Tables minute</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <p class="hint">Gratuit, sans compte et sans pub. Un partage aide d’autres familles et d’autres profs à le trouver.</p>
+    <div class="share-grid">
+      <a class="sbtn sbtn--fb" id="sd-fb" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Facebook</a>
+      <button type="button" class="sbtn sbtn--ig" id="sd-ig">Instagram</button>
+      <a class="sbtn sbtn--pin" id="sd-pin" href="https://www.pinterest.com/" target="_blank" rel="noopener">Pinterest</a>
+      <a class="sbtn sbtn--plain" id="sd-mail" href="mailto:">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Courriel
+      </a>
+      <button type="button" class="sbtn sbtn--plain sbtn--wide" id="sd-copy">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>Copier le lien
+      </button>
+    </div>
+    <p class="share-status" id="sd-status" role="status" aria-live="polite"></p>
+  </div>
+</dialog>
 
 <script>
 (() => {
@@ -1429,7 +1565,10 @@ button { cursor: pointer; touch-action: manipulation; }
       if (wrap && tip && !tip.hidden) {
         $('tip-status').textContent = '';
         if (name === 'setup') {
-          if (wrap.firstElementChild !== tip) wrap.insertBefore(tip, wrap.firstElementChild);
+          // Sous la barre du haut, avant la feuille
+          const bar = wrap.querySelector('.appbar');
+          const first = bar ? bar.nextElementSibling : wrap.firstElementChild;
+          if (first !== tip) wrap.insertBefore(tip, first);
         } else {
           const paper = wrap.querySelector('.paper');
           if (paper && paper.nextElementSibling !== tip) wrap.insertBefore(tip, paper.nextElementSibling);
@@ -1514,24 +1653,53 @@ button { cursor: pointer; touch-action: manipulation; }
   function setupShare() {
     const enc = encodeURIComponent;
     const img = new URL('og-image.png', new URL('./', window.location.href)).href;
-    $('share-fb').href = 'https://www.facebook.com/sharer/sharer.php?u=' + enc(SHARE_URL);
-    $('qs-fb').href = $('share-fb').href;
-    $('share-pin').href = 'https://www.pinterest.com/pin/create/button/?url=' + enc(SHARE_URL) + '&media=' + enc(img) + '&description=' + enc(SHARE_TEXT);
-    $('share-mail').href = 'mailto:?subject=' + enc('Tables minute : pratiquer les tables à la maison') + '&body=' + enc(SHARE_TEXT + '\n\n' + SHARE_URL);
+    const fb = 'https://www.facebook.com/sharer/sharer.php?u=' + enc(SHARE_URL);
+    const pin = 'https://www.pinterest.com/pin/create/button/?url=' + enc(SHARE_URL) + '&media=' + enc(img) + '&description=' + enc(SHARE_TEXT);
+    const mail = 'mailto:?subject=' + enc('Tables minute : pratiquer les tables à la maison') + '&body=' + enc(SHARE_TEXT + '\n\n' + SHARE_URL);
+    // Le bloc du bas (share-*) et le panneau de partage (sd-*) ont les mêmes liens.
+    ['share', 'sd'].forEach((p) => {
+      $(p + '-fb').href = fb;
+      $(p + '-pin').href = pin;
+      $(p + '-mail').href = mail;
+    });
     $('share-native').hidden = typeof navigator.share !== 'function';
   }
-  // Le message s'affiche sous les boutons touchés : en haut de l'accueil (qs-status) ou dans le bloc de partage.
+  // Le message s'affiche sous les boutons touchés : bloc de partage (share-status) ou panneau (sd-status).
   function shareSay(text, plain, where) {
     const s = $(where || 'share-status');
     s.classList.toggle('is-err', !!plain);
     s.textContent = text;
   }
-  function shareNative() {
+  function shareNative(where) {
     track('partage-natif', 'Partage avec le menu du téléphone');
     try {
       navigator.share({ title: 'Tables minute', text: SHARE_TEXT, url: SHARE_URL })
-        .then(() => shareSay('Merci de faire connaître Tables minute!'), () => { /* menu fermé */ });
+        .then(() => { if (where) shareSay('Merci de faire connaître Tables minute!', false, where); }, () => { /* menu fermé */ });
     } catch (e) { /* menu de partage indisponible */ }
+  }
+  // Bouton Partager de la barre du haut et du menu : le menu du téléphone s'il existe, sinon notre panneau.
+  function shareSite() {
+    if (typeof navigator.share === 'function') { shareNative(''); return; }
+    $('sd-status').textContent = '';
+    openSheet('share-dlg');
+  }
+
+  /* ---------- Panneaux (menu et partage) ---------- */
+  function openSheet(id) {
+    const d = $(id);
+    if (d.open) return;
+    if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', '');
+  }
+  function closeSheet(d) {
+    if (!d || !d.open) return;
+    if (typeof d.close === 'function') d.close(); else d.removeAttribute('open');
+  }
+  // La boîte à idées est en bas de l'écran affiché : on y va et on place le curseur.
+  function goIdeas() {
+    const box = $('ideas');
+    if (!box || box.hidden) return;
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => { try { $('idea-msg').focus({ preventScroll: true }); } catch (e) { /* rien */ } }, 350);
   }
   function shareCopy(where) {
     track('partage-lien', 'Lien copié pour partager');
@@ -2372,13 +2540,27 @@ button { cursor: pointer; touch-action: manipulation; }
     $('idea-form').addEventListener('submit', sendIdea);
     $('tip-copy').addEventListener('click', copyExitLink);
     $('tip-close').addEventListener('click', closeTip);
-    $('share-native').addEventListener('click', shareNative);
     $('share-copy').addEventListener('click', () => shareCopy('share-status'));
     $('share-ig').addEventListener('click', () => shareInstagram('share-status'));
     $('share-fb').addEventListener('click', () => track('partage-facebook', 'Partage sur Facebook'));
-    $('qs-fb').addEventListener('click', () => track('partage-facebook', 'Partage sur Facebook'));
-    $('qs-ig').addEventListener('click', () => shareInstagram('qs-status'));
-    $('qs-copy').addEventListener('click', () => shareCopy('qs-status'));
+    $('share-native').addEventListener('click', () => shareNative('share-status'));
+    $('sd-fb').addEventListener('click', () => track('partage-facebook', 'Partage sur Facebook'));
+    $('sd-pin').addEventListener('click', () => track('partage-pinterest', 'Partage sur Pinterest'));
+    $('sd-mail').addEventListener('click', () => track('partage-courriel', 'Partage par courriel'));
+    $('sd-ig').addEventListener('click', () => shareInstagram('sd-status'));
+    $('sd-copy').addEventListener('click', () => shareCopy('sd-status'));
+
+    // Barre du haut et menu
+    $('bar-share').addEventListener('click', () => { track('barre-partager', 'Barre du haut : Partager'); shareSite(); });
+    $('bar-menu').addEventListener('click', () => { track('menu-ouvert', 'Menu ouvert'); openSheet('menu-dlg'); });
+    $('menu-share').addEventListener('click', () => { closeSheet($('menu-dlg')); shareSite(); });
+    $('menu-idea').addEventListener('click', () => { closeSheet($('menu-dlg')); goIdeas(); });
+    // Fermer : bouton ×, ou toucher à côté du panneau
+    Array.prototype.forEach.call(document.querySelectorAll('.sheet-dlg'), (d) => {
+      d.addEventListener('click', (e) => {
+        if (e.target === d || (e.target.closest && e.target.closest('[data-close]'))) closeSheet(d);
+      });
+    });
     $('share-pin').addEventListener('click', () => track('partage-pinterest', 'Partage sur Pinterest'));
     $('share-mail').addEventListener('click', () => track('partage-courriel', 'Partage par courriel'));
 
@@ -2439,10 +2621,13 @@ button { cursor: pointer; touch-action: manipulation; }
     syncSetup();
     renderHistory();
     $('ideas').hidden = !FEEDBACK_KEY;
+    $('menu-idea-li').hidden = !FEEDBACK_KEY;
     setupTip();
     setupShare();
     bind();
     if (!restore(data && data.tablesMinute)) show('setup');
+    // Arrivée par index.html#ideas (lien de la page À propos)
+    if (window.location.hash === '#ideas' && S.screen === 'setup') setTimeout(goIdeas, 300);
     try {
       const hot = window.claude && window.claude.hot;
       if (hot && typeof hot.snapshot === 'function') hot.snapshot(() => ({ tablesMinute: snapshot() }));

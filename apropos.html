@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>À propos de Tables minute : comment ça marche et questions fréquentes</title>
+<meta name="description" content="Tables minute : les tables minute de l’école au Québec, à la maison ou en classe. Comment ça marche, ce qu’en disent les profs et les réponses aux questions fréquentes. Gratuit, sans compte et sans pub.">
+<link rel="canonical" href="https://vincentgamache2103.github.io/tables-minute/apropos.html">
+<meta name="theme-color" content="#E3E9F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101814" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icon.svg?v=2" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_CA">
+<meta property="og:title" content="À propos de Tables minute">
+<meta property="og:description" content="Les tables minute de l’école, à la maison ou en classe. Gratuit, sans compte et sans pub.">
+<meta property="og:image" content="https://vincentgamache2103.github.io/tables-minute/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Grandstander:wght@800;900&family=Patrick+Hand&display=swap">
+<style>
+/* Page À propos : la même feuille quadrillée que le site. Ce qu'on lit une fois, sorti de l'écran de pratique. */
+:root {
+  color-scheme: light;
+  --desk: #E3E9F2;
+  --paper: #FDFEFF;
+  --grid: #DCE6F3;
+  --margin: #F0ABAB;
+  --ink: #252A33;
+  --ink-soft: #5E6777;
+  --line: #A3AEBE;
+  --key: #FFFFFF;
+  --key-edge: #C3CCD9;
+  --pencil: #F7C21B;
+  --pencil-deep: #CF9806;
+  --on-pencil: #2A2104;
+  --highlight: rgba(255, 208, 0, .42);
+  --shadow: 0 1px 2px rgba(25, 35, 60, .08), 0 14px 30px -18px rgba(25, 35, 60, .35);
+  --font-display: "Grandstander", ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
+  --font-hand: "Patrick Hand", "Chalkboard SE", "Marker Felt", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #101814;
+    --paper: #19241F;
+    --grid: rgba(214, 232, 222, .07);
+    --margin: rgba(255, 130, 130, .34);
+    --ink: #EDF2EC;
+    --ink-soft: #A3B1A9;
+    --line: rgba(237, 242, 236, .42);
+    --key: #22302A;
+    --key-edge: #0A100D;
+    --pencil: #F4C944;
+    --pencil-deep: #B68C12;
+    --on-pencil: #241B02;
+    --highlight: rgba(244, 201, 68, .26);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 16px 32px -18px rgba(0, 0, 0, .8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #101814;
+  --paper: #19241F;
+  --grid: rgba(214, 232, 222, .07);
+  --margin: rgba(255, 130, 130, .34);
+  --ink: #EDF2EC;
+  --ink-soft: #A3B1A9;
+  --line: rgba(237, 242, 236, .42);
+  --key: #22302A;
+  --key-edge: #0A100D;
+  --pencil: #F4C944;
+  --pencil-deep: #B68C12;
+  --on-pencil: #241B02;
+  --highlight: rgba(244, 201, 68, .26);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 16px 32px -18px rgba(0, 0, 0, .8);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--desk);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding: env(safe-area-inset-top, 0px) max(16px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(16px, env(safe-area-inset-left, 0px));
+  -webkit-tap-highlight-color: transparent;
+}
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 20px 48px; display: grid; gap: 22px; }
+.topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 46px;
+  padding: 0 .95rem;
+  white-space: nowrap;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: var(--key);
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+.pill svg { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.pill:hover { border-color: var(--ink); }
+.pill--pro { background: var(--pencil); border-color: var(--pencil-deep); color: var(--on-pencil); }
+.paper {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 28px 28px 32px 56px;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+.paper::before { content: ""; position: absolute; top: 0; bottom: 0; left: 32px; width: 2px; background: var(--margin); pointer-events: none; }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(2rem, 6vw, 3rem); line-height: 1; text-wrap: balance; }
+.hl { background: linear-gradient(transparent 56%, var(--highlight) 56%, var(--highlight) 92%, transparent 92%); padding: 0 .06em; }
+h2 { margin: 14px 0 0; font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; line-height: 1.2; }
+p, li { margin: 0; max-width: 68ch; }
+ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }
+
+/* Témoignage approuvé par son auteure, sans nom ni école. */
+.quote { margin: 0; display: grid; gap: 6px; max-width: 60ch; padding: 16px 20px; border-left: 6px solid var(--pencil); border-radius: 0 14px 14px 0; background: var(--highlight); }
+.quote blockquote { margin: 0; font-family: var(--font-hand); font-size: clamp(1.35rem, 4.6vw, 1.6rem); line-height: 1.3; }
+.quote figcaption { font-size: .9rem; font-weight: 700; color: var(--ink-soft); }
+.quote figcaption::before { content: "— "; }
+
+.faq { display: grid; border-top: 1px solid var(--key-edge); max-width: 68ch; }
+.faq details { border-bottom: 1px solid var(--key-edge); }
+.faq summary { display: flex; align-items: center; min-height: 52px; padding: 10px 2px; font-weight: 700; cursor: pointer; }
+.faq details p { padding: 0 2px 14px; color: var(--ink-soft); }
+.faq details p + p { margin-top: -6px; }
+
+.cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 52px;
+  padding: 0 1.3rem;
+  border-radius: 14px;
+  border: 2px solid var(--pencil-deep);
+  border-bottom-width: 4px;
+  background: var(--pencil);
+  color: var(--on-pencil);
+  font-weight: 700;
+  text-decoration: none;
+}
+.btn--alt { background: var(--key); color: var(--ink); border-color: var(--key-edge); }
+
+@media (max-width: 680px) {
+  .paper { padding: 22px 16px 26px 34px; }
+  .paper::before { left: 20px; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <nav class="topbar" aria-label="Navigation">
+    <a class="pill" href="./" aria-label="Retour à Tables minute"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3.5M7.5 3.5 3 8l4.5 4.5"/></svg>Tables minute</a>
+    <a class="pill pill--pro" href="classe.html">Pour les profs</a>
+  </nav>
+
+  <article class="paper" aria-labelledby="page-title">
+    <h1 id="page-title">C’est quoi, les <span class="hl">tables minute</span>?</h1>
+    <p>Au primaire, au Québec, les élèves font des «&nbsp;tables minute&nbsp;» en classe : une feuille d’opérations à remplir le plus vite possible, souvent 24 questions en 2 minutes. C’est une façon de pratiquer le répertoire mémorisé des tables d’addition, de soustraction, de multiplication et de division. Tables minute reprend ce format pour pratiquer à la maison ou en classe, sur une tablette, un cellulaire, un Chromebook ou un ordinateur.</p>
+
+    <h2>Comment ça marche</h2>
+    <ul>
+      <li>Choisis l’opération (multiplication, division, addition ou soustraction) et les tables, de&nbsp;1 à&nbsp;12.</li>
+      <li>Avec plusieurs opérations, tu peux choisir des tables différentes pour chacune : par exemple les multiplications de 6 à 9 et les divisions de 2 à 5.</li>
+      <li>Règle le chrono à 4, 3 ou 2 minutes pour arriver petit à petit au 2 minutes de l’école.</li>
+      <li>Réponds avec le clavier à l’écran. Une question peut demander la réponse (4 × 7 = ?) ou le nombre manquant (4 × ? = 28, 28 ÷ ? = 4).</li>
+      <li>À la fin, la feuille est corrigée : tu vois les faits à revoir et tu peux reprendre seulement tes erreurs.</li>
+    </ul>
+
+    <h2>Ce qu’on en dit</h2>
+    <figure class="quote">
+      <blockquote>« Je m’en sers en classe avec mes élèves de 5e année pour faire de la différenciation. »</blockquote>
+      <figcaption>Une enseignante de 5e année</figcaption>
+    </figure>
+
+    <h2>Questions fréquentes</h2>
+    <div class="faq">
+      <details>
+        <summary>Est-ce que c’est vraiment gratuit?</summary>
+        <p>Oui. Il n’y a ni compte, ni publicité, ni donnée personnelle. Les résultats restent seulement sur l’appareil de l’enfant.</p>
+      </details>
+      <details>
+        <summary>Pour quels élèves?</summary>
+        <p>Pour les élèves du primaire qui apprennent leurs tables, surtout de la 2e à la 6e année : les additions et les soustractions d’abord, puis les multiplications et les divisions.</p>
+      </details>
+      <details>
+        <summary>Est-ce que ça fonctionne sur iPad ou sur Chromebook?</summary>
+        <p>Oui, dans le navigateur d’une tablette, d’un cellulaire ou d’un ordinateur, sans rien installer. On peut aussi l’ajouter à l’écran d’accueil pour l’ouvrir comme une application.</p>
+      </details>
+      <details>
+        <summary>Où sont gardés les résultats?</summary>
+        <p>Dans le navigateur où la feuille a été faite, sur l’appareil. Le navigateur intégré à Facebook et Safari (ou Chrome) sont deux endroits séparés. Pour tout retrouver, ouvre toujours le site au même endroit, idéalement avec l’icône de l’écran d’accueil.</p>
+      </details>
+      <details>
+        <summary>Comment l’utiliser avec ma classe?</summary>
+        <p>Créez la <a href="classe.html">trousse de votre classe</a> : un code QR à projeter et une feuille d’une page pour les parents, à imprimer ou à envoyer en PDF. C’est gratuit et sans compte.</p>
+        <p>Pour différencier, cochez plusieurs opérations, puis « Choisir les tables pour chaque opération » : chaque élève peut avoir, par exemple, ses multiplications de 6 à 9 et ses divisions de 2 à 5 sur la même feuille.</p>
+      </details>
+      <details>
+        <summary>Qui a créé ce site?</summary>
+        <p>Vincent, un papa qui voulait aider son garçon à pratiquer ses tables minute. Une idée ou un problème? Écris-lui avec la <a href="./#ideas">boîte à idées</a>.</p>
+      </details>
+    </div>
+
+    <div class="cta">
+      <a class="btn" href="./">Pratiquer les tables</a>
+      <a class="btn btn--alt" href="classe.html">La trousse pour ma classe</a>
+    </div>
+  </article>
+</main>
+<script data-goatcounter="https://tablesminute.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
