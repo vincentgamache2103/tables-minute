@@ -215,6 +215,28 @@ button { cursor: pointer; touch-action: manipulation; }
 .hl { background: linear-gradient(transparent 56%, var(--highlight) 56%, var(--highlight) 92%, transparent 92%); padding: 0 .06em; }
 .lede { margin: 0; max-width: 40ch; color: var(--ink-soft); font-size: 1.05rem; }
 .teach-link { justify-self: start; color: var(--ink); font-size: .95rem; font-weight: 700; text-decoration-color: var(--pencil-deep); text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.quick-share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.qs-label { font-size: .9rem; font-weight: 700; color: var(--ink-soft); }
+.qs {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 .95rem;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: var(--key);
+  color: var(--ink);
+  font: inherit;
+  font-size: .92rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color .12s;
+}
+.qs:hover { border-color: var(--ink); }
+.qs:active { transform: translateY(1px); }
+.qs:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.qs-status { font-size: .92rem; }
 .eyebrow { margin: 0; font-size: .76rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
 
 .nameplate { display: grid; gap: 10px; margin: 0; width: min(100%, 280px); }
@@ -282,12 +304,15 @@ button { cursor: pointer; touch-action: manipulation; }
 .op-chip input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .op-chip input:checked + span .sym { background: var(--pencil); color: var(--on-pencil); }
 
-.bubbles { display: flex; flex-wrap: wrap; gap: 8px; }
+/* 12 tables : deux rangées de 6 (1 à 6, 7 à 12), ou trois rangées de 4 sur les petits écrans. */
+.bubbles { display: grid; grid-template-columns: repeat(6, minmax(0, 50px)); gap: 8px; }
+@media (max-width: 380px) { .bubbles { grid-template-columns: repeat(4, minmax(0, 50px)); } }
+.bubble { display: grid; }
 .bubble span {
   display: grid;
   place-items: center;
-  width: 50px;
-  height: 50px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   border: 2px solid var(--line);
   background: var(--key);
@@ -788,6 +813,13 @@ button { cursor: pointer; touch-action: manipulation; }
               <h1 class="title" id="setup-title">Tables <span class="hl">minute</span></h1>
               <p class="lede">Réponds au plus de questions possible avant que le crayon soit tout usé.</p>
               <a class="teach-link" href="classe.html">Enseignant? La trousse gratuite pour votre classe →</a>
+              <div class="quick-share" role="group" aria-labelledby="qs-label">
+                <span class="qs-label" id="qs-label">Partager le site :</span>
+                <a class="qs" id="qs-fb" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Facebook</a>
+                <button type="button" class="qs" id="qs-ig">Instagram</button>
+                <button type="button" class="qs" id="qs-copy">Copier le lien</button>
+              </div>
+              <p class="share-status qs-status" id="qs-status" role="status" aria-live="polite"></p>
             </div>
             <dl class="nameplate">
               <div class="np-row">
@@ -879,6 +911,7 @@ button { cursor: pointer; touch-action: manipulation; }
           <div class="share-row">
             <button type="button" class="btn btn--go" id="share-native" hidden>Partager</button>
             <a class="btn btn--alt" id="share-fb" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Facebook</a>
+            <button type="button" class="btn btn--alt" id="share-ig">Instagram</button>
             <a class="btn btn--alt" id="share-pin" href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage" target="_blank" rel="noopener">Pinterest</a>
             <a class="btn btn--alt" id="share-mail" href="mailto:?subject=Tables%20minute&amp;body=https%3A%2F%2Fvincentgamache2103.github.io%2Ftables-minute%2F%3Fref%3Dpartage">Courriel</a>
             <button type="button" class="btn btn--alt" id="share-copy">Copier le lien</button>
@@ -891,7 +924,7 @@ button { cursor: pointer; touch-action: manipulation; }
           <p class="hint">Une opération à ajouter, un problème, une autre idée? Écris-la ici. Vincent, le papa qui a créé le site, la reçoit par courriel.</p>
           <form class="idea-form" id="idea-form" novalidate>
             <label class="sr-only" for="idea-msg">Ton idée</label>
-            <textarea class="idea-msg" id="idea-msg" name="suggestion" rows="3" maxlength="1000" placeholder="Ex. : ajouter les tables de 11 et 12"></textarea>
+            <textarea class="idea-msg" id="idea-msg" name="suggestion" rows="3" maxlength="1000" placeholder="Ex. : une feuille à imprimer"></textarea>
             <div class="idea-field">
               <label for="idea-email">Ton courriel <span>(facultatif, si tu veux une réponse)</span></label>
               <input class="idea-mail" id="idea-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" maxlength="120">
@@ -912,7 +945,7 @@ button { cursor: pointer; touch-action: manipulation; }
           <p>Au primaire, au Québec, les élèves font des «&nbsp;tables minute&nbsp;» en classe : une feuille d’opérations à remplir le plus vite possible, souvent 24 questions en 2 minutes. C’est une façon de pratiquer le répertoire mémorisé des tables d’addition, de soustraction, de multiplication et de division. Tables minute reprend ce format pour pratiquer à la maison, sur une tablette, un cellulaire ou un ordinateur.</p>
           <h3>Comment ça marche</h3>
           <ul>
-            <li>Choisis l’opération (multiplication, division, addition ou soustraction) et les tables, de&nbsp;1 à&nbsp;10.</li>
+            <li>Choisis l’opération (multiplication, division, addition ou soustraction) et les tables, de&nbsp;1 à&nbsp;12.</li>
             <li>Règle le chrono à 4, 3 ou 2 minutes pour arriver petit à petit au 2 minutes de l’école.</li>
             <li>Réponds avec le clavier à l’écran. Une question peut demander la réponse (4 × 7 = ?) ou le nombre manquant (4 × ? = 28, 28 ÷ ? = 4).</li>
             <li>À la fin, la feuille est corrigée : tu vois les faits à revoir et tu peux reprendre seulement tes erreurs.</li>
@@ -1057,7 +1090,7 @@ button { cursor: pointer; touch-action: manipulation; }
   const KEY_HISTORY = 'tablesMinute.history.v1';
   const KEY_FIRST = 'tablesMinute.firstSeen';
   const KEY_LAST = 'tablesMinute.lastSeen';
-  const TABLES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const TABLES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const MINUTES = [2, 3, 4];
   const COUNTS = [12, 24, 36];
   const KINDS = ['product', 'missing', 'mix'];
@@ -1161,9 +1194,11 @@ button { cursor: pointer; touch-action: manipulation; }
   const factKey = (f) => Math.min(f.t, f.k) + 'x' + Math.max(f.t, f.k);
 
   // Chaque fait (4 et 1 à 4 et 10) revient à tour de rôle, jamais deux fois de suite.
+  // Avec la table de 11 ou de 12, les faits vont jusqu'à 12 (4 et 12, 12 et 12).
   function pickFacts(tables, count) {
     const pool = [];
-    tables.forEach((t) => { for (let k = 1; k <= 10; k++) pool.push({ t: t, k: k }); });
+    const kMax = tables.some((t) => t > 10) ? 12 : 10;
+    tables.forEach((t) => { for (let k = 1; k <= kMax; k++) pool.push({ t: t, k: k }); });
     let bag = [];
     while (bag.length < count) bag = bag.concat(shuffle(pool.slice()));
     bag = bag.slice(0, count);
@@ -1410,12 +1445,14 @@ button { cursor: pointer; touch-action: manipulation; }
     const enc = encodeURIComponent;
     const img = new URL('og-image.png', new URL('./', window.location.href)).href;
     $('share-fb').href = 'https://www.facebook.com/sharer/sharer.php?u=' + enc(SHARE_URL);
+    $('qs-fb').href = $('share-fb').href;
     $('share-pin').href = 'https://www.pinterest.com/pin/create/button/?url=' + enc(SHARE_URL) + '&media=' + enc(img) + '&description=' + enc(SHARE_TEXT);
     $('share-mail').href = 'mailto:?subject=' + enc('Tables minute : pratiquer les tables à la maison') + '&body=' + enc(SHARE_TEXT + '\n\n' + SHARE_URL);
     $('share-native').hidden = typeof navigator.share !== 'function';
   }
-  function shareSay(text, plain) {
-    const s = $('share-status');
+  // Le message s'affiche sous les boutons touchés : en haut de l'accueil (qs-status) ou dans le bloc de partage.
+  function shareSay(text, plain, where) {
+    const s = $(where || 'share-status');
     s.classList.toggle('is-err', !!plain);
     s.textContent = text;
   }
@@ -1426,12 +1463,29 @@ button { cursor: pointer; touch-action: manipulation; }
         .then(() => shareSay('Merci de faire connaître Tables minute!'), () => { /* menu fermé */ });
     } catch (e) { /* menu de partage indisponible */ }
   }
-  function shareCopy() {
+  function shareCopy(where) {
     track('partage-lien', 'Lien copié pour partager');
-    const fail = () => shareSay('Voici le lien' + NBSP + ': ' + SHARE_URL, true);
-    try {
-      navigator.clipboard.writeText(SHARE_URL).then(() => shareSay('Lien copié.'), fail);
-    } catch (e) { fail(); }
+    copyText(SHARE_URL).then(
+      () => shareSay('Lien copié.', false, where),
+      () => shareSay('Voici le lien' + NBSP + ': ' + SHARE_URL, true, where)
+    );
+  }
+  // Instagram n'a pas de lien de partage pour le Web. Sur un téléphone, le menu de partage
+  // offre Instagram (message ou story). Ailleurs, on copie le lien à coller dans Instagram.
+  function shareInstagram(where) {
+    track('partage-instagram', 'Partage sur Instagram');
+    if (typeof navigator.share === 'function') {
+      shareSay('Choisis Instagram dans le menu.', true, where);
+      try {
+        navigator.share({ title: 'Tables minute', text: SHARE_TEXT, url: SHARE_URL })
+          .then(() => shareSay('Merci de faire connaître Tables minute!', false, where), () => { $(where).textContent = ''; });
+        return;
+      } catch (e) { /* on copie le lien */ }
+    }
+    copyText(SHARE_URL).then(
+      () => shareSay('Lien copié. Colle-le dans une story ou un message Instagram.', false, where),
+      () => shareSay('Voici le lien à coller dans Instagram' + NBSP + ': ' + SHARE_URL, true, where)
+    );
   }
 
   function say(msg) {
@@ -2172,8 +2226,12 @@ button { cursor: pointer; touch-action: manipulation; }
     $('tip-copy').addEventListener('click', copyExitLink);
     $('tip-close').addEventListener('click', closeTip);
     $('share-native').addEventListener('click', shareNative);
-    $('share-copy').addEventListener('click', shareCopy);
+    $('share-copy').addEventListener('click', () => shareCopy('share-status'));
+    $('share-ig').addEventListener('click', () => shareInstagram('share-status'));
     $('share-fb').addEventListener('click', () => track('partage-facebook', 'Partage sur Facebook'));
+    $('qs-fb').addEventListener('click', () => track('partage-facebook', 'Partage sur Facebook'));
+    $('qs-ig').addEventListener('click', () => shareInstagram('qs-status'));
+    $('qs-copy').addEventListener('click', () => shareCopy('qs-status'));
     $('share-pin').addEventListener('click', () => track('partage-pinterest', 'Partage sur Pinterest'));
     $('share-mail').addEventListener('click', () => track('partage-courriel', 'Partage par courriel'));
 
