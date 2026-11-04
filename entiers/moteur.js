@@ -12,7 +12,7 @@
     md: { name: '× et ÷', ops: ['mul', 'div'], max: 10, count: 24, typed: true, ex: MINUS + '6 × 7' },
     all: { name: 'Les 4 opérations', ops: ['add', 'sub', 'mul', 'div'], max: 10, count: 24, typed: true, ex: '4 − (−5), −3 × (−4)…' },
     x1: { name: 'Trouve x', eq: 1, count: 24, typed: false, ex: 'x + 9 = 4' },
-    x2: { name: 'Trouve x en 2 étapes', eq: 2, count: 12, typed: false, ex: '2x − 7 = 11' }
+    x2: { name: 'Trouve x en 2\u00a0étapes', eq: 2, count: 12, typed: false, ex: '2x − 7 = 11' }
   };
   const TYPES = { mix: ['result', 'missing'], res: ['result'], miss: ['missing'] };
 
@@ -64,7 +64,7 @@
       const c = calc(op, a, b);
       if (a < 0 || b < 0 || c < 0) return { op: op, a: z(a), b: z(b), c: z(c) };
     }
-    const a = -nz(max), b = nz(max);
+    const b = nz(max), a = op === 'div' ? -nz(max) * b : -nz(max);
     return { op: op, a: a, b: b, c: z(calc(op, a, b)) };
   }
   function makeCalc(op, max, kind, hide) {
@@ -79,7 +79,13 @@
 
   /* ---------- Trouve x ---------- */
   // Une étape : x + b = c, b + x = c, ax = c. Deux étapes : ax + b = c. Solution entière de −10 à 10, jamais 0.
+  // Toujours au moins un négatif (coefficient, terme, résultat ou solution) : on pratique les nombres entiers.
   function makeEq(level) {
+    let q = makeEqOnce(level);
+    for (let t = 0; t < 40 && !(q.a < 0 || q.b < 0 || q.c < 0 || q.x < 0); t++) q = makeEqOnce(level);
+    return q;
+  }
+  function makeEqOnce(level) {
     const x = nz(10) * sign();
     if (level === 2) {
       const a = between(2, 9) * sign();
@@ -128,11 +134,11 @@
   function twin(q, moduleKey) {
     const mod = MODULES[moduleKey] || MODULES.as;
     const sig = (n) => Math.sign(n);
-    for (let t = 0; t < 60; t++) {
+    for (let t = 0; t < 200; t++) {
       let p;
       if (q.type === 'eq') {
         p = makeEq(q.form === 'ax+b' ? 2 : 1);
-        if (p.form !== q.form) continue;
+        if (p.form !== q.form || sig(p.a) !== sig(q.a) || sig(p.b) !== sig(q.b) || sig(p.x) !== sig(q.x)) continue;
       } else {
         p = makeCalc(q.op, mod.max || 10, '', q.hide);
         if (sig(p.a) !== sig(q.a) || sig(p.b) !== sig(q.b)) continue;
@@ -177,7 +183,14 @@
   function spoken(q) {
     const words = { add: 'plus', sub: 'moins', mul: 'fois', div: 'divisé par' };
     const n = (v) => (v < 0 ? 'négatif ' + (-v) : String(v));
-    if (q.type === 'eq') return eqLeft(q).replace(/−/g, ' moins ').replace(/x/g, ' x ') + ' égale ' + n(q.c) + '. Trouve x.';
+    if (q.type === 'eq') {
+      const ax = q.a === 1 ? 'x' : (q.a === -1 ? 'négatif x' : n(q.a) + ' x');
+      let left;
+      if (q.form === 'ax') left = ax;
+      else if (q.form === 'b+x') left = n(q.b) + ' plus x';
+      else left = ax + (q.b < 0 ? ' moins ' + (-q.b) : ' plus ' + q.b);
+      return left + ' égale ' + n(q.c) + '. Trouve x.';
+    }
     const w = (key) => (key === q.hide ? 'combien' : n(q[key]));
     return w('a') + ' ' + words[q.op] + ' ' + w('b') + ' égale ' + w('c');
   }
@@ -209,25 +222,37 @@
     return 'calc';
   }
   // Conseil court (tutoiement, sans « Oups! »), avec les nombres de la question.
+  // Espaces insécables avant le deux-points et dans les guillemets (typographie du Québec).
+  const NB = '\u00a0';
   function tip(q, kind) {
-    if (kind === 'subneg') return 'Soustraire ' + numText(q.b, false) + ', c’est additionner ' + (-q.b) + ' : ' + numText(q.a, false) + ' + ' + (-q.b) + ' = ' + numText(q.c, false) + '.';
-    if (kind === 'apart') return 'Ces « ' + MINUS + ' » ne se touchent pas : tu recules encore de ' + q.b + '.';
+    if (kind === 'subneg') return 'Soustraire ' + numText(q.b, false) + ', c’est additionner ' + (-q.b) + NB + ': ' + numText(q.a, false) + ' + ' + (-q.b) + ' = ' + numText(q.c, false) + '.';
+    if (kind === 'apart') return 'Tu pars de ' + numText(q.a, false) + ' et tu recules encore de ' + q.b + NB + ': tu arrives à ' + numText(q.c, false) + '.';
     if (kind === 'mixsign') {
       const big = Math.max(Math.abs(q.a), Math.abs(q.b)), small = Math.min(Math.abs(q.a), Math.abs(q.b));
       const far = Math.abs(q.a) >= Math.abs(q.b) ? q.a : q.b;
-      if (big === small) return 'Signes différents, même distance de 0 : les deux nombres s’annulent, la réponse est 0.';
-      return 'Signes différents : fais ' + big + ' ' + MINUS + ' ' + small + ' = ' + (big - small) + ', puis garde le signe du nombre le plus loin de 0 (' + numText(far, false) + ').';
+      if (big === small) return 'Un positif et un négatif à la même distance de 0 s’annulent' + NB + ': la réponse est 0.';
+      return 'Un positif et un négatif' + NB + ': fais ' + big + ' ' + MINUS + ' ' + small + ' = ' + (big - small) + ', puis garde le signe du nombre le plus loin de 0, ici ' + numText(far, false) + '.';
     }
     if (kind === 'sign') {
-      if (q.type === 'eq') return 'Bon calcul, mauvais signe : remplace x par ta réponse pour vérifier.';
+      const head = 'Bon calcul, mauvais signe' + NB + ': ';
+      if (q.type === 'eq') return head + 'remplace x par ta réponse dans l’équation pour vérifier.';
       if (q.op === 'mul' || q.op === 'div') {
-        return (q.a < 0 && q.b < 0) ? 'Bon calcul, mauvais signe : négatif par négatif donne positif.' : 'Bon calcul, mauvais signe : un seul négatif, la réponse est négative.';
+        if (q.hide !== 'c') {
+          // Terme manquant : il est positif si le résultat et l'autre nombre ont le même signe.
+          const other = q.hide === 'a' ? q.b : q.a;
+          return head + (Math.sign(other) === Math.sign(q.c)
+            ? 'le résultat et l’autre nombre ont le même signe, donc le nombre manquant est positif.'
+            : 'le résultat et l’autre nombre n’ont pas le même signe, donc le nombre manquant est négatif.');
+        }
+        return head + (q.a < 0 && q.b < 0 ? 'négatif par négatif donne positif.' : 'un seul négatif, la réponse est négative.');
       }
-      return 'Bon calcul, mauvais signe : regarde quel nombre est le plus loin de 0.';
+      if (q.hide !== 'c') return head + 'mets ta réponse dans la case et refais le calcul pour vérifier.';
+      if (q.op === 'sub') return head + numText(q.a, false) + ' ' + MINUS + ' ' + numText(q.b, true) + ', c’est ' + numText(q.a, false) + ' + ' + numText(-q.b, true) + '. Le nombre le plus loin de 0 donne son signe à la réponse.';
+      return head + 'le nombre le plus loin de 0 donne son signe à la réponse.';
     }
     return '';
   }
-  const KIND_LABEL = { subneg: 'soustraire un négatif', apart: 'les deux « ' + MINUS + ' » qui ne se touchent pas', mixsign: 'additionner des signes différents', sign: 'le signe de la réponse', calc: 'le calcul' };
+  const KIND_LABEL = { subneg: 'soustraire un négatif', apart: 'un négatif moins un positif', mixsign: 'additionner un positif et un négatif', sign: 'le signe de la réponse', calc: 'le calcul' };
 
   const api = { MINUS, SYM, MODULES, TYPES, setSeed, buildSheet, twin, parts, text, spoken, numText, parse, check, errorKind, tip, KIND_LABEL, calc };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
