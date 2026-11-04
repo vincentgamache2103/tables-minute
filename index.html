@@ -1267,8 +1267,7 @@ button { cursor: pointer; touch-action: manipulation; }
     add: { sym: '+', word: 'plus', name: 'Addition', plural: 'additions', event: 'operation-addition' },
     sub: { sym: '−', word: 'moins', name: 'Soustraction', plural: 'soustractions', event: 'operation-soustraction' }
   };
-  // Par défaut : trouver la réponse. Le nombre manquant se choisit dans les réglages (suggestion du 3 nov.).
-  const DEFAULTS = { ops: ['mul'], tables: [4], minutes: 4, kind: 'product', count: 24, name: '' };
+  const DEFAULTS = { ops: ['mul'], tables: [4], minutes: 4, kind: 'mix', count: 24, name: '' };
   const NBSP = ' ';
   const EXAMPLE_K = 7;
   const CONFIG = (window.TABLES_MINUTE && typeof window.TABLES_MINUTE === 'object') ? window.TABLES_MINUTE : {};
