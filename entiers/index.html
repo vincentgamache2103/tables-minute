@@ -331,6 +331,7 @@ ul, ol { list-style: none; }
           <button type="button" class="pill" role="radio" data-type="res">La réponse</button>
           <button type="button" class="pill" role="radio" data-type="miss">Terme manquant</button>
         </div>
+        <p class="pace" id="type-ex"></p>
       </div>
       <div class="field" role="radiogroup" aria-labelledby="lbl-time">
         <div class="field-head"><h2 id="lbl-time">Temps</h2></div>
@@ -437,7 +438,7 @@ ul, ol { list-style: none; }
       <button type="button" class="pill" role="radio" data-type="mix">Mélangées</button>
       <button type="button" class="pill" role="radio" data-type="res">La réponse</button>
       <button type="button" class="pill" role="radio" data-type="miss">Terme manquant</button>
-    </div></div>
+    </div><p class="pace" id="p-type-ex"></p></div>
     <div class="field" role="radiogroup" aria-labelledby="p-lbl-time"><div class="field-head"><h2 id="p-lbl-time">Temps</h2></div><div class="pills pills--4" id="p-times">
       <button type="button" class="pill" role="radio" data-time="4"><b>4</b> min</button>
       <button type="button" class="pill" role="radio" data-time="3"><b>3</b> min</button>
@@ -610,6 +611,16 @@ ul, ol { list-style: none; }
     x2: [['ax+b', 2, -7, 9], ['ax+b', -4, 3, -3], ['ax+b', 3, 5, -2]]
   };
   const SHOW_HIDE = { res: ['c', 'c', 'c'], miss: ['b', 'a', 'b'], mix: ['c', 'b', 'c'] };
+  // Exemple sous « Questions » : ce que chaque choix donne vraiment.
+  function typeExample(mod, type, prof) {
+    if (!M.MODULES[mod].typed) return '';
+    const e = SHOW[mod][0];
+    const ex = (hide) => '<span class="num nw">' + M.parts({ type: 'calc', op: e[0], a: e[1], b: e[2], c: M.calc(e[0], e[1], e[2]), hide: hide })
+      .map((x) => x.op || (x.box ? BOX : esc(x.t))).join(' ') + '</span>';
+    if (type === 'res') return (prof ? 'L’élève trouve' : 'Tu trouves') + ' la réponse&nbsp;: ' + ex('c');
+    if (type === 'miss') return (prof ? 'L’élève trouve' : 'Tu trouves') + ' le nombre qui manque&nbsp;: ' + ex('b');
+    return 'Les deux, mélangées&nbsp;: ' + ex('c') + ' et ' + ex('b');
+  }
   function showQ(mod, type, i) {
     const e = SHOW[mod][i];
     if (M.MODULES[mod].eq) return { type: 'eq', form: e[0], a: e[1], b: e[2], x: e[3], c: e[1] * e[3] + (e[0] === 'ax' ? 0 : e[2]), hide: 'x', answer: e[3] };
@@ -643,6 +654,7 @@ ul, ol { list-style: none; }
     const typed = M.MODULES[x.mod].typed;
     mark($('mods'), 'data-mod', x.mod);
     mark($('types'), 'data-type', x.type);
+    $('type-ex').innerHTML = typeExample(x.mod, x.type);
     mark($('times'), 'data-time', x.time);
     $('type-field').hidden = !typed;
     const n = countFor(x.mod);
@@ -946,6 +958,7 @@ ul, ol { list-style: none; }
   function renderProfs() {
     mark($('p-mods'), 'data-mod', P.mod);
     mark($('p-types'), 'data-type', P.type);
+    $('p-type-ex').innerHTML = typeExample(P.mod, P.type, true);
     mark($('p-times'), 'data-time', P.time);
     $('p-type-field').hidden = !M.MODULES[P.mod].typed;
     $('p-plus').disabled = !P.time;
