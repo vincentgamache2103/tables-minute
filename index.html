@@ -2407,7 +2407,8 @@ button { cursor: pointer; touch-action: manipulation; }
     const miss = items.filter((x) => x.q.hide !== 'c');
     const prod = items.filter((x) => x.q.hide === 'c');
     const missWrong = miss.filter((x) => x.status !== 'right').length;
-    if (missWrong < 3) return false;
+    // Seulement si les nombres manquants accrochent vraiment : au moins 3 ratés et moins de 70 % de réussite.
+    if (missWrong < 3 || (miss.length - missWrong) / miss.length >= 0.7) return false;
     const prodRate = prod.length ? prod.filter((x) => x.status !== 'right').length / prod.length : 0;
     return missWrong / miss.length > prodRate;
   }

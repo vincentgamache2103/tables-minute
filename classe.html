@@ -358,7 +358,8 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
       <div class="g-tabs" id="g-tabs" role="group" aria-label="Choisir le groupe à préparer"></div>
       <div class="g-editor">
         <label class="g-label" for="g-name">Nom du groupe <span>(facultatif)</span></label>
-        <input class="wait-input g-name" id="g-name" type="text" maxlength="30" autocomplete="off" spellcheck="false" placeholder="Ex.&nbsp;: Groupe bleu">
+        <input class="wait-input g-name" id="g-name" type="text" maxlength="30" autocomplete="off" spellcheck="false" placeholder="Ex.&nbsp;: Groupe bleu" aria-describedby="g-name-hint">
+        <p class="hint" id="g-name-hint">Évitez les noms d’élèves&nbsp;: le nom du groupe paraît dans le lien.</p>
         <p class="g-label" id="g-lbl-ops">Opérations</p>
         <div class="g-opts" id="g-ops" role="group" aria-labelledby="g-lbl-ops"></div>
         <p class="hint" id="g-hint" hidden></p>
