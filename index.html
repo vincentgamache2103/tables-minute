@@ -887,6 +887,25 @@ button { cursor: pointer; touch-action: manipulation; }
 .facts li { padding: 4px 12px; border-radius: 4px 10px 5px 9px; background: var(--highlight); font-weight: 700; font-size: 1.1rem; white-space: nowrap; }
 .corrected { display: grid; gap: 12px; }
 
+/* « Copier mon résultat » et le conseil sur les nombres manquants */
+.copy-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.copy-status { margin: 0; font-weight: 700; color: var(--green); overflow-wrap: anywhere; }
+.copy-status:empty { display: none; }
+.copy-status.is-err { color: var(--red); }
+.nudge { display: grid; gap: 10px; justify-items: start; padding: 14px 18px; background: var(--note); border-left: 6px solid var(--pencil); border-radius: 6px 14px 14px 6px; }
+.nudge p { margin: 0; max-width: 62ch; line-height: 1.45; }
+.kind.is-flash .kind-face { animation: flash-kind 1.8s ease-out; }
+@keyframes flash-kind { 0%, 45% { box-shadow: 0 0 0 4px var(--pencil); } 100% { box-shadow: 0 0 0 0 transparent; } }
+
+/* Lien de groupe : la feuille préparée par le prof, réglages verrouillés */
+.preset { display: grid; gap: 6px; justify-items: start; padding: 16px 18px 10px 20px; background: var(--note); border-left: 6px solid var(--green); border-radius: 6px 14px 14px 6px; box-shadow: var(--shadow); }
+.preset-title { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; line-height: 1.2; text-wrap: balance; }
+.preset-group { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.preset-what { margin: 0; max-width: 62ch; line-height: 1.45; color: var(--ink-soft); }
+.choice input:disabled { cursor: default; }
+.choice input:disabled:not(:checked) + span, .choice input:disabled:not(:checked) + .kind-face { opacity: .45; }
+.split-toggle input:disabled { cursor: default; }
+
 /* ---------- Petits écrans ---------- */
 @media (orientation: portrait) {
   .work { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
@@ -946,6 +965,13 @@ button { cursor: pointer; touch-action: manipulation; }
             <button type="button" class="btn btn--link" id="tip-close">Plus tard</button>
             <p class="tip-status" id="tip-status" role="status" aria-live="polite"></p>
           </div>
+        </section>
+
+        <section class="preset" id="preset" aria-labelledby="preset-title" hidden>
+          <h2 class="preset-title" id="preset-title">Feuille préparée par ton prof</h2>
+          <p class="preset-group" id="preset-group" hidden></p>
+          <p class="preset-what" id="preset-what"></p>
+          <button type="button" class="btn btn--link" id="preset-leave">Choisir autre chose</button>
         </section>
 
         <article class="paper">
@@ -1193,6 +1219,18 @@ button { cursor: pointer; touch-action: manipulation; }
             <button type="button" class="btn btn--link" id="to-setup">Changer les réglages</button>
           </div>
 
+          <div class="nudge" id="nudge" hidden>
+            <p>Les nombres manquants, c’est plus difficile. Essaie d’abord «&nbsp;Trouver la réponse&nbsp;», puis reviens aux deux, mélangées.</p>
+            <button type="button" class="btn btn--alt" id="nudge-go">Essayer avec Trouver la réponse</button>
+          </div>
+
+          <div class="copy-row">
+            <button type="button" class="btn btn--alt" id="copy-result">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></svg>Copier mon résultat
+            </button>
+            <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
+          </div>
+
           <div class="review" id="review-wrap">
             <p class="eyebrow">À revoir</p>
             <ul class="facts" id="review"></ul>
@@ -1275,6 +1313,55 @@ button { cursor: pointer; touch-action: manipulation; }
   const FEEDBACK_KEY = typeof CONFIG.feedbackKey === 'string' ? CONFIG.feedbackKey.trim() : '';
   const FEEDBACK_URL = 'https://api.web3forms.com/submit';
 
+  /* ---------- Lien de groupe préparé par le prof (page Pour les profs) ---------- */
+  // ?g=Groupe+bleu&o=mul-div&tm=6-7-8-9&td=2-3-4-5&m=2&k=x : nom, opérations, tables (t= pour toutes,
+  // tm/td/ta/ts pour chaque opération), minutes, sorte de questions (r, n ou x), nombre de questions (q).
+  // Les réglages de l'élève, gardés sur l'appareil, ne changent pas.
+  const GROUP_PARAMS = ['g', 'o', 't', 'tm', 'td', 'ta', 'ts', 'm', 'k', 'q'];
+  const OP_LETTER = { mul: 'm', div: 'd', add: 'a', sub: 's' };
+  const KIND_CODE = { r: 'product', n: 'missing', x: 'mix' };
+  const KIND_NAME = { product: 'Trouver la réponse', missing: 'Trouver le nombre manquant', mix: 'Les deux, mélangées' };
+  const GROUP_NAME_OK = /^[\p{L}\p{N} '’\-.,!?()]{1,30}$/u;
+  function parseTables(v) {
+    if (typeof v !== 'string' || !/^\d{1,2}(-\d{1,2}){0,11}$/.test(v)) return [];
+    return cleanTables(v.split('-'));
+  }
+  function readGroup(search) {
+    let p;
+    try { p = new URLSearchParams(search); } catch (e) { return null; }
+    const oRaw = p.get('o') || '';
+    if (!/^[a-z]{3}(-[a-z]{3}){0,3}$/.test(oRaw)) return null;
+    const asked = Array.from(new Set(oRaw.split('-')));
+    const ops = opsList(asked);
+    if (!ops.length || ops.length !== asked.length) return null;
+    const shared = parseTables(p.get('t') || '');
+    const own = {};
+    for (let i = 0; i < ops.length; i++) {
+      const k = ops[i];
+      const mine = parseTables(p.get('t' + OP_LETTER[k]) || '');
+      own[k] = mine.length ? mine : shared;
+      if (!own[k].length) return null;
+    }
+    // Une seule opération : ses tables à elle. Plusieurs : les tables communes, sinon celles de la première.
+    const tables = (ops.length === 1 || !shared.length) ? own[ops[0]].slice() : shared;
+    const opTables = {};
+    OP_KEYS.forEach((k) => { opTables[k] = (own[k] || tables).slice(); });
+    const m = Number(p.get('m'));
+    const q = Number(p.get('q'));
+    const name = (p.get('g') || '').replace(/\s+/g, ' ').trim();
+    return {
+      name: GROUP_NAME_OK.test(name) ? name : '',
+      ops: ops,
+      tables: tables,
+      split: ops.length > 1 && ops.some((k) => own[k] !== shared),
+      opTables: opTables,
+      minutes: MINUTES.indexOf(m) >= 0 ? m : DEFAULTS.minutes,
+      kind: KIND_CODE[p.get('k')] || DEFAULTS.kind,
+      count: COUNTS.indexOf(q) >= 0 ? q : DEFAULTS.count
+    };
+  }
+  const GROUP = readGroup(window.location.search);
+
   /* ---------- Navigateur intégré de Facebook, Messenger ou Instagram ---------- */
   // Dans ces applications, le site s'ouvre dans un navigateur à part, séparé de Safari et de Chrome :
   // les résultats y restent coincés et on a du mal à y revenir. On propose d'ouvrir le site ailleurs.
@@ -1305,7 +1392,12 @@ button { cursor: pointer; touch-action: manipulation; }
       u.searchParams.set(EXIT_PARAM, EXIT_VALUE);
       window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash);
     } else if (ARRIVED) {
-      window.history.replaceState(window.history.state, '', window.location.pathname + window.location.hash);
+      // Un lien de groupe garde ses réglages : seuls ses paramètres restent dans l'adresse.
+      const cur = new URLSearchParams(window.location.search);
+      const keep = new URLSearchParams();
+      if (GROUP) GROUP_PARAMS.forEach((k) => { if (cur.has(k)) keep.set(k, cur.get(k)); });
+      const qs = keep.toString();
+      window.history.replaceState(window.history.state, '', window.location.pathname + (qs ? '?' + qs : '') + window.location.hash);
     }
   } catch (e) { /* adresse inchangée */ }
 
@@ -1372,7 +1464,21 @@ button { cursor: pointer; touch-action: manipulation; }
   }
 
   const settings = cleanSettings(store.get(KEY_SETTINGS, null));
-  const saveSettings = () => store.set(KEY_SETTINGS, settings);
+  // Avec un lien de groupe, la feuille du prof remplace les réglages affichés. Ceux de l'élève sont
+  // gardés à part (own) et restent sur l'appareil; seul son prénom peut changer pendant ce temps.
+  let own = null;
+  const inGroup = () => own !== null;
+  if (GROUP) {
+    own = JSON.parse(JSON.stringify(settings));
+    Object.assign(settings, {
+      ops: GROUP.ops.slice(), tables: GROUP.tables.slice(), split: GROUP.split, opTables: copyOpTables(GROUP),
+      minutes: GROUP.minutes, kind: GROUP.kind, count: GROUP.count
+    });
+  }
+  const saveSettings = () => {
+    if (own) { own.name = settings.name; store.set(KEY_SETTINGS, own); return; }
+    store.set(KEY_SETTINGS, settings);
+  };
 
   /* ---------- Questions ---------- */
   function shuffle(a) {
@@ -1885,7 +1991,36 @@ button { cursor: pointer; touch-action: manipulation; }
     $('count-' + settings.count).checked = true;
     $('name').value = settings.name;
     $('today').textContent = fmtLong(new Date());
+    lockSetup();
     refreshSetup();
+  }
+
+  // Lien de groupe : les choix de la feuille sont verrouillés et un encadré dit ce que le prof a préparé.
+  function lockSetup() {
+    const on = inGroup();
+    Array.prototype.forEach.call($('setup').querySelectorAll('.fields input'), (el) => { el.disabled = on; });
+    $('preset').hidden = !on;
+    $('ops-hint').hidden = on;
+    $('tables-hint').hidden = on;
+    if (!on) return;
+    $('preset-group').hidden = !GROUP.name;
+    $('preset-group').textContent = GROUP.name;
+    $('preset-what').textContent = groupSummary();
+  }
+  function groupSummary() {
+    return sheetWhat(settings, true) + ' · ' + settings.minutes + ' minutes · ' + KIND_NAME[settings.kind];
+  }
+  function leaveGroup() {
+    if (!own) return;
+    Object.assign(settings, own, { name: settings.name });
+    own = null;
+    try {
+      const u = new URL(window.location.href);
+      GROUP_PARAMS.forEach((k) => u.searchParams.delete(k));
+      window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash);
+    } catch (e) { /* adresse inchangée */ }
+    syncSetup();
+    renderHistory();
   }
 
   function refreshSetup() {
@@ -1954,6 +2089,8 @@ button { cursor: pointer; touch-action: manipulation; }
       minutes: settings.minutes,
       kind: settings.kind,
       name: settings.name,
+      group: inGroup(),
+      groupName: inGroup() ? GROUP.name : '',
       durationMs: practice ? 0 : settings.minutes * 60000,
       startedAt: 0,
       endsAt: 0,
@@ -1965,6 +2102,7 @@ button { cursor: pointer; touch-action: manipulation; }
       track('feuille-commencee', 'Feuille commencée');
       settings.ops.forEach((k) => track(OPS[k].event, OPS[k].name));
       if (isSplit(settings)) track('tables-par-operation', 'Feuille avec des tables par opération');
+      if (inGroup()) track('feuille-groupe', 'Feuille d’un lien de groupe');
     }
     renderTest();
     show('test');
@@ -2246,6 +2384,79 @@ button { cursor: pointer; touch-action: manipulation; }
     return sheetWhat(run, true) + ' · ' + run.minutes + ' minutes';
   }
 
+  // Faits à revoir, écrits sous leur forme habituelle (4 × 7 = 28, 28 ÷ 4 = 7…).
+  function reviewFacts(run) {
+    const seen = {};
+    const facts = [];
+    run.graded.items.filter((x) => x.status !== 'right').forEach((x) => {
+      const q = x.q;
+      const op = OPS[q.op] ? q.op : 'mul';
+      const commutes = op === 'mul' || op === 'add';
+      const key = op + ':' + (commutes ? Math.min(q.t, q.k) + '-' + Math.max(q.t, q.k) : q.t + '-' + q.k);
+      if (!seen[key]) { seen[key] = true; facts.push(canonical(op, q.t, q.k)); }
+    });
+    return facts.sort((a, b) => (OP_KEYS.indexOf(a.op) - OP_KEYS.indexOf(b.op)) || (a.a - b.a) || (a.b - b.b));
+  }
+
+  // Conseil « nombres manquants » : au moins 3 manqués parmi eux, et plus souvent manqués que
+  // les questions « trouver la réponse ». Quand le temps est écoulé, les cases vides ne comptent pas.
+  function missingTrouble(run) {
+    if (run.practice || run.kind === 'product') return false;
+    const counts = (x) => x.status !== 'blank' || run.reason !== 'time';
+    const items = run.graded.items.filter(counts);
+    const miss = items.filter((x) => x.q.hide !== 'c');
+    const prod = items.filter((x) => x.q.hide === 'c');
+    const missWrong = miss.filter((x) => x.status !== 'right').length;
+    if (missWrong < 3) return false;
+    const prodRate = prod.length ? prod.filter((x) => x.status !== 'right').length / prod.length : 0;
+    return missWrong / miss.length > prodRate;
+  }
+
+  // « Copier mon résultat » : pour le coller dans Classroom ou Teams. Jamais le prénom de l'élève.
+  const fmtStamp = makeDateFormat({ day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  function resultText(run) {
+    const g = run.graded;
+    const parts = ['Tables minute', g.score + '/' + g.total];
+    if (run.groupName) parts.push(run.groupName);
+    if (run.practice) parts.push('Pratique des questions manquées');
+    else parts.push(sheetWhat(run, true), run.minutes + NBSP + 'min');
+    parts.push(fmtStamp(new Date(run.finishedAt || Date.now())));
+    const facts = reviewFacts(run);
+    if (facts.length) {
+      const shown = facts.slice(0, 10).map((f) => f.a + ' ' + OPS[f.op].sym + ' ' + f.b);
+      parts.push('À revoir' + NBSP + ': ' + shown.join(', ') + (facts.length > 10 ? '…' : ''));
+    }
+    return parts.join(' · ');
+  }
+  function copyResult() {
+    const run = S.run;
+    if (!run || !run.graded) return;
+    const node = $('copy-status');
+    copyText(resultText(run)).then(() => {
+      node.classList.remove('is-err');
+      node.textContent = 'Copié! Colle-le où ton prof te le demande.';
+    }, () => {
+      node.classList.add('is-err');
+      node.textContent = 'Copie impossible ici. Fais une capture d’écran pour ton prof.';
+    });
+    track('resultat-copie', 'Résultat copié');
+  }
+  // Le bouton du conseil : « Trouver la réponse » devient le choix de l'élève, visible à l'accueil.
+  function tryProduct() {
+    if (inGroup()) return;
+    settings.kind = 'product';
+    saveSettings();
+    syncSetup();
+    show('setup');
+    renderHistory();
+    const k = $('kind-product').closest('.kind');
+    if (!k) return;
+    try { k.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { k.scrollIntoView(); }
+    k.classList.remove('is-flash');
+    void k.offsetWidth;
+    k.classList.add('is-flash');
+  }
+
   function showResults() {
     const run = S.run;
     const g = run.graded;
@@ -2276,19 +2487,14 @@ button { cursor: pointer; touch-action: manipulation; }
     retry.hidden = !missed.length;
     retry.textContent = missed.length === 1 ? 'Reprendre la question manquée' : 'Reprendre les ' + missed.length + ' questions manquées';
 
-    // Faits à revoir, écrits sous leur forme habituelle (4 × 7 = 28, 28 ÷ 4 = 7…).
-    const seen = {};
-    const facts = [];
-    missed.forEach((x) => {
-      const q = x.q;
-      const op = OPS[q.op] ? q.op : 'mul';
-      const commutes = op === 'mul' || op === 'add';
-      const key = op + ':' + (commutes ? Math.min(q.t, q.k) + '-' + Math.max(q.t, q.k) : q.t + '-' + q.k);
-      if (!seen[key]) { seen[key] = true; facts.push(canonical(op, q.t, q.k)); }
-    });
-    facts.sort((a, b) => (OP_KEYS.indexOf(a.op) - OP_KEYS.indexOf(b.op)) || (a.a - b.a) || (a.b - b.b));
+    const facts = reviewFacts(run);
     $('review').innerHTML = facts.map((f) => '<li>' + f.a + ' ' + OPS[f.op].sym + ' ' + f.b + ' = ' + f.c + '</li>').join('');
     $('review-wrap').hidden = !facts.length;
+
+    // Beaucoup d'erreurs sur les nombres manquants : on propose de commencer par « Trouver la réponse ».
+    $('nudge').hidden = !missingTrouble(run);
+    $('nudge-go').hidden = !!run.group;
+    $('copy-status').textContent = '';
 
     $('corrected').innerHTML = g.items.map(resultCell).join('');
     show('results');
@@ -2486,6 +2692,9 @@ button { cursor: pointer; touch-action: manipulation; }
       startRun(shuffle(qs), true);
     });
     $('to-setup').addEventListener('click', () => { show('setup'); renderHistory(); });
+    $('copy-result').addEventListener('click', copyResult);
+    $('nudge-go').addEventListener('click', tryProduct);
+    $('preset-leave').addEventListener('click', leaveGroup);
 
     $('done').addEventListener('click', () => {
       if (!isLive()) return;

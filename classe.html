@@ -186,6 +186,28 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
 .wait-done { margin: 0; font-weight: 700; color: var(--green); }
 .hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; opacity: 0; }
 
+/* Liens par groupe : une feuille différente par groupe d’élèves, sans compte. */
+.groups { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding-top: 18px; border-top: 1.5px dashed var(--line); }
+.g-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.g-editor { display: grid; gap: 8px; }
+.g-label { margin: 8px 0 0; font-weight: 700; font-size: .95rem; }
+.g-label span { font-weight: 400; color: var(--ink-soft); }
+.g-name { max-width: 320px; }
+.g-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.g-choice { position: relative; display: inline-grid; }
+.g-choice input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.g-choice span { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--key); font-weight: 700; }
+.g-choice input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.g-choice input:focus-visible + span { outline: 3px solid var(--ink); outline-offset: 3px; }
+.g-sym { font-size: 1.2rem; line-height: 1; }
+.g-rows { display: grid; gap: 10px; }
+.g-row { display: grid; gap: 6px; }
+.g-row-name { margin: 6px 0 0; font-weight: 700; }
+.g-bubbles { display: flex; flex-wrap: wrap; gap: 6px; max-width: 300px; }
+.g-bubbles .g-choice span { width: 44px; padding: 0; border-radius: 50%; }
+.g-summary { margin: 4px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--highlight); font-weight: 700; overflow-wrap: anywhere; }
+.g-out { grid-template-columns: minmax(0, 200px) minmax(0, 1fr); }
+
 .preview { display: grid; gap: 10px; }
 .preview-frame { width: 100%; overflow: hidden; border-radius: 4px; box-shadow: var(--shadow); background: #FFFFFF; }
 .preview-scale { transform-origin: top left; }
@@ -261,6 +283,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
   .qr-card { max-width: 280px; }
   .wait { padding: 18px 16px 20px; }
   .wait-form .btn { width: 100%; padding: 0 1rem; font-size: 1.05rem; }
+  .g-qr { max-width: 220px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: .001ms !important; }
@@ -326,6 +349,39 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
         <span id="others-list" class="others"></span>
       </div>
       <div><button type="button" class="btn btn--link" id="another">Créer un code pour une autre classe</button></div>
+    </section>
+
+    <section class="groups" id="groups" aria-labelledby="groups-title">
+      <p class="eyebrow">Pour différencier</p>
+      <h2 id="groups-title">Des liens par groupe</h2>
+      <p class="hint">Préparez une feuille différente pour chaque groupe d’élèves&nbsp;: ses opérations, ses tables et son temps. Chaque élève ouvre le lien de son groupe, et sa feuille est prête. Rien n’est demandé sur vos élèves.</p>
+      <div class="g-tabs" id="g-tabs" role="group" aria-label="Choisir le groupe à préparer"></div>
+      <div class="g-editor">
+        <label class="g-label" for="g-name">Nom du groupe <span>(facultatif)</span></label>
+        <input class="wait-input g-name" id="g-name" type="text" maxlength="30" autocomplete="off" spellcheck="false" placeholder="Ex.&nbsp;: Groupe bleu">
+        <p class="g-label" id="g-lbl-ops">Opérations</p>
+        <div class="g-opts" id="g-ops" role="group" aria-labelledby="g-lbl-ops"></div>
+        <p class="hint" id="g-hint" hidden></p>
+        <p class="g-label" id="g-lbl-tables">Tables</p>
+        <div class="g-rows" id="g-rows"></div>
+        <p class="g-label" id="g-lbl-min">Temps</p>
+        <div class="g-opts" id="g-min" role="radiogroup" aria-labelledby="g-lbl-min"></div>
+        <p class="g-label" id="g-lbl-kind">Questions</p>
+        <div class="g-opts" id="g-kind" role="radiogroup" aria-labelledby="g-lbl-kind"></div>
+      </div>
+      <p class="g-summary" id="g-summary"></p>
+      <div class="kit-grid g-out">
+        <figure class="qr-card g-qr">
+          <div id="g-qr" aria-hidden="true"></div>
+          <figcaption id="g-qr-name"></figcaption>
+        </figure>
+        <div class="kit-actions">
+          <button type="button" class="btn btn--go" id="g-copy">Copier le lien du groupe</button>
+          <button type="button" class="btn" id="g-big">Afficher son code QR en grand</button>
+          <p class="link-text" id="g-link"></p>
+          <p class="status" id="g-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
     </section>
 
     <section class="wait" id="wait" aria-labelledby="wait-title">
@@ -511,6 +567,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
 
   /* ---------- Affichage ---------- */
   let pngUrl = '';
+  let classBig = '';
   function fit() {
     const frame = $('frame'), scale = $('scale'), sheet = $('sheet');
     if ($('preview').hidden) return;
@@ -529,7 +586,8 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
     $('code').textContent = code;
     $('qr').innerHTML = svg(m, 'Code QR de la classe ' + code);
     $('sheet-qr').innerHTML = svg(m, 'Code QR de la classe ' + code);
-    $('big-qr').innerHTML = svg(m, 'Code QR de la classe ' + code);
+    classBig = svg(m, 'Code QR de la classe ' + code);
+    $('big-qr').innerHTML = classBig;
     $('sheet-code').textContent = 'Code de classe : ' + code;
     $('big-code').textContent = 'Classe ' + code;
     $('link').textContent = classLink(code);
@@ -562,6 +620,8 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
       $('png').href = pngUrl;
     });
     requestAnimationFrame(fit);
+    // Les liens de groupe portent le code de la classe affichée.
+    if (groups.list.length) renderGroupOutputs();
   }
 
   function say(node, text, err) {
@@ -664,19 +724,229 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
     $('wait-form').addEventListener('submit', joinWaitlist);
   }
 
+  /* ---------- Liens par groupe : une feuille préparée pour chaque groupe d'élèves ---------- */
+  // Le lien porte les réglages (?g=Groupe+bleu&o=mul&t=6-7-8-9&m=2&k=x) : rien n'est demandé aux élèves,
+  // et les groupes restent seulement sur cet appareil.
+  const GKEY = 'tablesMinute.groups.v1';
+  const G_OPS = [
+    { k: 'mul', l: 'm', sym: '×', name: 'Multiplication', plural: 'multiplications' },
+    { k: 'div', l: 'd', sym: '÷', name: 'Division', plural: 'divisions' },
+    { k: 'add', l: 'a', sym: '+', name: 'Addition', plural: 'additions' },
+    { k: 'sub', l: 's', sym: '−', name: 'Soustraction', plural: 'soustractions' }
+  ];
+  const OP_KEYS = G_OPS.map((o) => o.k);
+  const G_KINDS = [['x', 'Les deux, mélangées'], ['r', 'Trouver la réponse'], ['n', 'Trouver le nombre manquant']];
+  const G_MINUTES = [4, 3, 2];
+  const NAME_BAD = /[^\p{L}\p{N} '’\-.,!?()]/gu;
+  const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+  const allOps = (list) => { const t = {}; OP_KEYS.forEach((k) => { t[k] = list.slice(); }); return t; };
+  const DEFAULT_GROUPS = [
+    { name: '', ops: ['mul'], tables: allOps(range(2, 5)), minutes: 4, kind: 'x' },
+    { name: '', ops: ['mul'], tables: allOps(range(6, 9)), minutes: 4, kind: 'x' },
+    { name: '', ops: ['mul'], tables: allOps(range(10, 12)), minutes: 4, kind: 'x' }
+  ];
+  const groups = { list: [], cur: 0 };
+
+  function cleanList(v) {
+    if (!Array.isArray(v)) return [];
+    return Array.from(new Set(v.map(Number).filter((n) => Number.isInteger(n) && n >= 1 && n <= 12))).sort((a, b) => a - b);
+  }
+  function cleanGroup(raw, base) {
+    const r = raw && typeof raw === 'object' ? raw : {};
+    const g = JSON.parse(JSON.stringify(base));
+    if (typeof r.name === 'string') g.name = r.name.replace(NAME_BAD, '').slice(0, 30);
+    const ops = Array.isArray(r.ops) ? OP_KEYS.filter((k) => r.ops.indexOf(k) >= 0) : [];
+    if (ops.length) g.ops = ops;
+    const t = r.tables && typeof r.tables === 'object' ? r.tables : {};
+    OP_KEYS.forEach((k) => { const l = cleanList(t[k]); if (l.length) g.tables[k] = l; });
+    if (G_MINUTES.indexOf(Number(r.minutes)) >= 0) g.minutes = Number(r.minutes);
+    if (G_KINDS.some((x) => x[0] === r.kind)) g.kind = r.kind;
+    return g;
+  }
+  function loadGroups() {
+    let raw = null;
+    try { raw = JSON.parse(window.localStorage.getItem(GKEY) || 'null'); } catch (e) { raw = null; }
+    const list = raw && Array.isArray(raw.list) ? raw.list : [];
+    groups.list = DEFAULT_GROUPS.map((d, i) => cleanGroup(list[i], d));
+    groups.cur = raw && [0, 1, 2].indexOf(raw.cur) >= 0 ? raw.cur : 0;
+  }
+  function saveGroups() {
+    try { window.localStorage.setItem(GKEY, JSON.stringify({ list: groups.list, cur: groups.cur })); } catch (e) { /* rien */ }
+  }
+  const curGroup = () => groups.list[groups.cur];
+  const groupName = (g, i) => g.name.replace(/\s+/g, ' ').trim() || 'Groupe ' + (i + 1);
+
+  function listFr(items) {
+    if (items.length === 1) return String(items[0]);
+    return items.slice(0, -1).join(', ') + ' et ' + items[items.length - 1];
+  }
+  function tablesWords(list) {
+    const t = list.slice().sort((a, b) => a - b);
+    let run = t.length > 2;
+    for (let i = 1; i < t.length; i++) if (t[i] !== t[i - 1] + 1) run = false;
+    return (t.length === 1 ? 'table de ' : 'tables de ') + (run ? t[0] + ' à ' + t[t.length - 1] : listFr(t));
+  }
+  const sameTables = (g) => g.ops.every((k) => g.tables[k].join('-') === g.tables[g.ops[0]].join('-'));
+  function groupLink(g) {
+    const p = new URLSearchParams();
+    if (state.current) p.set('ref', state.current);
+    const name = g.name.replace(/\s+/g, ' ').trim();
+    if (name) p.set('g', name);
+    p.set('o', g.ops.join('-'));
+    if (sameTables(g)) p.set('t', g.tables[g.ops[0]].join('-'));
+    else g.ops.forEach((k) => p.set('t' + G_OPS[OP_KEYS.indexOf(k)].l, g.tables[k].join('-')));
+    p.set('m', String(g.minutes));
+    p.set('k', g.kind);
+    return BASE + '?' + p.toString();
+  }
+  function groupSummary(g, i) {
+    const plural = (k) => G_OPS[OP_KEYS.indexOf(k)].plural;
+    const what = sameTables(g)
+      ? listFr(g.ops.map(plural)) + ' · ' + tablesWords(g.tables[g.ops[0]])
+      : listFr(g.ops.map((k) => plural(k) + ' (' + tablesWords(g.tables[k]) + ')'));
+    const kind = G_KINDS.filter((x) => x[0] === g.kind)[0][1];
+    return groupName(g, i) + ' : ' + what + ' · ' + g.minutes + ' min · ' + kind;
+  }
+
+  function renderGroupTabs() {
+    const box = $('g-tabs');
+    box.textContent = '';
+    groups.list.forEach((g, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.dataset.gi = String(i);
+      b.textContent = groupName(g, i);
+      b.setAttribute('aria-pressed', String(i === groups.cur));
+      box.append(b);
+    });
+  }
+  function renderGroupOutputs() {
+    const g = curGroup();
+    const link = groupLink(g);
+    const label = groupName(g, groups.cur);
+    $('g-summary').textContent = groupSummary(g, groups.cur);
+    $('g-link').textContent = link;
+    $('g-qr').innerHTML = svg(matrix(link), 'Code QR de ' + label);
+    $('g-qr-name').textContent = label;
+  }
+  function renderGroupRows() {
+    const g = curGroup();
+    const several = g.ops.length > 1;
+    $('g-rows').innerHTML = g.ops.map((k) => {
+      const o = G_OPS[OP_KEYS.indexOf(k)];
+      const head = several
+        ? '<p class="g-row-name" id="g-row-' + k + '"><b class="g-sym" aria-hidden="true">' + o.sym + '</b> ' + o.plural.charAt(0).toUpperCase() + o.plural.slice(1) + '</p>'
+        : '';
+      return '<div class="g-row">' + head +
+        '<div class="g-bubbles" role="group" aria-labelledby="' + (several ? 'g-row-' + k : 'g-lbl-tables') + '">' +
+        range(1, 12).map((t) => '<label class="g-choice"><input type="checkbox" data-op="' + k + '" value="' + t + '"' + (g.tables[k].indexOf(t) >= 0 ? ' checked' : '') +
+          ' aria-label="' + o.plural + ', table de ' + t + '"><span>' + t + '</span></label>').join('') +
+        '</div></div>';
+    }).join('');
+  }
+  function renderGroups() {
+    const g = curGroup();
+    renderGroupTabs();
+    $('g-name').value = g.name;
+    $('g-ops').innerHTML = G_OPS.map((o) => '<label class="g-choice"><input type="checkbox" value="' + o.k + '"' + (g.ops.indexOf(o.k) >= 0 ? ' checked' : '') +
+      '><span><b class="g-sym" aria-hidden="true">' + o.sym + '</b>' + o.name + '</span></label>').join('');
+    renderGroupRows();
+    $('g-min').innerHTML = G_MINUTES.map((m) => '<label class="g-choice"><input type="radio" name="g-min" value="' + m + '"' + (g.minutes === m ? ' checked' : '') + '><span>' + m + ' min</span></label>').join('');
+    $('g-kind').innerHTML = G_KINDS.map((x) => '<label class="g-choice"><input type="radio" name="g-kind" value="' + x[0] + '"' + (g.kind === x[0] ? ' checked' : '') + '><span>' + x[1] + '</span></label>').join('');
+    $('g-hint').hidden = true;
+    say($('g-status'), '');
+    renderGroupOutputs();
+  }
+  function groupHint(text) {
+    $('g-hint').hidden = !text;
+    $('g-hint').textContent = text;
+    $('g-hint').classList.toggle('is-warn', !!text);
+  }
+  function bindGroups() {
+    $('g-tabs').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-gi]');
+      if (!b) return;
+      groups.cur = Number(b.dataset.gi);
+      saveGroups();
+      renderGroups();
+    });
+    $('g-name').addEventListener('input', (e) => {
+      const v = e.target.value.replace(NAME_BAD, '').slice(0, 30);
+      if (v !== e.target.value) e.target.value = v;
+      curGroup().name = v;
+      saveGroups();
+      renderGroupTabs();
+      renderGroupOutputs();
+    });
+    $('g-ops').addEventListener('change', (e) => {
+      const input = e.target;
+      const chosen = OP_KEYS.filter((k) => $('g-ops').querySelector('input[value="' + k + '"]').checked);
+      if (!chosen.length) { input.checked = true; groupHint('Gardez au moins une opération.'); return; }
+      groupHint('');
+      curGroup().ops = chosen;
+      saveGroups();
+      renderGroupRows();
+      renderGroupOutputs();
+    });
+    $('g-rows').addEventListener('change', (e) => {
+      const input = e.target;
+      const k = input.getAttribute('data-op');
+      if (OP_KEYS.indexOf(k) < 0) return;
+      const chosen = range(1, 12).filter((t) => $('g-rows').querySelector('input[data-op="' + k + '"][value="' + t + '"]').checked);
+      if (!chosen.length) { input.checked = true; groupHint('Gardez au moins une table.'); return; }
+      groupHint('');
+      curGroup().tables[k] = chosen;
+      saveGroups();
+      renderGroupOutputs();
+    });
+    $('g-min').addEventListener('change', (e) => { curGroup().minutes = Number(e.target.value); saveGroups(); renderGroupOutputs(); });
+    $('g-kind').addEventListener('change', (e) => { curGroup().kind = e.target.value; saveGroups(); renderGroupOutputs(); });
+    $('g-copy').addEventListener('click', () => {
+      copy(groupLink(curGroup()), $('g-status'), 'Lien de « ' + groupName(curGroup(), groups.cur) + ' » copié. Collez-le dans Classroom ou Teams, ou montrez son code QR.');
+      track('lien-groupe-copie', 'Lien de groupe copié');
+    });
+    $('g-big').addEventListener('click', () => {
+      const g = curGroup();
+      const label = groupName(g, groups.cur);
+      $('big-qr').innerHTML = svg(matrix(groupLink(g)), 'Code QR de ' + label);
+      $('big-code').textContent = label;
+      openBig($('g-big'));
+    });
+  }
+
+  /* ---------- Grand code QR (classe ou groupe) ---------- */
+  let bigOpener = null;
+  function openBig(opener) {
+    bigOpener = opener;
+    $('big').hidden = false;
+    $('close-big').focus();
+  }
+  function closeBig() {
+    $('big').hidden = true;
+    if (bigOpener) bigOpener.focus();
+  }
+
   $('create').addEventListener('click', create);
   $('share-page').addEventListener('click', sharePage);
   $('another').addEventListener('click', create);
   $('print').addEventListener('click', () => { track('trousse-imprimee', 'Feuille parents imprimée'); window.print(); });
   $('copy-link').addEventListener('click', () => copy(classLink(state.current), $('status'), 'Lien copié.'));
   $('copy-msg').addEventListener('click', () => copy($('msg').value, $('msg-status'), 'Message copié. Collez-le dans votre courriel aux parents.', $('msg')));
-  $('show-big').addEventListener('click', () => { $('big').hidden = false; $('close-big').focus(); });
-  $('close-big').addEventListener('click', () => { $('big').hidden = true; $('show-big').focus(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('big').hidden) { $('big').hidden = true; $('show-big').focus(); } });
+  $('show-big').addEventListener('click', () => {
+    $('big-qr').innerHTML = classBig;
+    $('big-code').textContent = 'Classe ' + state.current;
+    openBig($('show-big'));
+  });
+  $('close-big').addEventListener('click', closeBig);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('big').hidden) closeBig(); });
   window.addEventListener('resize', fit);
 
   load();
   render();
+  loadGroups();
+  bindGroups();
+  renderGroups();
 })();
 </script>
 <script data-goatcounter="https://tablesminute.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
