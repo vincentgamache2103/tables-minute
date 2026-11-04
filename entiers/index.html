@@ -126,7 +126,8 @@ ul, ol { list-style: none; }
 .record { margin-top: 12px; text-align: center; font: 500 14px/1.3 var(--sans); color: var(--text-2); }
 .record b { color: var(--text); font-family: var(--display); font-weight: 600; }
 .foot { padding: 18px 16px 34px; background: var(--surface); text-align: center; font: 400 13px/1.5 var(--sans); color: var(--text-3); }
-.foot nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: 6px; }
+.foot nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; }
+.foot p { max-width: 34em; margin: 8px auto 0; }
 .foot nav a, .foot nav button { display: inline-flex; align-items: center; min-height: 40px; font: 600 14px/1 var(--sans); color: var(--text-2); text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------- Feuille ---------- */
@@ -249,6 +250,9 @@ ul, ol { list-style: none; }
 .sheet-head h2 { font: 700 19px/1.2 var(--display); letter-spacing: -.02em; }
 .sheet-in p, .sheet-in li { font: 400 15px/1.5 var(--sans); color: var(--text-2); }
 .sheet-in p b, .sheet-in li b { color: var(--text); font-weight: 600; }
+.sheet-in a { color: var(--text); text-underline-offset: 3px; }
+.qa h3 { font: 600 16px/1.35 var(--sans); color: var(--text); }
+.qa h3 + p, .qa h3 + ul { margin-top: 4px; }
 .sheet-in ul { display: grid; gap: 6px; padding-left: 1.1em; list-style: disc; }
 .sheet-in .field + .field { margin-top: 0; }
 .sheet-in .field-head { margin-bottom: 8px; }
@@ -347,11 +351,12 @@ ul, ol { list-style: none; }
       <p class="record" id="record" hidden></p>
     </div>
     <footer class="foot">
-      Gratuit, sans compte, sans pub. Aucune donnée d’élève.
-      <nav aria-label="Liens">
-        <button type="button" id="open-privacy" aria-haspopup="dialog">Confidentialité</button>
+      <nav aria-label="Plus sur Entiers minute">
+        <button type="button" id="open-about" aria-haspopup="dialog">À propos et questions</button>
+        <button type="button" id="open-profs-foot" aria-haspopup="dialog">Pour les profs</button>
         <a href="../">Au primaire&nbsp;: Tables minute</a>
       </nav>
+      <p>Entiers minute&nbsp;: les nombres entiers positifs et négatifs au chrono, pour la 1re et la 2e secondaire. Addition, soustraction, multiplication, division et équations. Gratuit, sans compte et sans pub.</p>
     </footer>
   </section>
 
@@ -471,17 +476,22 @@ ul, ol { list-style: none; }
 </dialog>
 
 <!-- Confidentialité -->
-<dialog class="sheet-dlg" id="privacy-dlg" aria-labelledby="privacy-title">
+<dialog class="sheet-dlg" id="about-dlg" aria-labelledby="about-title">
   <div class="sheet-in">
     <div class="grabber" aria-hidden="true"></div>
-    <div class="sheet-head"><h2 id="privacy-title">Confidentialité</h2><button type="button" class="icon-btn" data-close aria-label="Fermer"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div>
-    <ul>
+    <div class="sheet-head"><h2 id="about-title">À propos et questions</h2><button type="button" class="icon-btn" data-close aria-label="Fermer"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div>
+    <p>Entiers minute reprend le format des tables minute du primaire (des questions courtes, contre la montre, corrigées à la fin) pour les nombres entiers positifs et négatifs de la 1re et de la 2e secondaire. Sur un cellulaire, un Chromebook ou un ordinateur.</p>
+    <div class="qa"><h3>Est-ce que c’est vraiment gratuit?</h3><p>Oui. Il n’y a ni compte, ni publicité, ni donnée personnelle.</p></div>
+    <div class="qa"><h3>Pour quels élèves?</h3><p>La 1re et la 2e secondaire&nbsp;: les quatre opérations sur les nombres entiers, puis les équations en une et en deux étapes.</p></div>
+    <div class="qa"><h3>Est-ce que ça fonctionne sur Chromebook?</h3><p>Oui, dans le navigateur, sans rien installer. On peut répondre avec le clavier de l’ordinateur&nbsp;: les chiffres, la touche « - » pour un négatif et Entrée pour passer à la question suivante.</p></div>
+    <div class="qa"><h3>Comment l’utiliser avec mon groupe?</h3><p>Le bouton « Pour les profs » crée un lien qui donne la même feuille à tout le groupe, avec du temps majoré d’un tiers au besoin. L’élève peut copier son résultat, sans son nom.</p></div>
+    <div class="qa"><h3>Confidentialité</h3><ul>
       <li><b>Aucune donnée d’élève.</b> Pas de compte, pas de nom, pas de courriel.</li>
       <li><b>Pas de témoin (cookie), pas de pub.</b></li>
       <li>Les réglages et les records restent <b>sur cet appareil</b> seulement.</li>
       <li>On compte les visites et les feuilles faites, <b>de façon anonyme</b>, avec GoatCounter, pour savoir si le site est utile.</li>
-    </ul>
-    <p>Entiers minute est fait par Vincent, un papa du Québec, comme <a href="../">Tables minute</a> pour le primaire.</p>
+    </ul></div>
+    <div class="qa"><h3>Qui a créé ce site?</h3><p>Vincent, un papa du Québec, qui a aussi créé <a href="../">Tables minute</a> pour le primaire.</p></div>
   </div>
 </dialog>
 
@@ -1001,8 +1011,10 @@ ul, ol { list-style: none; }
   $('tab-all').addEventListener('click', () => setTab('all'));
   $('tab-redo').addEventListener('click', () => setTab('redo'));
   $('copy-result').addEventListener('click', () => { copy(lastText, $('copy-status'), 'Copié! Colle-le où ton prof te le demande.', 'Copie impossible ici. Fais une capture d’écran pour ton prof.'); track('entiers-resultat-copie', 'Entiers : résultat copié'); });
-  $('open-profs').addEventListener('click', () => { renderProfs(); $('p-status').textContent = ''; openDlg('profs-dlg'); });
-  $('open-privacy').addEventListener('click', () => openDlg('privacy-dlg'));
+  const openProfs = () => { renderProfs(); $('p-status').textContent = ''; openDlg('profs-dlg'); };
+  $('open-profs').addEventListener('click', openProfs);
+  $('open-profs-foot').addEventListener('click', openProfs);
+  $('open-about').addEventListener('click', () => openDlg('about-dlg'));
   $('p-mods').addEventListener('click', (e) => { const b = e.target.closest('[data-mod]'); if (b) { P.mod = b.dataset.mod; renderProfs(); } });
   $('p-types').addEventListener('click', (e) => { const b = e.target.closest('[data-type]'); if (b) { P.type = b.dataset.type; renderProfs(); } });
   $('p-times').addEventListener('click', (e) => { const b = e.target.closest('[data-time]'); if (b) { P.time = Number(b.dataset.time); renderProfs(); } });
