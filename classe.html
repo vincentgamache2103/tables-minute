@@ -387,8 +387,8 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
 
     <section class="wait" id="wait" aria-labelledby="wait-title">
       <p class="eyebrow">Pour la suite</p>
-      <h2 id="wait-title">Une version pour les écoles se prépare</h2>
-      <p class="hint">Le site reste gratuit. Laissez votre courriel pour savoir quand la version pour les écoles sera prête.</p>
+      <h2 id="wait-title">Bientôt&nbsp;: la version classe, gratuite pour les profs</h2>
+      <p class="hint">Un code de classe, chaque élève choisit son prénom, et vous voyez le score, les tables difficiles et la progression de chacun. Les prénoms resteront protégés dans votre navigateur&nbsp;: seuls vous et vos élèves pourrez les lire, même pas nous. Laissez votre courriel pour l’essayer parmi les premiers.</p>
       <form class="wait-form" id="wait-form" novalidate>
         <label for="wait-email">Votre courriel</label>
         <input class="wait-input" id="wait-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="nom@ecole.qc.ca">
@@ -399,7 +399,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
         <p class="status" id="wait-status" role="status" aria-live="polite"></p>
       </form>
       <p class="wait-done" id="wait-done" role="status" aria-live="polite" hidden></p>
-      <p class="fine">Votre adresse sert seulement à vous écrire au sujet de la version école. Elle n’est jamais partagée. Pour la faire retirer, écrivez-le à Vincent dans la boîte à idées du site.</p>
+      <p class="fine">Votre adresse sert seulement à vous écrire au sujet de la version classe. Elle n’est jamais partagée. Pour la faire retirer, écrivez-le à Vincent dans la boîte à idées du site.</p>
     </section>
 
     <div class="share-line">
@@ -709,7 +709,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
       waitSentAt = Date.now();
       try { window.localStorage.setItem(WAIT_KEY, '1'); } catch (err) { /* rien */ }
       track('liste-attente', 'Inscription à la liste d’attente (version école)');
-      waitDone('Merci! Vous êtes sur la liste. Vincent vous écrira quand la version pour les écoles sera prête.');
+      waitDone('Merci! Vous êtes sur la liste. Vincent vous écrira dès que la version classe sera prête à essayer.');
     } catch (err) {
       say(node, 'Le message n’est pas parti. Vérifiez votre connexion Internet et réessayez.', true);
     } finally {
@@ -721,7 +721,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
   else {
     let already = false;
     try { already = window.localStorage.getItem(WAIT_KEY) === '1'; } catch (e) { /* rien */ }
-    if (already) waitDone('Vous êtes sur la liste pour la version école. Merci!');
+    if (already) waitDone('Vous êtes sur la liste pour la version classe. Merci!');
     $('wait-form').addEventListener('submit', joinWaitlist);
   }
 
