@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tables minute de division : pratiquer en ligne, gratuit (tables de 1 à 12)</title>
+<meta name="description" content="Des tables minute de division en ligne, comme à l’école au Québec : choisis tes tables de 1 à 12 et ton chrono, et la feuille se corrige toute seule. Gratuit, sans compte et sans pub.">
+<link rel="canonical" href="https://vincentgamache2103.github.io/tables-minute/division.html">
+<meta name="theme-color" content="#E3E9F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101814" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icon.svg?v=2" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_CA">
+<meta property="og:title" content="Tables minute de division">
+<meta property="og:description" content="Des tables minute de division en ligne, comme à l’école au Québec : choisis tes tables de 1 à 12 et ton chrono, et la feuille se corrige toute seule. Gratuit, sans compte et sans pub.">
+<meta property="og:image" content="https://vincentgamache2103.github.io/tables-minute/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Grandstander:wght@800;900&family=Patrick+Hand&display=swap">
+<style>
+/* Pages « tables minute » pour Google : la même feuille quadrillée que le site, et un bouton qui part la bonne feuille. */
+:root {
+  color-scheme: light;
+  --desk: #E3E9F2;
+  --paper: #FDFEFF;
+  --grid: #DCE6F3;
+  --margin: #F0ABAB;
+  --ink: #252A33;
+  --ink-soft: #5E6777;
+  --line: #A3AEBE;
+  --key: #FFFFFF;
+  --key-edge: #C3CCD9;
+  --pencil: #F7C21B;
+  --pencil-deep: #CF9806;
+  --on-pencil: #2A2104;
+  --highlight: rgba(255, 208, 0, .42);
+  --shadow: 0 1px 2px rgba(25, 35, 60, .08), 0 14px 30px -18px rgba(25, 35, 60, .35);
+  --font-display: "Grandstander", ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
+  --font-hand: "Patrick Hand", "Chalkboard SE", "Marker Felt", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #101814;
+    --paper: #19241F;
+    --grid: rgba(214, 232, 222, .07);
+    --margin: rgba(255, 130, 130, .34);
+    --ink: #EDF2EC;
+    --ink-soft: #A3B1A9;
+    --line: rgba(237, 242, 236, .42);
+    --key: #22302A;
+    --key-edge: #0A100D;
+    --pencil: #F4C944;
+    --pencil-deep: #B68C12;
+    --on-pencil: #241B02;
+    --highlight: rgba(244, 201, 68, .26);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 16px 32px -18px rgba(0, 0, 0, .8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #101814;
+  --paper: #19241F;
+  --grid: rgba(214, 232, 222, .07);
+  --margin: rgba(255, 130, 130, .34);
+  --ink: #EDF2EC;
+  --ink-soft: #A3B1A9;
+  --line: rgba(237, 242, 236, .42);
+  --key: #22302A;
+  --key-edge: #0A100D;
+  --pencil: #F4C944;
+  --pencil-deep: #B68C12;
+  --on-pencil: #241B02;
+  --highlight: rgba(244, 201, 68, .26);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 16px 32px -18px rgba(0, 0, 0, .8);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--desk);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding: env(safe-area-inset-top, 0px) max(16px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(16px, env(safe-area-inset-left, 0px));
+  -webkit-tap-highlight-color: transparent;
+}
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 20px 48px; display: grid; gap: 22px; }
+.topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 46px;
+  padding: 0 .95rem;
+  white-space: nowrap;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: var(--key);
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+.pill svg { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.pill:hover { border-color: var(--ink); }
+.pill--pro { background: var(--pencil); border-color: var(--pencil-deep); color: var(--on-pencil); }
+.paper {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 28px 28px 32px 56px;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+.paper::before { content: ""; position: absolute; top: 0; bottom: 0; left: 32px; width: 2px; background: var(--margin); pointer-events: none; }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(2rem, 6vw, 3rem); line-height: 1; text-wrap: balance; }
+.hl { background: linear-gradient(transparent 56%, var(--highlight) 56%, var(--highlight) 92%, transparent 92%); padding: 0 .06em; }
+h2 { margin: 14px 0 0; font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; line-height: 1.2; }
+p, li { margin: 0; max-width: 68ch; }
+ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }
+
+/* Témoignage approuvé par son auteure, sans nom ni école. */
+.quote { margin: 0; display: grid; gap: 6px; max-width: 60ch; padding: 16px 20px; border-left: 6px solid var(--pencil); border-radius: 0 14px 14px 0; background: var(--highlight); }
+.quote blockquote { margin: 0; font-family: var(--font-hand); font-size: clamp(1.35rem, 4.6vw, 1.6rem); line-height: 1.3; }
+.quote figcaption { font-size: .9rem; font-weight: 700; color: var(--ink-soft); }
+.quote figcaption::before { content: "— "; }
+
+.faq { display: grid; border-top: 1px solid var(--key-edge); max-width: 68ch; }
+.faq details { border-bottom: 1px solid var(--key-edge); }
+.faq summary { display: flex; align-items: center; min-height: 52px; padding: 10px 2px; font-weight: 700; cursor: pointer; }
+.faq details p { padding: 0 2px 14px; color: var(--ink-soft); }
+.faq details p + p { margin-top: -6px; }
+
+.cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 52px;
+  padding: 0 1.3rem;
+  border-radius: 14px;
+  border: 2px solid var(--pencil-deep);
+  border-bottom-width: 4px;
+  background: var(--pencil);
+  color: var(--on-pencil);
+  font-weight: 700;
+  text-decoration: none;
+}
+.btn--alt { background: var(--key); color: var(--ink); border-color: var(--key-edge); }
+
+@media (max-width: 680px) {
+  .paper { padding: 22px 16px 26px 34px; }
+  .paper::before { left: 20px; }
+}
+
+.lede { font-size: 1.1rem; }
+.tips { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; max-width: 68ch; }
+.facts { display: grid; border-top: 1px solid var(--key-edge); max-width: 68ch; }
+.facts details { border-bottom: 1px solid var(--key-edge); }
+.facts summary { display: flex; align-items: center; min-height: 48px; padding: 8px 2px; font-weight: 700; cursor: pointer; }
+.facts ol { list-style: none; margin: 0; padding: 0 2px 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5em, 1fr)); gap: 4px 14px; }
+.facts li { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.more { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.fine { font-size: .9rem; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <nav class="topbar" aria-label="Navigation">
+    <a class="pill" href="./" aria-label="Retour à Tables minute"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3.5M7.5 3.5 3 8l4.5 4.5"/></svg>Tables minute</a>
+    <a class="pill pill--pro" href="classe.html">Pour les profs</a>
+  </nav>
+
+  <article class="paper" aria-labelledby="page-title">
+    <h1 id="page-title">Tables minute de <span class="hl">division</span></h1>
+    <p class="lede">Une feuille de divisions à remplir le plus vite possible, comme les tables minute de l’école. Choisis tes tables, de&nbsp;1 à&nbsp;12, et ton chrono&nbsp;: 4, 3 ou 2 minutes. À la fin, la feuille est corrigée et tu peux reprendre seulement tes erreurs. Sur tablette, cellulaire, Chromebook ou ordinateur.</p>
+    <div class="cta">
+      <a class="btn" href="./?ops=div&amp;ref=seo-division">Commencer une feuille de division</a>
+      <a class="btn btn--alt" href="./?ops=mul-div&amp;ref=seo-division">Multiplication et division</a>
+    </div>
+
+    <h2>Comment pratiquer les divisions</h2>
+    <ol class="tips">
+      <li>Pars de la multiplication&nbsp;: 56&nbsp;÷&nbsp;7, c’est chercher «&nbsp;7 fois combien font 56&nbsp;». Si tu connais 7&nbsp;×&nbsp;8, tu connais 56&nbsp;÷&nbsp;7.</li>
+      <li>Commence par une ou deux tables, puis mélange-les quand elles vont bien.</li>
+      <li>Deux ou trois minutes par jour valent mieux qu’une longue séance une fois par semaine.</li>
+      <li>À la fin de la feuille, reprends seulement tes erreurs&nbsp;: ce sont elles qui te font progresser.</li>
+      <li>Le nombre manquant (56&nbsp;÷&nbsp;?&nbsp;=&nbsp;8) montre le lien entre la division et la multiplication. Si c’est trop difficile au début, choisis «&nbsp;Trouver la réponse&nbsp;» seulement.</li>
+    </ol>
+
+    <h2>Les divisions de chaque table</h2>
+    <p>Les mêmes divisions que sur les feuilles du site. Touche une table pour la voir.</p>
+    <div class="facts">
+      <details>
+        <summary>Table de division de 1</summary>
+        <ol><li>1&nbsp;÷&nbsp;1&nbsp;=&nbsp;1</li><li>2&nbsp;÷&nbsp;1&nbsp;=&nbsp;2</li><li>3&nbsp;÷&nbsp;1&nbsp;=&nbsp;3</li><li>4&nbsp;÷&nbsp;1&nbsp;=&nbsp;4</li><li>5&nbsp;÷&nbsp;1&nbsp;=&nbsp;5</li><li>6&nbsp;÷&nbsp;1&nbsp;=&nbsp;6</li><li>7&nbsp;÷&nbsp;1&nbsp;=&nbsp;7</li><li>8&nbsp;÷&nbsp;1&nbsp;=&nbsp;8</li><li>9&nbsp;÷&nbsp;1&nbsp;=&nbsp;9</li><li>10&nbsp;÷&nbsp;1&nbsp;=&nbsp;10</li><li>11&nbsp;÷&nbsp;1&nbsp;=&nbsp;11</li><li>12&nbsp;÷&nbsp;1&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 2</summary>
+        <ol><li>2&nbsp;÷&nbsp;2&nbsp;=&nbsp;1</li><li>4&nbsp;÷&nbsp;2&nbsp;=&nbsp;2</li><li>6&nbsp;÷&nbsp;2&nbsp;=&nbsp;3</li><li>8&nbsp;÷&nbsp;2&nbsp;=&nbsp;4</li><li>10&nbsp;÷&nbsp;2&nbsp;=&nbsp;5</li><li>12&nbsp;÷&nbsp;2&nbsp;=&nbsp;6</li><li>14&nbsp;÷&nbsp;2&nbsp;=&nbsp;7</li><li>16&nbsp;÷&nbsp;2&nbsp;=&nbsp;8</li><li>18&nbsp;÷&nbsp;2&nbsp;=&nbsp;9</li><li>20&nbsp;÷&nbsp;2&nbsp;=&nbsp;10</li><li>22&nbsp;÷&nbsp;2&nbsp;=&nbsp;11</li><li>24&nbsp;÷&nbsp;2&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 3</summary>
+        <ol><li>3&nbsp;÷&nbsp;3&nbsp;=&nbsp;1</li><li>6&nbsp;÷&nbsp;3&nbsp;=&nbsp;2</li><li>9&nbsp;÷&nbsp;3&nbsp;=&nbsp;3</li><li>12&nbsp;÷&nbsp;3&nbsp;=&nbsp;4</li><li>15&nbsp;÷&nbsp;3&nbsp;=&nbsp;5</li><li>18&nbsp;÷&nbsp;3&nbsp;=&nbsp;6</li><li>21&nbsp;÷&nbsp;3&nbsp;=&nbsp;7</li><li>24&nbsp;÷&nbsp;3&nbsp;=&nbsp;8</li><li>27&nbsp;÷&nbsp;3&nbsp;=&nbsp;9</li><li>30&nbsp;÷&nbsp;3&nbsp;=&nbsp;10</li><li>33&nbsp;÷&nbsp;3&nbsp;=&nbsp;11</li><li>36&nbsp;÷&nbsp;3&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 4</summary>
+        <ol><li>4&nbsp;÷&nbsp;4&nbsp;=&nbsp;1</li><li>8&nbsp;÷&nbsp;4&nbsp;=&nbsp;2</li><li>12&nbsp;÷&nbsp;4&nbsp;=&nbsp;3</li><li>16&nbsp;÷&nbsp;4&nbsp;=&nbsp;4</li><li>20&nbsp;÷&nbsp;4&nbsp;=&nbsp;5</li><li>24&nbsp;÷&nbsp;4&nbsp;=&nbsp;6</li><li>28&nbsp;÷&nbsp;4&nbsp;=&nbsp;7</li><li>32&nbsp;÷&nbsp;4&nbsp;=&nbsp;8</li><li>36&nbsp;÷&nbsp;4&nbsp;=&nbsp;9</li><li>40&nbsp;÷&nbsp;4&nbsp;=&nbsp;10</li><li>44&nbsp;÷&nbsp;4&nbsp;=&nbsp;11</li><li>48&nbsp;÷&nbsp;4&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 5</summary>
+        <ol><li>5&nbsp;÷&nbsp;5&nbsp;=&nbsp;1</li><li>10&nbsp;÷&nbsp;5&nbsp;=&nbsp;2</li><li>15&nbsp;÷&nbsp;5&nbsp;=&nbsp;3</li><li>20&nbsp;÷&nbsp;5&nbsp;=&nbsp;4</li><li>25&nbsp;÷&nbsp;5&nbsp;=&nbsp;5</li><li>30&nbsp;÷&nbsp;5&nbsp;=&nbsp;6</li><li>35&nbsp;÷&nbsp;5&nbsp;=&nbsp;7</li><li>40&nbsp;÷&nbsp;5&nbsp;=&nbsp;8</li><li>45&nbsp;÷&nbsp;5&nbsp;=&nbsp;9</li><li>50&nbsp;÷&nbsp;5&nbsp;=&nbsp;10</li><li>55&nbsp;÷&nbsp;5&nbsp;=&nbsp;11</li><li>60&nbsp;÷&nbsp;5&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 6</summary>
+        <ol><li>6&nbsp;÷&nbsp;6&nbsp;=&nbsp;1</li><li>12&nbsp;÷&nbsp;6&nbsp;=&nbsp;2</li><li>18&nbsp;÷&nbsp;6&nbsp;=&nbsp;3</li><li>24&nbsp;÷&nbsp;6&nbsp;=&nbsp;4</li><li>30&nbsp;÷&nbsp;6&nbsp;=&nbsp;5</li><li>36&nbsp;÷&nbsp;6&nbsp;=&nbsp;6</li><li>42&nbsp;÷&nbsp;6&nbsp;=&nbsp;7</li><li>48&nbsp;÷&nbsp;6&nbsp;=&nbsp;8</li><li>54&nbsp;÷&nbsp;6&nbsp;=&nbsp;9</li><li>60&nbsp;÷&nbsp;6&nbsp;=&nbsp;10</li><li>66&nbsp;÷&nbsp;6&nbsp;=&nbsp;11</li><li>72&nbsp;÷&nbsp;6&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 7</summary>
+        <ol><li>7&nbsp;÷&nbsp;7&nbsp;=&nbsp;1</li><li>14&nbsp;÷&nbsp;7&nbsp;=&nbsp;2</li><li>21&nbsp;÷&nbsp;7&nbsp;=&nbsp;3</li><li>28&nbsp;÷&nbsp;7&nbsp;=&nbsp;4</li><li>35&nbsp;÷&nbsp;7&nbsp;=&nbsp;5</li><li>42&nbsp;÷&nbsp;7&nbsp;=&nbsp;6</li><li>49&nbsp;÷&nbsp;7&nbsp;=&nbsp;7</li><li>56&nbsp;÷&nbsp;7&nbsp;=&nbsp;8</li><li>63&nbsp;÷&nbsp;7&nbsp;=&nbsp;9</li><li>70&nbsp;÷&nbsp;7&nbsp;=&nbsp;10</li><li>77&nbsp;÷&nbsp;7&nbsp;=&nbsp;11</li><li>84&nbsp;÷&nbsp;7&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 8</summary>
+        <ol><li>8&nbsp;÷&nbsp;8&nbsp;=&nbsp;1</li><li>16&nbsp;÷&nbsp;8&nbsp;=&nbsp;2</li><li>24&nbsp;÷&nbsp;8&nbsp;=&nbsp;3</li><li>32&nbsp;÷&nbsp;8&nbsp;=&nbsp;4</li><li>40&nbsp;÷&nbsp;8&nbsp;=&nbsp;5</li><li>48&nbsp;÷&nbsp;8&nbsp;=&nbsp;6</li><li>56&nbsp;÷&nbsp;8&nbsp;=&nbsp;7</li><li>64&nbsp;÷&nbsp;8&nbsp;=&nbsp;8</li><li>72&nbsp;÷&nbsp;8&nbsp;=&nbsp;9</li><li>80&nbsp;÷&nbsp;8&nbsp;=&nbsp;10</li><li>88&nbsp;÷&nbsp;8&nbsp;=&nbsp;11</li><li>96&nbsp;÷&nbsp;8&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 9</summary>
+        <ol><li>9&nbsp;÷&nbsp;9&nbsp;=&nbsp;1</li><li>18&nbsp;÷&nbsp;9&nbsp;=&nbsp;2</li><li>27&nbsp;÷&nbsp;9&nbsp;=&nbsp;3</li><li>36&nbsp;÷&nbsp;9&nbsp;=&nbsp;4</li><li>45&nbsp;÷&nbsp;9&nbsp;=&nbsp;5</li><li>54&nbsp;÷&nbsp;9&nbsp;=&nbsp;6</li><li>63&nbsp;÷&nbsp;9&nbsp;=&nbsp;7</li><li>72&nbsp;÷&nbsp;9&nbsp;=&nbsp;8</li><li>81&nbsp;÷&nbsp;9&nbsp;=&nbsp;9</li><li>90&nbsp;÷&nbsp;9&nbsp;=&nbsp;10</li><li>99&nbsp;÷&nbsp;9&nbsp;=&nbsp;11</li><li>108&nbsp;÷&nbsp;9&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 10</summary>
+        <ol><li>10&nbsp;÷&nbsp;10&nbsp;=&nbsp;1</li><li>20&nbsp;÷&nbsp;10&nbsp;=&nbsp;2</li><li>30&nbsp;÷&nbsp;10&nbsp;=&nbsp;3</li><li>40&nbsp;÷&nbsp;10&nbsp;=&nbsp;4</li><li>50&nbsp;÷&nbsp;10&nbsp;=&nbsp;5</li><li>60&nbsp;÷&nbsp;10&nbsp;=&nbsp;6</li><li>70&nbsp;÷&nbsp;10&nbsp;=&nbsp;7</li><li>80&nbsp;÷&nbsp;10&nbsp;=&nbsp;8</li><li>90&nbsp;÷&nbsp;10&nbsp;=&nbsp;9</li><li>100&nbsp;÷&nbsp;10&nbsp;=&nbsp;10</li><li>110&nbsp;÷&nbsp;10&nbsp;=&nbsp;11</li><li>120&nbsp;÷&nbsp;10&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 11</summary>
+        <ol><li>11&nbsp;÷&nbsp;11&nbsp;=&nbsp;1</li><li>22&nbsp;÷&nbsp;11&nbsp;=&nbsp;2</li><li>33&nbsp;÷&nbsp;11&nbsp;=&nbsp;3</li><li>44&nbsp;÷&nbsp;11&nbsp;=&nbsp;4</li><li>55&nbsp;÷&nbsp;11&nbsp;=&nbsp;5</li><li>66&nbsp;÷&nbsp;11&nbsp;=&nbsp;6</li><li>77&nbsp;÷&nbsp;11&nbsp;=&nbsp;7</li><li>88&nbsp;÷&nbsp;11&nbsp;=&nbsp;8</li><li>99&nbsp;÷&nbsp;11&nbsp;=&nbsp;9</li><li>110&nbsp;÷&nbsp;11&nbsp;=&nbsp;10</li><li>121&nbsp;÷&nbsp;11&nbsp;=&nbsp;11</li><li>132&nbsp;÷&nbsp;11&nbsp;=&nbsp;12</li></ol>
+      </details>
+      <details>
+        <summary>Table de division de 12</summary>
+        <ol><li>12&nbsp;÷&nbsp;12&nbsp;=&nbsp;1</li><li>24&nbsp;÷&nbsp;12&nbsp;=&nbsp;2</li><li>36&nbsp;÷&nbsp;12&nbsp;=&nbsp;3</li><li>48&nbsp;÷&nbsp;12&nbsp;=&nbsp;4</li><li>60&nbsp;÷&nbsp;12&nbsp;=&nbsp;5</li><li>72&nbsp;÷&nbsp;12&nbsp;=&nbsp;6</li><li>84&nbsp;÷&nbsp;12&nbsp;=&nbsp;7</li><li>96&nbsp;÷&nbsp;12&nbsp;=&nbsp;8</li><li>108&nbsp;÷&nbsp;12&nbsp;=&nbsp;9</li><li>120&nbsp;÷&nbsp;12&nbsp;=&nbsp;10</li><li>132&nbsp;÷&nbsp;12&nbsp;=&nbsp;11</li><li>144&nbsp;÷&nbsp;12&nbsp;=&nbsp;12</li></ol>
+      </details>
+    </div>
+
+    <h2>En classe</h2>
+    <p>Les profs peuvent préparer une feuille de division pour un groupe, ou créer leur classe&nbsp;: chaque élève touche son prénom, et le prof voit son score, ses tables difficiles et sa progression. Tout est sur la page <a href="classe.html">Pour les profs</a>.</p>
+
+    <p class="more"><a href="./">Tables minute</a> <a href="addition-soustraction.html">Addition et soustraction</a> <a href="apropos.html">À propos et questions</a> <a href="entiers/">Au secondaire&nbsp;: Entiers minute</a></p>
+    <p class="fine">Tables minute est gratuit, sans compte et sans pub. Créé par Vincent, un papa du Québec.</p>
+  </article>
+</main>
+<script async src="compteur.js?v=1"></script>
+</body>
+</html>

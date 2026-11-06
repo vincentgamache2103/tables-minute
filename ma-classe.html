@@ -473,6 +473,7 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
 
 <script src="qrcode.min.js"></script>
 <script src="classe.js?v=1"></script>
+<script src="compteur.js?v=1"></script>
 <script>
 (() => {
   'use strict';
@@ -487,17 +488,11 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
   };
   if (LINK && LINK.kind === 'teacher') setHash(LINK.id);
 
-  /* ---------- Statistiques anonymes (GoatCounter) ---------- */
-  // Cette page garde la clé du prof : aucun script d'un autre site n'y est chargé. Les visites et les
-  // événements partent par une simple image, avec seulement le nom de la page ou de l'événement.
-  function beacon(path, title, event) {
-    try {
-      const q = new URLSearchParams({ p: path, t: title || '', e: event ? 'true' : 'false', s: String((window.screen && window.screen.width) || ''), rnd: Math.random().toString(36).slice(2) });
-      new Image().src = 'https://tablesminute.goatcounter.com/count?' + q.toString();
-    } catch (e) { /* rien */ }
-  }
-  const track = (path, title) => beacon(path, title, true);
-  beacon(window.location.pathname, 'Ma classe', false);
+  /* ---------- Statistiques anonymes (GoatCounter, par compteur.js, hébergé sur ce site) ---------- */
+  // Aucun script d'un autre site n'est chargé sur cette page, qui garde la clé du prof.
+  const track = (path, title) => {
+    try { window.goatcounter.count({ path: path, title: title, event: true }); } catch (e) { /* rien */ }
+  };
 
   /* ---------- Petits outils ---------- */
   const NBSP = '\u00a0';

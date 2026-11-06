@@ -15,6 +15,13 @@ Statistiques de visites anonymes avec GoatCounter (aucun témoin, aucune adresse
 Événements comptés : nouvel-appareil, visite-de-retour, feuille-commencee, feuille-terminee,
 operation-*, suggestion-envoyee.
 
+## Pages pour Google
+
+- `division.html` et `addition-soustraction.html` : « tables minute de division », « d'addition et de
+  soustraction », avec les calculs de chaque table. Leurs boutons ouvrent le site avec `?ops=div` (ou
+  `add-sub`, `add`, `sub`, `mul-div`) : l'opération est choisie, rien n'est verrouillé.
+- `compteur.js` : le compteur GoatCounter hébergé sur le site (remplace count.js, aucun script d'un autre site).
+
 ## Version classe (gratuite pour les profs)
 
 Le prof crée sa classe avec les prénoms de ses élèves (`ma-classe.html`), partage le lien de la classe,

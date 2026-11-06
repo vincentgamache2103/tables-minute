@@ -1164,6 +1164,8 @@ button { cursor: pointer; touch-action: manipulation; }
           <a href="apropos.html">À propos et questions</a>
           <a href="classe.html">Pour les profs</a>
           <a href="entiers/">Au secondaire&nbsp;: Entiers minute</a>
+          <a href="division.html">Tables minute de division</a>
+          <a href="addition-soustraction.html">Addition et soustraction</a>
         </nav>
         <p class="fine">Tables minute : les tables minute de l’école au Québec, à la maison. Multiplication, division, addition et soustraction, tables de 1 à 12. Gratuit, sans compte et sans pub.</p>
       </footer>
@@ -3065,11 +3067,30 @@ button { cursor: pointer; touch-action: manipulation; }
     return false;
   }
 
+  // Arrivée par une page « tables minute de division » ou « d'addition et de soustraction » (?ops=div) :
+  // l'opération est déjà choisie, et tout reste modifiable (rien n'est verrouillé, contrairement à un lien de groupe).
+  function applyStartOps() {
+    if (inGroup()) return;
+    let p;
+    try { p = new URLSearchParams(window.location.search); } catch (e) { return; }
+    const raw = p.get('ops') || '';
+    if (!/^[a-z]{3}(-[a-z]{3}){0,3}$/.test(raw)) return;
+    const ops = opsList(Array.from(new Set(raw.split('-'))));
+    if (!ops.length) return;
+    settings.ops = ops;
+    settings.split = false;
+    saveSettings();
+    p.delete('ops');
+    const q = p.toString();
+    try { window.history.replaceState(window.history.state, '', window.location.pathname + (q ? '?' + q : '') + window.location.hash); } catch (e) { /* rien */ }
+  }
+
   let started = false;
   function start(data) {
     if (started) return;
     started = true;
     countDevice();
+    applyStartOps();
     buildSetup();
     syncSetup();
     renderHistory();
@@ -3093,6 +3114,6 @@ button { cursor: pointer; touch-action: manipulation; }
   else start((hot && hot.data) || {});
 })();
 </script>
-<script data-goatcounter="https://tablesminute.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script async src="compteur.js?v=1"></script>
 </body>
 </html>
