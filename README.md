@@ -28,8 +28,10 @@ difficiles et la progression de chaque élève.
 - Lien des élèves : `./#c=<classe>.<clé>`; lien du prof : `./ma-classe.html#p=<classe>.<clé>.<clé privée>`
 - Hors ligne : le résultat chiffré attend sur l'appareil et part au retour de la connexion
 
-Événements comptés : classe-creee, classe-prenom, classe-resultat, classe-tableau, classe-lien-eleves,
-classe-lien-prof, classe-csv, classe-liste-modifiee.
+Événements comptés : classe-creee, classe-prenom, classe-resultat, classe-tableau (à chaque lecture du
+tableau), classe-retour (un prof qui revient un autre jour), classe-active-10 (une classe atteint 10 élèves
+actifs), classe-lien-eleves, classe-lien-prof, classe-lien-prof-courriel, classe-csv, classe-liste-modifiee.
+La page `ma-classe.html` ne charge aucun script ni police d'un autre site : ses compteurs partent par une image.
 
 ## Entiers minute (secondaire)
 

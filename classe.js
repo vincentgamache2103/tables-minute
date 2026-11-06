@@ -33,6 +33,7 @@
   const RID_RE = /^[A-Za-z0-9_-]{20}$/;
   const MAX_NAMES = 40;
   const NAME_MAX = 24;
+  const MAX_PREV = 100;
   const ROOT = READY ? 'projects/' + CFG.project + '/databases/(default)/documents' : '';
   const API = 'https://firestore.googleapis.com/v1/';
 
@@ -135,7 +136,7 @@
       n: cleanClassName(raw.n),
       r: cleanRoster(raw.r),
       p: raw.p,
-      prev: (Array.isArray(raw.prev) ? raw.prev : []).filter((x) => ID_RE.test(x)).slice(0, 20),
+      prev: (Array.isArray(raw.prev) ? raw.prev : []).filter((x) => ID_RE.test(x)).slice(0, MAX_PREV),
       at: Number(raw.at) || 0
     };
   }
@@ -177,16 +178,21 @@
     const e = new Error('serveur ' + status);
     e.status = status;
     e.offline = status === 0;
-    e.exists = status === 409 || /ALREADY_EXISTS|FAILED_PRECONDITION/.test(text || '');
+    e.exists = /ALREADY_EXISTS|already exists/.test(text || '');
     return e;
   }
   async function call(path, body, method) {
     let res;
+    const ctl = window.AbortController ? new AbortController() : null;
+    const timer = ctl ? setTimeout(() => ctl.abort(), 15000) : 0;
     try {
-      res = await fetch(url(path), body === undefined
+      const opt = body === undefined
         ? { method: method || 'GET', cache: 'no-store' }
-        : { method: method || 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store' });
+        : { method: method || 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store' };
+      if (ctl) opt.signal = ctl.signal;
+      res = await fetch(url(path), opt);
     } catch (e) { throw fail(0, ''); }
+    finally { clearTimeout(timer); }
     if (res.ok) return res.json();
     let text = '';
     try { text = await res.text(); } catch (e) { /* rien */ }
@@ -215,14 +221,18 @@
       }]
     });
   }
-  // Les résultats arrivés après « after » (heure du serveur), du plus ancien au plus récent.
+  async function resultThere(id, rid) {
+    try { await call(ROOT + '/classes/' + id + '/r/' + rid); return true; } catch (e) { return false; }
+  }
+  // Les résultats arrivés depuis « after » (heure du serveur, au millième de seconde), du plus ancien au plus récent.
+  // « Depuis » inclut « after » : deux feuilles reçues dans la même milliseconde ne se perdent pas; les doublons sont écartés par leur nom.
   async function queryResults(id, after) {
     const q = {
       from: [{ collectionId: 'r' }],
       orderBy: [{ field: { fieldPath: 't' }, direction: 'ASCENDING' }],
       limit: 300
     };
-    if (after) q.where = { fieldFilter: { field: { fieldPath: 't' }, op: 'GREATER_THAN', value: { timestampValue: after } } };
+    if (after) q.where = { fieldFilter: { field: { fieldPath: 't' }, op: 'GREATER_THAN_OR_EQUAL', value: { timestampValue: after } } };
     const rows = await call(ROOT + '/classes/' + id + ':runQuery', { structuredQuery: q });
     return (Array.isArray(rows) ? rows : []).filter((r) => r && r.document && r.document.fields).map((r) => {
       const f = r.document.fields;
@@ -254,6 +264,11 @@
     const v = obj(me[id]);
     return Number.isInteger(v.i) ? v.i : -1;
   }
+  // Depuis combien de temps l'élève a confirmé son prénom sur cet appareil (en millisecondes).
+  function myAge(id) {
+    const v = obj(obj(store.get(KEY_ME, {}))[id]);
+    return Number.isFinite(v.at) ? Date.now() - v.at : Infinity;
+  }
   function setMyIndex(id, i) {
     const me = obj(store.get(KEY_ME, {}));
     if (i < 0) delete me[id];
@@ -261,6 +276,17 @@
     const keep = {};
     Object.keys(me).sort((a, b) => (obj(me[a]).at || 0) - (obj(me[b]).at || 0)).slice(-10).forEach((x) => { keep[x] = me[x]; });
     store.set(KEY_ME, keep);
+  }
+
+  const KEY_LAST = 'tablesMinute.lastClass.v1';
+  function rememberStudentClass(link, name) {
+    store.set(KEY_LAST, { h: studentHash(link), n: cleanClassName(name), at: Date.now() });
+  }
+  function lastStudentClass() {
+    const v = obj(store.get(KEY_LAST, null));
+    const h = readHash(v.h);
+    if (!h || h.kind !== 'student' || !(Date.now() - (v.at || 0) < 150 * 864e5)) return null;
+    return { h: v.h, n: cleanClassName(v.n) };
   }
 
   /* ---------- Élève : envoyer un résultat (avec une file d'attente hors ligne) ---------- */
@@ -280,7 +306,7 @@
         sent += 1;
       } catch (e) {
         // Déjà reçu (la réponse s'était perdue) : c'est envoyé.
-        if (e.exists) { sent += 1; continue; }
+        if (e.exists || (!e.offline && await resultThere(it.c, it.r))) { sent += 1; continue; }
         // Hors ligne, quota du jour atteint ou serveur occupé : on réessaiera sans compter d'échec.
         const passing = e.offline || e.status === 429 || e.status >= 500;
         it.tries = (it.tries || 0) + (passing ? 0 : 1);
@@ -308,7 +334,10 @@
     if (!store.set(KEY_QUEUE, q.slice(-60))) {
       // Pas de stockage sur cet appareil : un seul essai, tout de suite.
       try { await putResult(c.id, rid, d); return { sent: true, queued: 0 }; }
-      catch (e) { return { sent: !!e.exists, queued: 0, lost: !e.exists }; }
+      catch (e) {
+        const there = e.exists || (!e.offline && await resultThere(c.id, rid));
+        return { sent: there, queued: 0, lost: !there };
+      }
     }
     let r = await flush();
     // Une file déjà en route ne contenait pas ce résultat : on repart une fois.
@@ -333,7 +362,7 @@
     const m = mine();
     const prev = info && Array.isArray(info.prev) ? info.prev : [];
     const i = m.list.findIndex((x) => x.id === c.id || prev.indexOf(x.id) >= 0);
-    const entry = { id: c.id, k: c.k, d: c.d, n: info ? info.n : '', cnt: info ? info.r.filter(Boolean).length : 0, prev: prev.slice(0, 20), at: (info && info.at) || Date.now() };
+    const entry = { id: c.id, k: c.k, d: c.d, n: info ? info.n : '', cnt: info ? info.r.filter(Boolean).length : 0, prev: prev.slice(0, MAX_PREV), at: (info && info.at) || Date.now() };
     if (i >= 0) m.list[i] = entry; else m.list.push(entry);
     m.cur = c.id;
     saveMine(m);
@@ -360,7 +389,8 @@
     let prev = [];
     if (from) {
       keys = { k: from.k, d: from.d, p: from.info.p };
-      prev = [from.id].concat(from.info.prev || []).slice(0, 20);
+      const chain = [from.id].concat(from.info.prev || []);
+      prev = chain.length > MAX_PREV ? chain.slice(0, MAX_PREV - 1).concat(chain[chain.length - 1]) : chain;
     } else {
       const kp = await subtle.generateKey(ECDH, true, ['deriveBits']);
       const jwk = await subtle.exportKey('jwk', kp.privateKey);
@@ -420,7 +450,11 @@
         if (e.offline) offline = true; else failed += 1;
       }
       docs = docs.slice(-4000);
-      if (!store.set(KEY_RESULTS + id, { t: after, docs: docs })) store.del(KEY_RESULTS + id);
+      let kept = false;
+      for (const n of [4000, 1500, 500]) {
+        if (store.set(KEY_RESULTS + id, { t: after, docs: docs.slice(-n) })) { kept = true; break; }
+      }
+      if (!kept) store.del(KEY_RESULTS + id);
       const opened = await Promise.all(docs.map((x) => openResult(priv, id, x[2]).then((r) => ({ id: x[0], t: x[1], r: r }), () => null)));
       opened.forEach((x) => { if (x) out.push(x); });
     }
@@ -439,7 +473,10 @@
     NAME_MAX: NAME_MAX,
     loadClass: loadClass,
     myIndex: myIndex,
+    myAge: myAge,
     setMyIndex: setMyIndex,
+    rememberStudentClass: rememberStudentClass,
+    lastStudentClass: lastStudentClass,
     sendResult: sendResult,
     flush: flush,
     pending: () => queue().length,

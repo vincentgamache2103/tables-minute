@@ -925,6 +925,9 @@ button { cursor: pointer; touch-action: manipulation; }
 .sent.is-wait { color: var(--ink-soft); }
 .sent.is-err { color: var(--red); }
 #name:disabled { opacity: 1; -webkit-text-fill-color: currentColor; cursor: default; }
+.klass-yes { min-height: 48px; padding: 0 1.2rem; font-size: 1.05rem; }
+.klass-back { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; padding: 8px 14px; border-radius: 12px; background: var(--note); font-size: .95rem; }
+.klass-back b { overflow-wrap: anywhere; }
 
 /* ---------- Petits écrans ---------- */
 @media (orientation: portrait) {
@@ -987,12 +990,15 @@ button { cursor: pointer; touch-action: manipulation; }
           </div>
         </section>
 
+        <p class="klass-back" id="klass-back" hidden><span>Ta classe&nbsp;: <b id="klass-back-name"></b></span><a class="btn btn--link" id="klass-back-go" href="./">Retourner à ta classe</a></p>
+
         <section class="klass" id="klass" aria-labelledby="klass-title" hidden>
           <p class="klass-eyebrow">Ta classe</p>
           <h2 class="klass-title" id="klass-title">Ta classe</h2>
           <p class="klass-ask" id="klass-ask" hidden>Touche ton prénom.</p>
           <div class="klass-names" id="klass-names" role="group" aria-labelledby="klass-ask" hidden></div>
           <p class="klass-me" id="klass-me" hidden><span>Tu es <b id="klass-me-name"></b>. Ton prof verra tes résultats.</span><button type="button" class="btn btn--link" id="klass-change">Ce n’est pas moi</button></p>
+          <p class="klass-me" id="klass-confirm" hidden><span>Es-tu <b id="klass-confirm-name"></b>?</span><button type="button" class="btn btn--go klass-yes" id="klass-yes">Oui, c’est moi</button><button type="button" class="btn btn--link" id="klass-no">Non</button></p>
           <p class="klass-status" id="klass-status" role="status" aria-live="polite"></p>
         </section>
 
@@ -2544,8 +2550,9 @@ button { cursor: pointer; touch-action: manipulation; }
   // Lien de la classe : ./#c=<classe>.<clé>. Le chiffrement et l'envoi sont dans classe.js.
   const TM = window.TMClasse || null;
   const KLASS_HASH = /^#c=/.test(window.location.hash || '');
-  const klass = { link: null, info: null, me: -1, state: 'off' };
-  const inClass = () => klass.state === 'ready' && klass.me >= 0;
+  const klass = { link: null, info: null, me: -1, ask: false, state: 'off' };
+  const KLASS_FRESH = 60 * 60000;
+  const inClass = () => klass.state === 'ready' && klass.me >= 0 && !klass.ask;
   function klassSay(text, err) {
     const el = $('klass-status');
     el.textContent = text;
@@ -2574,9 +2581,14 @@ button { cursor: pointer; touch-action: manipulation; }
     const picked = klass.me >= 0;
     $('klass-ask').hidden = picked;
     $('klass-names').hidden = picked;
-    $('klass-me').hidden = !picked;
+    $('klass-me').hidden = !picked || klass.ask;
+    $('klass-confirm').hidden = !picked || !klass.ask;
     klassSay('');
-    if (picked) { $('klass-me-name').textContent = info.r[klass.me]; return; }
+    if (picked) {
+      $('klass-me-name').textContent = info.r[klass.me];
+      $('klass-confirm-name').textContent = info.r[klass.me];
+      return;
+    }
     const box = $('klass-names');
     box.textContent = '';
     info.r.map((n, i) => ({ n: n, i: i })).filter((x) => x.n)
@@ -2593,15 +2605,25 @@ button { cursor: pointer; touch-action: manipulation; }
   function pickKlass(i) {
     if (!klass.info || !klass.info.r[i]) return;
     klass.me = i;
+    klass.ask = false;
     TM.setMyIndex(klass.link.id, i);
     klassName();
     renderKlass();
     track('classe-prenom', 'Classe : prénom choisi');
     $('klass-change').focus();
   }
+  function confirmKlass() {
+    if (!klass.link || klass.me < 0) return;
+    klass.ask = false;
+    TM.setMyIndex(klass.link.id, klass.me);
+    klassName();
+    renderKlass();
+    $('klass-change').focus();
+  }
   function unpickKlass() {
     if (!klass.link) return;
     klass.me = -1;
+    klass.ask = false;
     TM.setMyIndex(klass.link.id, -1);
     settings.name = '';
     $('name').value = '';
@@ -2613,7 +2635,16 @@ button { cursor: pointer; touch-action: manipulation; }
   }
   function initKlass() {
     if (TM && TM.ready && TM.pending()) TM.flush();
-    if (!KLASS_HASH) return;
+    if (!KLASS_HASH) {
+      // Ouvert sans le lien de la classe (icône de l'écran d'accueil, menu…) : on propose d'y retourner.
+      const last = TM && TM.ready && !inGroup() ? TM.lastStudentClass() : null;
+      if (last) {
+        $('klass-back').hidden = false;
+        $('klass-back-name').textContent = last.n || 'ta classe';
+        $('klass-back-go').href = './?ref=classe' + last.h;
+      }
+      return;
+    }
     $('klass').hidden = false;
     Array.prototype.forEach.call(document.querySelectorAll('.profs, #share'), (el) => { el.hidden = true; });
     const link = TM && TM.ready ? TM.readHash(window.location.hash) : null;
@@ -2624,6 +2655,10 @@ button { cursor: pointer; touch-action: manipulation; }
       return;
     }
     klass.link = link;
+    loadKlass();
+  }
+  function loadKlass() {
+    const link = klass.link;
     klass.state = 'loading';
     klassSay('Ouverture de ta classe…');
     TM.loadClass(link.id, link.k).then((info) => {
@@ -2631,10 +2666,14 @@ button { cursor: pointer; touch-action: manipulation; }
       klass.state = 'ready';
       const i = TM.myIndex(link.id);
       klass.me = i >= 0 && info.r[i] ? i : -1;
+      // Sur une tablette partagée, le prénom retenu peut être celui d'un autre élève : on le redemande après une heure.
+      klass.ask = klass.me >= 0 && TM.myAge(link.id) > KLASS_FRESH;
+      TM.rememberStudentClass(link, info.n);
       klassName();
       renderKlass();
     }, (e) => {
       klass.state = 'error';
+      if (e && e.offline) window.addEventListener('online', () => { if (klass.state === 'error') loadKlass(); }, { once: true });
       klassSay(e && e.offline ? 'Pas de connexion Internet : ta classe ne s’ouvre pas. Tu peux quand même pratiquer.'
         : (e && e.missing ? 'Cette classe est introuvable. Demande le bon lien à ton prof.'
           : 'Ce lien de classe ne fonctionne pas. Demande le bon lien à ton prof.'), true);
@@ -2644,6 +2683,7 @@ button { cursor: pointer; touch-action: manipulation; }
   function klassReady() {
     if (klass.state === 'loading') { klassSay('Un instant : ta classe s’ouvre…'); klassFlash(); return false; }
     if (klass.state === 'ready' && klass.me < 0) { klassSay('Touche d’abord ton prénom.', true); klassFlash(); return false; }
+    if (klass.state === 'ready' && klass.ask) { klassSay('Touche « Oui, c’est moi », ou « Non » pour choisir ton prénom.', true); klassFlash(); return false; }
     return true;
   }
   // Ce qui part au prof : la place de l'élève dans la liste (jamais son prénom), la feuille et chaque réponse.
@@ -2669,7 +2709,7 @@ button { cursor: pointer; touch-action: manipulation; }
     const st = run.sent || 'wait';
     el.className = 'sent' + (st === 'ok' ? '' : (st === 'err' ? ' is-err' : ' is-wait'));
     el.textContent = st === 'ok' ? '✓ Envoyé à ton prof'
-      : st === 'later' ? 'Pas de connexion : ton résultat partira tout seul quand Internet reviendra.'
+      : st === 'later' ? 'Pas de connexion : ton résultat est gardé. Il partira dès que Tables minute sera ouvert avec Internet.'
         : st === 'err' ? 'Ton résultat n’a pas pu partir. Montre ta feuille à ton prof.'
           : 'Envoi à ton prof…';
   }
@@ -2677,6 +2717,8 @@ button { cursor: pointer; touch-action: manipulation; }
     run.sent = 'wait';
     TM.sendResult({ id: run.klass.id, p: run.klass.p }, klassPayload(run)).then((r) => {
       run.sent = r.sent ? 'ok' : (r.lost ? 'err' : 'later');
+      // Une feuille faite compte comme une confirmation du prénom.
+      TM.setMyIndex(run.klass.id, run.klass.i);
       if (r.sent) track('classe-resultat', 'Classe : résultat envoyé');
       showSent(run);
     }, () => { run.sent = 'err'; showSent(run); });
@@ -2878,6 +2920,8 @@ button { cursor: pointer; touch-action: manipulation; }
       if (b) pickKlass(Number(b.getAttribute('data-i')));
     });
     $('klass-change').addEventListener('click', unpickKlass);
+    $('klass-yes').addEventListener('click', confirmKlass);
+    $('klass-no').addEventListener('click', unpickKlass);
     // Un autre lien de classe ouvert dans le même onglet : on recommence avec cette classe.
     window.addEventListener('hashchange', () => {
       const h = window.location.hash || '';

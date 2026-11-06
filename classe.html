@@ -313,7 +313,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
     <section class="wait klasse" id="klasse" aria-labelledby="klasse-title">
       <p class="eyebrow">Nouveau, en essai · gratuit pour les profs</p>
       <h2 id="klasse-title">La version classe&nbsp;: voyez les résultats de vos élèves</h2>
-      <p class="hint">Chaque élève ouvre le lien de la classe et touche son prénom. Vous voyez son score, ses tables difficiles et sa progression. Les prénoms et les résultats sont chiffrés dans votre navigateur&nbsp;: seuls vous et vos élèves pouvez lire les prénoms, et vous seul, les résultats. Même pas nous.</p>
+      <p class="hint">Chaque élève ouvre le lien de la classe et touche son prénom. Vous voyez son score, ses tables difficiles et sa progression. Les prénoms et les résultats sont chiffrés dans votre navigateur&nbsp;: le lien des élèves montre la liste des prénoms, et seul votre lien de prof ouvre les résultats. Le serveur ne voit que du texte illisible.</p>
       <div><a class="btn btn--go" id="klasse-go" href="ma-classe.html">Créer ma classe</a></div>
       <p class="fine">Sans compte. Les résultats chiffrés sont gardés à Montréal.</p>
     </section>
@@ -735,7 +735,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
   else {
     let already = false;
     try { already = window.localStorage.getItem(WAIT_KEY) === '1'; } catch (e) { /* rien */ }
-    if (already) waitDone('Vous recevez déjà les nouveautés de Tables minute. Merci!');
+    if (already) waitDone('Votre adresse est déjà inscrite. Merci!');
     $('wait-form').addEventListener('submit', joinWaitlist);
   }
 
@@ -782,7 +782,12 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
   // Version classe : les classes gardées sur cet appareil (page Ma classe).
   const TM = window.TMClasse || null;
   const myClasses = () => (TM ? TM.mine().list : []);
-  const groupClass = (g) => (g.cls ? myClasses().filter((c) => c.id === g.cls)[0] || null : null);
+  function groupClass(g) {
+    if (!g.cls) return null;
+    const c = myClasses().filter((x) => x.id === g.cls || (Array.isArray(x.prev) && x.prev.indexOf(g.cls) >= 0))[0] || null;
+    if (c && c.id !== g.cls) { g.cls = c.id; saveGroups(); }
+    return c;
+  }
   function loadGroups() {
     let raw = null;
     try { raw = JSON.parse(window.localStorage.getItem(GKEY) || 'null'); } catch (e) { raw = null; }

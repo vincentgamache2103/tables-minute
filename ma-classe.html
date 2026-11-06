@@ -17,15 +17,7 @@
 <meta property="og:description" content="Chaque élève touche son prénom, et vous voyez son score, ses tables difficiles et sa progression.">
 <meta property="og:image" content="https://vincentgamache2103.github.io/tables-minute/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Grandstander:wght@800;900&family=Patrick+Hand&display=swap">
 <script>window.TABLES_MINUTE = {"feedbackKey": "9626fcce-a4fd-4569-b817-1875faf6e05f", "classes": {"project": "tables-minute"}};</script>
-<script>
-  // Le lien de prof porte la clé privée de la classe : elle quitte la barre d'adresse tout de suite,
-  // et le compteur de visites ne voit que le nom de la page.
-  window.goatcounter = { path: function () { return window.location.pathname; } };
-</script>
 <style>
 /* Ma classe : le même pupitre et la même feuille quadrillée que le reste du site. */
 :root {
@@ -326,14 +318,15 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
         <div class="field">
           <label for="new-names">Prénoms de vos élèves</label>
           <textarea class="input" id="new-names" rows="9" autocomplete="off" spellcheck="false" placeholder="Léa&#10;Noah&#10;Zoé&#10;Léa B." aria-describedby="new-names-hint new-count"></textarea>
-          <p class="hint" id="new-names-hint">Un prénom par ligne, ou un surnom. Pas de nom de famille. Deux élèves avec le même prénom&nbsp;? Ajoutez une initiale&nbsp;: Léa B.</p>
+          <p class="hint" id="new-names-hint">Un prénom par ligne, ou un surnom. Pas de nom de famille. Deux élèves avec le même prénom? Ajoutez une initiale&nbsp;: Léa B.</p>
           <p class="count" id="new-count" aria-live="polite">0 élève</p>
         </div>
         <div class="lock">
           <p><b>Comment les prénoms sont protégés</b></p>
           <ul>
             <li>Les prénoms et les résultats sont chiffrés dans votre navigateur, avant de partir.</li>
-            <li>La clé reste dans vos liens. Le serveur, à Montréal, ne garde que du texte illisible&nbsp;: personne d’autre ne peut le lire, même pas nous.</li>
+            <li>Toute personne qui a le lien des élèves voit la liste des prénoms&nbsp;: c’est ainsi que chaque élève trouve le sien. Seul votre lien de prof ouvre les résultats.</li>
+            <li>Le serveur, à Montréal, ne garde que du texte illisible, avec le nombre de feuilles et leur heure d’envoi. Vincent ne peut lire ni les prénoms ni les résultats.</li>
             <li>Si vous perdez votre lien de prof et changez d’appareil, vos résultats ne peuvent pas être récupérés. C’est le prix de cette protection.</li>
           </ul>
         </div>
@@ -379,13 +372,15 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
         <section class="card card--quiet" id="card-prof" aria-labelledby="prof-title">
           <p class="eyebrow">Pour vous seulement</p>
           <h3 id="prof-title">Votre lien de prof</h3>
-          <p class="hint">Il ouvre ce tableau sur n’importe quel appareil. Ne le donnez pas aux élèves.</p>
-          <p class="warn">Gardez-le précieusement&nbsp;: si vous le perdez, personne ne pourra retrouver vos résultats, même pas nous.</p>
+          <p class="hint">Il ouvre ce tableau sur n’importe quel appareil. Gardez-le pour vous&nbsp;: dans votre gestionnaire de mots de passe, vos courriels ou sur papier. Ne l’ouvrez pas sur un ordinateur partagé.</p>
+          <p class="warn">Ne le collez jamais dans Classroom ou Teams. Si vous le perdez, personne ne pourra retrouver vos résultats, même pas nous.</p>
           <div class="row">
             <button type="button" class="btn" id="prof-copy">Copier mon lien de prof</button>
             <a class="btn" id="prof-mail" href="#">Me l’envoyer par courriel</a>
           </div>
+          <input class="input" id="prof-field" type="text" readonly aria-label="Votre lien de prof" hidden>
           <p class="status" id="prof-status" role="status" aria-live="polite"></p>
+          <p class="fine">Lien de prof partagé par erreur? Créez une nouvelle classe&nbsp;: l’ancien lien ne servira plus à rien pour les nouvelles feuilles.</p>
         </section>
       </div>
 
@@ -430,7 +425,8 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
 
       <div class="foot">
         <p class="hint">Pour une feuille différente par groupe, préparez des <a href="classe.html#groups">liens par groupe</a>&nbsp;: choisissez cette classe, et leurs résultats arrivent aussi ici.</p>
-        <p class="hint">C’est une première version, en essai. Une idée, un problème&nbsp;? <a href="./#ideas">Écrivez à Vincent</a>.</p>
+        <p class="hint">C’est une première version, en essai. Une idée, un problème? <a href="./#ideas">Écrivez à Vincent</a>.</p>
+        <p class="fine" id="class-codes"></p>
         <div class="row">
           <button type="button" class="btn" id="edit">Modifier la liste des prénoms</button>
           <button type="button" class="btn" id="another">Créer une autre classe</button>
@@ -443,7 +439,7 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     <!-- Modifier la liste -->
     <section class="stack" id="v-edit" hidden aria-labelledby="edit-title">
       <h2 id="edit-title">Modifier la liste des prénoms</h2>
-      <p class="hint">Changez un prénom, ou videz sa case pour retirer l’élève. Ses résultats restent dans le tableau.</p>
+      <p class="hint">Corrigez un prénom, ou videz sa case pour retirer l’élève&nbsp;: ses résultats restent dans le tableau. Pour un nouvel élève, ajoutez-le en bas. Si vous remplacez le prénom d’un autre élève, ses résultats suivent le nouveau prénom.</p>
       <form class="stack" id="edit-form" novalidate>
         <div class="field">
           <label for="edit-name">Nom de la classe <span>(facultatif)</span></label>
@@ -485,28 +481,23 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
   const INK = '#252A33';
 
   // Le lien de prof (#p=…) porte la clé privée : on la garde sur l'appareil et l'adresse devient #classe=….
-  const LINK = TM ? TM.readHash(window.location.hash) : null;
+  let LINK = TM ? TM.readHash(window.location.hash) : null;
   const setHash = (id) => {
     try { window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search + (id ? '#classe=' + id : '')); } catch (e) { /* rien */ }
   };
   if (LINK && LINK.kind === 'teacher') setHash(LINK.id);
 
   /* ---------- Statistiques anonymes (GoatCounter) ---------- */
-  const pending = [];
-  let wait = 0;
-  const gcReady = () => !!(window.goatcounter && typeof window.goatcounter.count === 'function');
-  const send = (it) => { try { window.goatcounter.count({ path: it.path, title: it.title, event: true }); } catch (e) { /* rien */ } };
-  function track(path, title) {
-    if (gcReady()) { send({ path, title }); return; }
-    pending.push({ path, title });
-    if (wait) return;
-    let tries = 0;
-    wait = setInterval(() => {
-      tries += 1;
-      if (gcReady()) { clearInterval(wait); wait = 0; pending.splice(0).forEach(send); }
-      else if (tries > 60) { clearInterval(wait); wait = 0; pending.length = 0; }
-    }, 250);
+  // Cette page garde la clé du prof : aucun script d'un autre site n'y est chargé. Les visites et les
+  // événements partent par une simple image, avec seulement le nom de la page ou de l'événement.
+  function beacon(path, title, event) {
+    try {
+      const q = new URLSearchParams({ p: path, t: title || '', e: event ? 'true' : 'false', s: String((window.screen && window.screen.width) || ''), rnd: Math.random().toString(36).slice(2) });
+      new Image().src = 'https://tablesminute.goatcounter.com/count?' + q.toString();
+    } catch (e) { /* rien */ }
   }
+  const track = (path, title) => beacon(path, title, true);
+  beacon(window.location.pathname, 'Ma classe', false);
 
   /* ---------- Petits outils ---------- */
   const NBSP = '\u00a0';
@@ -581,15 +572,16 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     const at = Number(r.a);
     const serverAt = Date.parse(when);
     // L'heure de l'appareil de l'élève, sauf si elle est loin de celle du serveur.
-    const time = Number.isFinite(at) && Number.isFinite(serverAt) && Math.abs(at - serverAt) < 36e5 ? at : serverAt;
-    const ops = (Array.isArray(r.o) ? r.o : []).filter((o) => OP_SYM[o]);
+    const time = Number.isFinite(at) && Number.isFinite(serverAt) && at <= serverAt + 36e5 && at >= serverAt - 31 * 864e5 ? at : serverAt;
+    const own = (o, k) => typeof k === 'string' && Object.prototype.hasOwnProperty.call(o, k);
+    const ops = (Array.isArray(r.o) ? r.o : []).filter((o) => own(OP_SYM, o));
     const tables = (Array.isArray(r.t) ? r.t : []).map(Number).filter((n) => Number.isInteger(n) && n >= 1 && n <= 12);
     return {
       i: r.i, at: Number.isFinite(time) ? time : Date.now(), q: q, s: s,
       f: Number.isInteger(r.f) ? Math.min(Math.max(r.f, 0), q) : q,
       u: Number.isFinite(Number(r.u)) ? Math.min(Math.max(Math.round(Number(r.u)), 0), 3600) : 0,
       m: [2, 3, 4].indexOf(Number(r.m)) >= 0 ? Number(r.m) : 0,
-      k: KIND_WORD[r.k] ? r.k : 'mix',
+      k: own(KIND_WORD, r.k) ? r.k : 'mix',
       o: ops.length ? ops : ['mul'],
       t: tables,
       done: r.r === 'done',
@@ -613,8 +605,8 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     const m = Math.floor(s / 60), r = s % 60;
     return m ? m + NBSP + 'min' + (r ? ' ' + String(r).padStart(2, '0') : '') : r + NBSP + 's';
   }
-  // Une case vide compte comme une erreur seulement si l'élève a fini avant la fin du temps.
-  const counts = (r, it) => it.st !== 'b' || r.done;
+  // Une case vide compte comme une erreur seulement si l'élève a fini avant la fin du temps, sa feuille à moitié remplie au moins.
+  const counts = (r, it) => it.st !== 'b' || (r.done && r.f >= r.q / 2);
 
   /* ---------- État de la page ---------- */
   const S = { cls: null, info: null, list: [], days: 30, open: -1, loading: false, fresh: false, loadedAt: 0, failed: false };
@@ -750,6 +742,8 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     $('prof-mail').href = 'mailto:?subject=' + encodeURIComponent('Mon lien de prof Tables minute' + (info.n ? ' (' + info.n + ')' : '')) +
       '&body=' + encodeURIComponent('Mon lien de prof pour voir les résultats de ma classe. À garder pour moi, ne pas donner aux élèves :\n\n' + prof + '\n');
     $('card-kids').classList.toggle('is-new', S.fresh);
+    $('prof-field').hidden = true;
+    $('class-codes').textContent = 'Code de la classe, pour la faire effacer : ' + [c.id].concat(info.prev || []).join(', ') + '.';
     $('forget').textContent = 'Oublier cette classe sur cet appareil';
     say($('forget-status'), '');
     forgetArmed = false;
@@ -768,7 +762,14 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     try {
       const got = await TM.results(c, info, (n) => { if (S.cls === c) say($('updated'), 'Lecture des résultats… ' + n); });
       if (S.cls !== c) return;
-      S.list = got.list.map((x) => clean(x.r, x.t)).filter(Boolean);
+      const seen = {};
+      S.list = got.list.map((x) => clean(x.r, x.t)).filter((r) => {
+        if (!r) return false;
+        const key = r.i + '|' + r.at + '|' + r.s + '|' + r.x.map((it) => it.op + it.t + '.' + it.k + it.st).join(',');
+        if (seen[key]) return false;
+        seen[key] = true;
+        return true;
+      });
       S.loadedAt = Date.now();
       S.failed = got.failed > 0 || got.offline;
       if (!S.failed) { track('classe-tableau', 'Classe : tableau ouvert'); milestones(); }
@@ -781,6 +782,7 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     } finally {
       S.loading = false;
       $('refresh').disabled = false;
+      if (S.cls && S.cls !== c && S.info) loadResults();
     }
   }
   // Compteurs anonymes (aucun prénom, aucun code de classe) : une classe qui atteint 10 élèves actifs,
@@ -866,7 +868,7 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     empty.hidden = true;
     body.hidden = false;
     const A = analyze(list);
-    const active = A.kids.filter((k) => k.sheets.length).length;
+    const active = A.kids.filter((k) => k.n && k.sheets.length).length;
     const named = A.kids.filter((k) => k.n).length;
     const right = list.reduce((n, r) => n + r.s, 0);
     const total = list.reduce((n, r) => n + r.q, 0);
@@ -999,7 +1001,7 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
       S.fresh = true;
       const kept = TM.mine().list.filter((c) => c.id === made.c.id)[0];
       showClass(kept || Object.assign({ n: made.info.n }, made.c), made.info,
-        'Liste enregistrée. Partagez le nouveau lien des élèves et gardez votre nouveau lien de prof : les anciens liens marchent encore, mais sans les changements.');
+        'Liste enregistrée. Partagez le nouveau lien des élèves, et remplacez votre lien de prof là où vous l’aviez gardé : l’ancien ne montre pas les feuilles envoyées avec le nouveau lien. Les anciens liens des élèves marchent encore, sans les changements.');
       $('card-prof').classList.add('is-new');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -1024,6 +1026,8 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     forgetArmed = false;
     S.cls = null;
     S.info = null;
+    LINK = null;
+    setHash('');
     route();
   }
 
@@ -1084,9 +1088,21 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     });
     $('kids-big').addEventListener('click', openBig);
     $('prof-copy').addEventListener('click', () => {
-      copy(TM.teacherLink(S.cls), $('prof-status'), 'Lien de prof copié. Gardez-le dans un endroit sûr, pour vous seulement.');
+      const link = TM.teacherLink(S.cls);
+      const field = $('prof-field');
+      const manual = () => {
+        field.value = link;
+        field.hidden = false;
+        field.focus();
+        field.select();
+        say($('prof-status'), 'Copie automatique impossible : le lien est sélectionné ci-dessus, copiez-le (Ctrl+C ou ⌘+C).', true);
+      };
+      try {
+        navigator.clipboard.writeText(link).then(() => { field.hidden = true; say($('prof-status'), 'Lien de prof copié. Gardez-le dans un endroit sûr, pour vous seulement.'); }, manual);
+      } catch (e) { manual(); }
       track('classe-lien-prof', 'Classe : lien de prof copié');
     });
+    $('prof-field').addEventListener('focus', (e) => e.target.select());
     $('prof-mail').addEventListener('click', () => track('classe-lien-prof-courriel', 'Classe : lien de prof par courriel'));
     $('periods').addEventListener('click', (e) => {
       const b = e.target.closest('[data-days]');
@@ -1132,6 +1148,5 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
   route();
 })();
 </script>
-<script data-goatcounter="https://tablesminute.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
