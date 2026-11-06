@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Grandstander:wght@800;900&family=Patrick+Hand&display=swap">
-<script>window.TABLES_MINUTE = {"feedbackKey": "9626fcce-a4fd-4569-b817-1875faf6e05f"};</script>
+<script>window.TABLES_MINUTE = {"feedbackKey": "9626fcce-a4fd-4569-b817-1875faf6e05f", "classes": {"project": "tables-minute"}};</script>
 <style>
 /* Page pour les enseignants : le même pupitre et la même feuille quadrillée que le site. En haut, la trousse de la classe; dessous, l'aperçu de la feuille pour les parents, la seule chose qui s'imprime. */
 :root {
@@ -310,6 +310,14 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
       <figcaption>Une enseignante de 5e année</figcaption>
     </figure>
 
+    <section class="wait klasse" id="klasse" aria-labelledby="klasse-title">
+      <p class="eyebrow">Nouveau, en essai · gratuit pour les profs</p>
+      <h2 id="klasse-title">La version classe&nbsp;: voyez les résultats de vos élèves</h2>
+      <p class="hint">Chaque élève ouvre le lien de la classe et touche son prénom. Vous voyez son score, ses tables difficiles et sa progression. Les prénoms et les résultats sont chiffrés dans votre navigateur&nbsp;: seuls vous et vos élèves pouvez lire les prénoms, et vous seul, les résultats. Même pas nous.</p>
+      <div><a class="btn btn--go" id="klasse-go" href="ma-classe.html">Créer ma classe</a></div>
+      <p class="fine">Sans compte. Les résultats chiffrés sont gardés à Montréal.</p>
+    </section>
+
     <section class="start" id="start" aria-label="Créer la trousse">
       <button type="button" class="btn btn--go" id="create">Créer la trousse de ma classe</button>
       <p class="fine">Votre classe reçoit un code, par exemple c-k7m2. Il sert seulement à compter, de façon anonyme, combien de classes utilisent le site. Rien n’est demandé sur vous ni sur vos élèves.</p>
@@ -354,7 +362,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
     <section class="groups" id="groups" aria-labelledby="groups-title">
       <p class="eyebrow">Pour différencier</p>
       <h2 id="groups-title">Des liens par groupe</h2>
-      <p class="hint">Préparez une feuille différente pour chaque groupe d’élèves&nbsp;: ses opérations, ses tables et son temps. Chaque élève ouvre le lien de son groupe, et sa feuille est prête. Rien n’est demandé sur vos élèves.</p>
+      <p class="hint">Préparez une feuille différente pour chaque groupe d’élèves&nbsp;: ses opérations, ses tables et son temps. Chaque élève ouvre le lien de son groupe, et sa feuille est prête.</p>
       <div class="g-tabs" id="g-tabs" role="group" aria-label="Choisir le groupe à préparer"></div>
       <div class="g-editor">
         <label class="g-label" for="g-name">Nom du groupe <span>(facultatif)</span></label>
@@ -369,6 +377,11 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
         <div class="g-opts" id="g-min" role="radiogroup" aria-labelledby="g-lbl-min"></div>
         <p class="g-label" id="g-lbl-kind">Questions</p>
         <div class="g-opts" id="g-kind" role="radiogroup" aria-labelledby="g-lbl-kind"></div>
+        <div class="g-editor" id="g-klass" hidden>
+          <label class="g-label" for="g-klass-sel">Résultats</label>
+          <select class="wait-input g-name" id="g-klass-sel"></select>
+          <p class="hint">Avec une classe, chaque élève touche son prénom, et ses résultats arrivent dans le tableau de votre classe.</p>
+        </div>
       </div>
       <p class="g-summary" id="g-summary"></p>
       <div class="kit-grid g-out">
@@ -387,8 +400,8 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
 
     <section class="wait" id="wait" aria-labelledby="wait-title">
       <p class="eyebrow">Pour la suite</p>
-      <h2 id="wait-title">Bientôt&nbsp;: la version classe, gratuite pour les profs</h2>
-      <p class="hint">Un code de classe, chaque élève choisit son prénom, et vous voyez le score, les tables difficiles et la progression de chacun. Les prénoms resteront protégés dans votre navigateur&nbsp;: seuls vous et vos élèves pourrez les lire, même pas nous. Laissez votre courriel pour l’essayer parmi les premiers.</p>
+      <h2 id="wait-title">Les nouveautés par courriel</h2>
+      <p class="hint">Une nouvelle feuille, une nouvelle fonction pour la classe&nbsp;: Vincent vous écrit quand quelque chose de nouveau arrive pour les profs. Rarement, promis.</p>
       <form class="wait-form" id="wait-form" novalidate>
         <label for="wait-email">Votre courriel</label>
         <input class="wait-input" id="wait-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="nom@ecole.qc.ca">
@@ -399,7 +412,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
         <p class="status" id="wait-status" role="status" aria-live="polite"></p>
       </form>
       <p class="wait-done" id="wait-done" role="status" aria-live="polite" hidden></p>
-      <p class="fine">Votre adresse sert seulement à vous écrire au sujet de la version classe. Elle n’est jamais partagée. Pour la faire retirer, écrivez-le à Vincent dans la boîte à idées du site.</p>
+      <p class="fine">Votre adresse sert seulement à vous écrire au sujet de Tables minute. Elle n’est jamais partagée. Pour la faire retirer, écrivez-le à Vincent dans la boîte à idées du site.</p>
     </section>
 
     <div class="share-line">
@@ -468,6 +481,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
 </div>
 
 <script src="qrcode.min.js"></script>
+<script src="classe.js?v=1"></script>
 <script>
 (() => {
   'use strict';
@@ -709,7 +723,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
       waitSentAt = Date.now();
       try { window.localStorage.setItem(WAIT_KEY, '1'); } catch (err) { /* rien */ }
       track('liste-attente', 'Inscription à la liste d’attente (version école)');
-      waitDone('Merci! Vous êtes sur la liste. Vincent vous écrira dès que la version classe sera prête à essayer.');
+      waitDone('Merci! Vincent vous écrira quand quelque chose de nouveau arrivera pour les profs.');
     } catch (err) {
       say(node, 'Le message n’est pas parti. Vérifiez votre connexion Internet et réessayez.', true);
     } finally {
@@ -721,7 +735,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
   else {
     let already = false;
     try { already = window.localStorage.getItem(WAIT_KEY) === '1'; } catch (e) { /* rien */ }
-    if (already) waitDone('Vous êtes sur la liste pour la version classe. Merci!');
+    if (already) waitDone('Vous recevez déjà les nouveautés de Tables minute. Merci!');
     $('wait-form').addEventListener('submit', joinWaitlist);
   }
 
@@ -762,8 +776,13 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
     OP_KEYS.forEach((k) => { const l = cleanList(t[k]); if (l.length) g.tables[k] = l; });
     if (G_MINUTES.indexOf(Number(r.minutes)) >= 0) g.minutes = Number(r.minutes);
     if (G_KINDS.some((x) => x[0] === r.kind)) g.kind = r.kind;
+    g.cls = typeof r.cls === 'string' && /^[A-Za-z0-9_-]{16}$/.test(r.cls) ? r.cls : '';
     return g;
   }
+  // Version classe : les classes gardées sur cet appareil (page Ma classe).
+  const TM = window.TMClasse || null;
+  const myClasses = () => (TM ? TM.mine().list : []);
+  const groupClass = (g) => (g.cls ? myClasses().filter((c) => c.id === g.cls)[0] || null : null);
   function loadGroups() {
     let raw = null;
     try { raw = JSON.parse(window.localStorage.getItem(GKEY) || 'null'); } catch (e) { raw = null; }
@@ -798,7 +817,8 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
     else g.ops.forEach((k) => p.set('t' + G_OPS[OP_KEYS.indexOf(k)].l, g.tables[k].join('-')));
     p.set('m', String(g.minutes));
     p.set('k', g.kind);
-    return BASE + '?' + p.toString();
+    const c = groupClass(g);
+    return BASE + '?' + p.toString() + (c ? TM.studentHash(c) : '');
   }
   function groupSummary(g, i) {
     const plural = (k) => G_OPS[OP_KEYS.indexOf(k)].plural;
@@ -806,7 +826,8 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
       ? listFr(g.ops.map(plural)) + ' · ' + tablesWords(g.tables[g.ops[0]])
       : listFr(g.ops.map((k) => plural(k) + ' (' + tablesWords(g.tables[k]) + ')'));
     const kind = G_KINDS.filter((x) => x[0] === g.kind)[0][1];
-    return groupName(g, i) + ' : ' + what + ' · ' + g.minutes + ' min · ' + kind;
+    const c = groupClass(g);
+    return groupName(g, i) + ' : ' + what + ' · ' + g.minutes + ' min · ' + kind + (c ? ' · résultats à « ' + (c.n || 'Ma classe') + ' »' : '');
   }
 
   function renderGroupTabs() {
@@ -855,6 +876,17 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
     renderGroupRows();
     $('g-min').innerHTML = G_MINUTES.map((m) => '<label class="g-choice"><input type="radio" name="g-min" value="' + m + '"' + (g.minutes === m ? ' checked' : '') + '><span>' + m + ' min</span></label>').join('');
     $('g-kind').innerHTML = G_KINDS.map((x) => '<label class="g-choice"><input type="radio" name="g-kind" value="' + x[0] + '"' + (g.kind === x[0] ? ' checked' : '') + '><span>' + x[1] + '</span></label>').join('');
+    const classes = myClasses();
+    $('g-klass').hidden = !classes.length;
+    const sel = $('g-klass-sel');
+    sel.textContent = '';
+    [['', 'Restent sur l’appareil de l’élève']].concat(classes.map((c) => [c.id, 'Arrivent dans « ' + (c.n || 'Ma classe') + ' »'])).forEach((o) => {
+      const opt = document.createElement('option');
+      opt.value = o[0];
+      opt.textContent = o[1];
+      sel.appendChild(opt);
+    });
+    sel.value = groupClass(g) ? g.cls : '';
     $('g-hint').hidden = true;
     say($('g-status'), '');
     renderGroupOutputs();
@@ -903,6 +935,7 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
     });
     $('g-min').addEventListener('change', (e) => { curGroup().minutes = Number(e.target.value); saveGroups(); renderGroupOutputs(); });
     $('g-kind').addEventListener('change', (e) => { curGroup().kind = e.target.value; saveGroups(); renderGroupOutputs(); });
+    $('g-klass-sel').addEventListener('change', (e) => { curGroup().cls = e.target.value; saveGroups(); renderGroupOutputs(); });
     $('g-copy').addEventListener('click', () => {
       copy(groupLink(curGroup()), $('g-status'), 'Lien de « ' + groupName(curGroup(), groups.cur) + ' » copié. Collez-le dans Classroom ou Teams, ou montrez son code QR.');
       track('lien-groupe-copie', 'Lien de groupe copié');
@@ -948,6 +981,9 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
   loadGroups();
   bindGroups();
   renderGroups();
+  // Version classe : sans le serveur (ou sur un navigateur trop ancien), la carte ne s'affiche pas.
+  if (!TM || !TM.ready) $('klasse').hidden = true;
+  else if (myClasses().length) $('klasse-go').textContent = myClasses().length > 1 ? 'Voir mes classes' : 'Voir ma classe';
 })();
 </script>
 <script data-goatcounter="https://tablesminute.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>

@@ -15,6 +15,22 @@ Statistiques de visites anonymes avec GoatCounter (aucun témoin, aucune adresse
 Événements comptés : nouvel-appareil, visite-de-retour, feuille-commencee, feuille-terminee,
 operation-*, suggestion-envoyee.
 
+## Version classe (gratuite pour les profs)
+
+Le prof crée sa classe avec les prénoms de ses élèves (`ma-classe.html`), partage le lien de la classe,
+et chaque élève touche son prénom avant sa feuille. Le tableau du prof montre le score, les tables
+difficiles et la progression de chaque élève.
+
+- Prénoms et résultats chiffrés dans le navigateur (`classe.js`) : la classe avec une clé AES-GCM qui reste
+  dans le lien (après le #), chaque résultat pour le prof seul (ECDH P-256 + AES-GCM)
+- Serveur : Google Firestore (projet `tables-minute`, Montréal), API REST sans clé; les règles sont dans
+  `firestore.rules` (une classe ne change jamais, un résultat peut seulement être ajouté)
+- Lien des élèves : `./#c=<classe>.<clé>`; lien du prof : `./ma-classe.html#p=<classe>.<clé>.<clé privée>`
+- Hors ligne : le résultat chiffré attend sur l'appareil et part au retour de la connexion
+
+Événements comptés : classe-creee, classe-prenom, classe-resultat, classe-tableau, classe-lien-eleves,
+classe-lien-prof, classe-csv, classe-liste-modifiee.
+
 ## Entiers minute (secondaire)
 
 Dossier `entiers/` : la même idée pour les nombres entiers positifs et négatifs (1re et 2e secondaire).
