@@ -133,6 +133,13 @@ h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1
 .quote figcaption { font-size: .9rem; font-weight: 700; color: var(--ink-soft); }
 .quote figcaption::before { content: "— "; }
 @media print { .quote { display: none; } }
+/* Un vrai chiffre à côté du témoignage. Mis à jour à la main chaque semaine : visites avec l'événement trousse-creee dans GoatCounter depuis le 1er novembre, arrondi vers le bas. */
+.proof { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; }
+.count-badge { margin: 0; display: grid; gap: 3px; justify-items: start; padding: 10px 16px 12px; border: 2px solid var(--key-edge); border-radius: 14px; background: var(--paper); box-shadow: 0 2px 0 var(--key-edge); }
+.count-badge strong { font-family: var(--font-display); font-weight: 900; font-size: 2rem; line-height: 1; color: var(--ink); }
+.count-badge span { max-width: 17ch; font-size: .88rem; font-weight: 700; line-height: 1.25; color: var(--ink-soft); }
+.count-badge sup { font-size: .68em; line-height: 0; }
+@media print { .proof { display: none; } }
 .hint { margin: 0; font-size: .92rem; color: var(--ink-soft); }
 .hint.is-warn { color: var(--red); font-weight: 700; }
 
@@ -305,10 +312,14 @@ textarea.wait-input { min-height: 4.6rem; resize: vertical; line-height: 1.4; }
     <a class="back" href="./">← Retour aux tables minute</a>
     <h1 id="page-title">Tables minute <span class="hl">en classe</span></h1>
     <p class="lede">Une trousse gratuite pour votre classe : un code QR à projeter et une feuille d’une page pour les parents. Sans compte et sans pub.</p>
-    <figure class="quote">
-      <blockquote>« Je m’en sers en classe avec mes élèves de 5e année pour faire de la différenciation. »</blockquote>
-      <figcaption>Une enseignante de 5e année</figcaption>
-    </figure>
+    <div class="proof">
+      <figure class="quote">
+        <blockquote>« Je m’en sers en classe avec mes élèves de 5e année pour faire de la différenciation. »</blockquote>
+        <figcaption>Une enseignante de 5e année</figcaption>
+      </figure>
+      <!-- À mettre à jour chaque semaine : GoatCounter, événement trousse-creee depuis le 1er novembre, arrondi vers le bas. -->
+      <p class="count-badge" id="count-badge"><strong>50+</strong> <span>trousses de classe créées depuis le 1<sup>er</sup> novembre</span></p>
+    </div>
 
     <section class="wait klasse" id="klasse" aria-labelledby="klasse-title">
       <p class="eyebrow">Nouveau, en essai · gratuit pour les profs</p>

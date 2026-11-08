@@ -13,7 +13,11 @@ Site : https://vincentgamache2103.github.io/tables-minute/
 
 Statistiques de visites anonymes avec GoatCounter (aucun témoin, aucune adresse IP conservée).
 Événements comptés : nouvel-appareil, visite-de-retour, feuille-commencee, feuille-terminee,
-operation-*, suggestion-envoyee.
+operation-*, suggestion-envoyee. Attention : le total du tableau GoatCounter additionne les pages et les
+événements; pour les visites, regarder la ligne de l'accueil (`/tables-minute`).
+
+Badge « 50+ trousses de classe » (`#count-badge` dans `classe.html`) : chiffre écrit à la main, à mettre à
+jour chaque semaine. Source : GoatCounter, événement `trousse-creee` depuis le 1er novembre, arrondi vers le bas.
 
 ## Pages pour Google
 
