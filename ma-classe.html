@@ -795,6 +795,19 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     else if (s.first !== today && s.last !== today) { s.last = today; track('classe-retour', 'Classe : prof revenu au tableau'); }
     const active = new Set(S.list.map((r) => r.i)).size;
     if (active >= 10 && !s.a10) { s.a10 = true; track('classe-active-10', 'Classe : 10 élèves actifs'); }
+    // Récurrence : une fois par classe et par appareil de prof, calculée sur les résultats déjà lus ici.
+    // Aucun code de classe ni prénom dans l'événement.
+    if (S.list.length) {
+      const days = new Set(), weeks = new Set();
+      S.list.forEach((r) => {
+        const d = new Date(r.at);
+        days.add(fmtIsoDay(d));
+        weeks.add(fmtIsoDay(new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7))));
+      });
+      if (!s.f) { s.f = true; track('classe-premiere-feuille', 'Classe : première feuille reçue'); }
+      if (days.size >= 2 && !s.d2) { s.d2 = true; track('classe-2-jours', 'Classe : feuilles sur 2 jours ou plus'); }
+      if (weeks.size >= 2 && !s.w2) { s.w2 = true; track('classe-2-semaines', 'Classe : feuilles sur 2 semaines ou plus'); }
+    }
     all[root] = s;
     try { window.localStorage.setItem(KEY_SEEN, JSON.stringify(all)); } catch (e) { /* rien */ }
   }

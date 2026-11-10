@@ -1915,8 +1915,8 @@ button { cursor: pointer; touch-action: manipulation; }
   // Une seule fois par appareil : « nouvel-appareil ». Puis une fois par jour : « visite-de-retour ».
   // Rien d'identifiant n'est envoyé; seule une date reste sur l'appareil.
   // Une même personne n'est pas comptée deux fois quand elle passe de Facebook à Safari ou Chrome
-  // (« passage-navigateur »), ni quand elle ouvre l'icône de l'écran d'accueil (« ecran-accueil ») :
-  // sur iPhone, cette icône a sa propre mémoire, séparée de Safari.
+  // (« passage-navigateur »), ni quand elle ouvre l'icône de l'écran d'accueil : sur iPhone, cette icône
+  // a sa propre mémoire, séparée de Safari. (L'événement « ecran-accueil » n'est plus envoyé.)
   function dayKey(d) {
     const x = d || new Date();
     return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
@@ -1930,7 +1930,6 @@ button { cursor: pointer; touch-action: manipulation; }
       const home = isStandalone();
       if (home && !ls.getItem(KEY_HOME)) {
         ls.setItem(KEY_HOME, today);
-        if (ls.getItem(KEY_HOME)) track('ecran-accueil', 'Ouvert depuis l’écran d’accueil');
       }
       if (!ls.getItem(KEY_FIRST)) {
         const knew = !!(ls.getItem(KEY_SETTINGS) || ls.getItem(KEY_HISTORY));
@@ -3006,8 +3005,8 @@ button { cursor: pointer; touch-action: manipulation; }
     $('sd-copy').addEventListener('click', () => shareCopy('sd-status'));
 
     // Barre du haut et menu
-    $('bar-share').addEventListener('click', () => { track('barre-partager', 'Barre du haut : Partager'); shareSite(); });
-    $('bar-menu').addEventListener('click', () => { track('menu-ouvert', 'Menu ouvert'); openSheet('menu-dlg'); });
+    $('bar-share').addEventListener('click', () => { shareSite(); });
+    $('bar-menu').addEventListener('click', () => { openSheet('menu-dlg'); });
     $('menu-share').addEventListener('click', () => { closeSheet($('menu-dlg')); shareSite(); });
     $('menu-idea').addEventListener('click', () => { closeSheet($('menu-dlg')); goIdeas(); });
     // Fermer : bouton ×, ou toucher à côté du panneau

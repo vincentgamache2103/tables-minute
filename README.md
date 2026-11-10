@@ -43,6 +43,26 @@ difficiles et la progression de chaque élève.
 Événements comptés : classe-creee, classe-prenom, classe-resultat, classe-tableau (à chaque lecture du
 tableau), classe-retour (un prof qui revient un autre jour), classe-active-10 (une classe atteint 10 élèves
 actifs), classe-lien-eleves, classe-lien-prof, classe-lien-prof-courriel, classe-csv, classe-liste-modifiee.
+Trois événements de récurrence partent du navigateur du prof, une seule fois par classe et par appareil, à
+partir des résultats qu'il vient de lire (aucun code de classe ni prénom) : classe-premiere-feuille (un
+premier résultat), classe-2-jours (des feuilles sur au moins 2 jours) et classe-2-semaines (sur au moins
+2 semaines).
+
+### Lire GoatCounter : les indicateurs de récurrence des profs
+
+Chaque semaine : (1) profs qui créent = `classe-creee`; (2) activation = `classe-premiere-feuille` ÷
+`classe-creee`; (3) retour du prof = `classe-retour`; (4) `classe-2-jours`; (5) **classes actives sur
+2 semaines** = `classe-2-semaines`, l'indicateur à surveiller; (6) `classe-active-10`.
+
+Les autres événements, par rôle (ne rien renommer : l'historique repartirait à zéro) :
+- familles : nouvel-appareil, visite-de-retour, feuille-commencee, feuille-terminee, resultat-copie
+  (le bouton « Copier mon résultat » du primaire), operation-* (filtre « operation- »);
+- partage : partage-* (filtre « partage- »);
+- profs, différenciation : tables-par-operation, feuille-groupe, lien-groupe-copie, trousse-creee,
+  trousse-imprimee;
+- diagnostic, hors indicateurs : navigateur-facebook, passage-navigateur;
+- plus envoyés depuis le 10 novembre : barre-partager, menu-ouvert, ecran-accueil.
+Les chiffres sont des planchers : un navigateur qui bloque GoatCounter n'est pas compté.
 La page `ma-classe.html` ne charge aucun script ni police d'un autre site : ses compteurs partent par une image.
 
 ## Entiers minute (secondaire)
