@@ -16,8 +16,9 @@ Statistiques de visites anonymes avec GoatCounter (aucun témoin, aucune adresse
 operation-*, suggestion-envoyee. Attention : le total du tableau GoatCounter additionne les pages et les
 événements; pour les visites, regarder la ligne de l'accueil (`/tables-minute`).
 
-Badge « 50+ trousses de classe » (`#count-badge` dans `classe.html`) : chiffre écrit à la main, à mettre à
-jour chaque semaine. Source : GoatCounter, événement `trousse-creee` depuis le 1er novembre, arrondi vers le bas.
+Badge « 60+ classes créées » (`#count-badge` dans `classe.html`) : chiffres écrits à la main, à mettre à
+jour chaque semaine. Source : GoatCounter, événements `classe-creee` (classes) et `classe-resultat` (feuilles
+d'élèves, une par feuille, pas une par classe) depuis le 5 novembre, arrondis vers le bas.
 
 ## Pages pour Google
 
