@@ -9,7 +9,7 @@ Feuille de tables minute chronométrée, pensée pour la tablette.
 - Boîte à idées : les suggestions arrivent par courriel (Web3Forms)
 - Réglages et derniers essais gardés sur l'appareil
 
-Site : https://vincentgamache2103.github.io/tables-minute/
+Site : https://vincentgamache2103.github.io/tables-minute/ · Notes de version : `CHANGELOG.md`
 
 Statistiques de visites anonymes avec GoatCounter (aucun témoin, aucune adresse IP conservée).
 Événements comptés : nouvel-appareil, visite-de-retour, feuille-commencee, feuille-terminee,
