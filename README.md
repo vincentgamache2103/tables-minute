@@ -39,10 +39,20 @@ difficiles et la progression de chaque élève.
   `firestore.rules` (une classe ne change jamais, un résultat peut seulement être ajouté)
 - Lien des élèves : `./#c=<classe>.<clé>`; lien du prof : `./ma-classe.html#p=<classe>.<clé>.<clé privée>`
 - Hors ligne : le résultat chiffré attend sur l'appareil et part au retour de la connexion
+- La feuille de vos élèves (`feuilles.js`, carte du tableau du prof) : le prof choisit la feuille de toute la classe, et des
+  feuilles pour certains élèves (12 au plus), qu'il remplit en touchant ou en glissant leurs prénoms. Chaque enregistrement
+  ajoute un document `classes/<première version>/s/<id>`, chiffré avec la clé de la classe et signé par le prof (ECDSA P-256,
+  la même clé que pour les résultats); l'élève prend le plus récent qui est bien signé. Le lien des élèves ne change pas.
+  Ordre : la feuille de l'élève, sinon un lien de groupe, sinon la feuille de toute la classe, sinon l'élève choisit.
+  L'élève ne voit jamais le nom de sa feuille, et ne peut pas la changer.
+- Stratégies (× et ÷) : les simples (×1), les doubles (×2), les carrés (2×2 à 5×5), les ×5, les ×10, les ×9, les autres
+  (5×3, 5×4, 5×6, 5×7, 6×3, 6×4, 6×6, 6×7, 7×3, 7×4, 7×8, 8×3, 8×4, 8×6, 3×4), dans l'ordre d'une enseignante. Lien de groupe : `st=s2-sq`.
 
 Événements comptés : classe-creee, classe-prenom, classe-resultat, classe-tableau (à chaque lecture du
 tableau), classe-retour (un prof qui revient un autre jour), classe-active-10 (une classe atteint 10 élèves
-actifs), classe-lien-eleves, classe-lien-prof, classe-lien-prof-courriel, classe-csv, classe-liste-modifiee.
+actifs), classe-lien-eleves, classe-lien-prof, classe-lien-prof-courriel, classe-csv, classe-liste-modifiee,
+classe-feuille-ouverte, classe-feuille-enregistree, classe-feuille-regles (des feuilles pour certains élèves),
+classe-feuille-prof (un élève commence la feuille du prof), strategie-<clé>.
 Trois événements de récurrence partent du navigateur du prof, une seule fois par classe et par appareil, à
 partir des résultats qu'il vient de lire (aucun code de classe ni prénom) : classe-premiere-feuille (un
 premier résultat), classe-2-jours (des feuilles sur au moins 2 jours) et classe-2-semaines (sur au moins

@@ -27,6 +27,20 @@ service cloud.firestore {
           && request.resource.data.t == request.time
           && exists(/databases/$(database)/documents/classes/$(classId));
       }
+
+      // La feuille choisie par le prof : chiffrée avec la clé de la classe et signée par le prof
+      // (les navigateurs vérifient la signature). Chaque changement ajoute un document; rien ne se modifie.
+      match /s/{sheetId} {
+        allow get: if true;
+        allow list: if request.query.limit <= 50;
+        allow create: if sheetId.matches('^[A-Za-z0-9_-]{20}$')
+          && request.resource.data.keys().hasOnly(['d', 't'])
+          && request.resource.data.d is string
+          && request.resource.data.d.size() > 100
+          && request.resource.data.d.size() <= 16000
+          && request.resource.data.t == request.time
+          && exists(/databases/$(database)/documents/classes/$(classId));
+      }
     }
   }
 }

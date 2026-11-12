@@ -14,6 +14,11 @@
  * Une classe ne change jamais. Pour modifier la liste des prénoms, le prof crée une nouvelle
  * version (nouveau lien des élèves) qui garde les mêmes clés et pointe vers les anciennes (prev) :
  * les anciens liens marchent encore et tous les résultats restent ensemble.
+ *
+ * La feuille choisie par le prof (pour toute la classe ou pour un élève) : un document de plus,
+ * ajouté sous la première version de la classe (classes/<première>/s/…), à chaque changement.
+ * Il est chiffré avec la clé K, comme la classe, et signé avec la clé du prof (ECDSA P-256) :
+ * un élève qui a le lien de la classe peut le lire, mais pas en écrire un faux. Le plus récent gagne.
  */
 (function () {
   'use strict';
@@ -42,6 +47,7 @@
   const KEY_QUEUE = 'tablesMinute.classQueue.v1';
   const KEY_MINE = 'tablesMinute.myClasses.v1';
   const KEY_RESULTS = 'tablesMinute.classResults.v1.';
+  const KEY_SHEETS = 'tablesMinute.classSheets.v1';
 
   /* ---------- Petits outils ---------- */
   function b64u(bytes) {
@@ -170,6 +176,105 @@
     return JSON.parse(dec.decode(pt));
   }
 
+  /* ---------- La feuille choisie par le prof ---------- */
+  // Une feuille : { o: opérations, t: tables, st: stratégies (× et ÷ seulement), m: minutes, k: sorte, q: questions }.
+  const SHEET_OPS = ['mul', 'div', 'add', 'sub'];
+  const SHEET_KINDS = ['mix', 'product', 'missing'];
+  // Les stratégies, dans l'ordre où une enseignante les présente, jusqu'à la table de 10.
+  const STRATS = [
+    { key: 's1', name: 'Les simples (×1)', short: 'simples' },
+    { key: 's2', name: 'Les doubles (×2)', short: 'doubles' },
+    { key: 'sq', name: 'Les carrés', short: 'carrés' },
+    { key: 's5', name: 'Les ×5', short: '×5' },
+    { key: 's10', name: 'Les ×10', short: '×10' },
+    { key: 's9', name: 'Les ×9', short: '×9' },
+    { key: 'oth', name: 'Les autres', short: 'les autres' }
+  ];
+  const STRAT_KEYS = STRATS.map((s) => s.key);
+  function pickIn(list, allowed) {
+    return allowed.filter((x) => (Array.isArray(list) ? list : []).indexOf(x) >= 0);
+  }
+  function cleanSheet(raw) {
+    const r = obj(raw);
+    const o = pickIn(r.o, SHEET_OPS);
+    if (!o.length) return null;
+    const st = pickIn(r.st, STRAT_KEYS);
+    const t = Array.from(new Set((Array.isArray(r.t) ? r.t : []).map(Number)
+      .filter((n) => Number.isInteger(n) && n >= 1 && n <= 12))).sort((a, b) => a - b);
+    // Les stratégies sont des faits de multiplication : seulement avec × et ÷.
+    const strat = st.length > 0 && o.every((x) => x === 'mul' || x === 'div');
+    if (!strat && !t.length) return null;
+    return {
+      o: o,
+      t: strat ? [] : t,
+      st: strat ? st : [],
+      m: [2, 3, 4].indexOf(Number(r.m)) >= 0 ? Number(r.m) : 2,
+      k: SHEET_KINDS.indexOf(r.k) >= 0 ? r.k : 'mix',
+      q: [12, 24, 36].indexOf(Number(r.q)) >= 0 ? Number(r.q) : 24
+    };
+  }
+  // Les règles du prof : des feuilles nommées (« Groupe des doubles »), et les élèves placés dans chacune.
+  // all : la feuille du reste de la classe (null : ces élèves choisissent eux-mêmes).
+  // rules : [{ id, n: nom, s: feuille }]. by : { place de l'élève : id de sa règle }.
+  const MAX_RULES = 12;
+  const RULE_ID = /^[a-z0-9]{1,8}$/;
+  function cleanSheets(raw) {
+    const r = obj(raw);
+    const rules = [];
+    (Array.isArray(r.rules) ? r.rules : []).slice(0, MAX_RULES).forEach((x) => {
+      const o = obj(x);
+      const s = cleanSheet(o.s);
+      if (!s || !RULE_ID.test(o.id) || rules.some((y) => y.id === o.id)) return;
+      rules.push({ id: o.id, n: cleanClassName(o.n) || 'Règle ' + (rules.length + 1), s: s });
+    });
+    const by = {};
+    Object.keys(obj(r.by)).forEach((i) => {
+      const n = Number(i);
+      const id = r.by[i];
+      if (Number.isInteger(n) && n >= 0 && n < MAX_NAMES && String(n) === i && rules.some((y) => y.id === id)) by[i] = id;
+    });
+    return { v: 2, at: Number(r.at) || 0, all: cleanSheet(r.all), rules: rules, by: by };
+  }
+  // La feuille d'un élève : celle de sa règle, sinon celle du reste de la classe, sinon aucune.
+  function ruleFor(sheets, i) {
+    if (!sheets || !Number.isInteger(i) || i < 0) return null;
+    const id = sheets.by[String(i)];
+    return id ? sheets.rules.filter((x) => x.id === id)[0] || null : null;
+  }
+  function sheetFor(sheets, i) {
+    if (!sheets) return null;
+    const rule = ruleFor(sheets, i);
+    return rule ? rule.s : sheets.all || null;
+  }
+  // Toutes les versions d'une classe partagent leur première version : c'est là que vit sa feuille.
+  const rootId = (id, info) => (info && info.prev && info.prev.length ? info.prev[info.prev.length - 1] : id);
+
+  const ECDSA = { name: 'ECDSA', namedCurve: 'P-256' };
+  const SIGN = { name: 'ECDSA', hash: 'SHA-256' };
+  async function sealSheets(k, pub, d, root, sheets) {
+    const raw = unb64u(pub);
+    const jwk = { kty: 'EC', crv: 'P-256', x: b64u(raw.slice(1, 33)), y: b64u(raw.slice(33, 65)), d: d, ext: true };
+    const key = await subtle.importKey('jwk', jwk, ECDSA, false, ['sign']);
+    const j = JSON.stringify(sheets);
+    const sig = new Uint8Array(await subtle.sign(SIGN, key, enc.encode('tm-feuille:' + root + ':' + j)));
+    const iv = random(12);
+    const ct = await subtle.encrypt({ name: 'AES-GCM', iv: iv, additionalData: enc.encode('tm-feuille:' + root) },
+      await aes(unb64u(k), ['encrypt']), enc.encode(JSON.stringify({ j: j, s: b64u(sig) })));
+    return b64u(concat(iv, new Uint8Array(ct)));
+  }
+  async function openSheets(k, pub, root, d) {
+    const bytes = unb64u(d);
+    if (bytes.length < 29) throw new Error('court');
+    const pt = await subtle.decrypt({ name: 'AES-GCM', iv: bytes.slice(0, 12), additionalData: enc.encode('tm-feuille:' + root) },
+      await aes(unb64u(k), ['decrypt']), bytes.slice(12));
+    const box = obj(JSON.parse(dec.decode(pt)));
+    if (typeof box.j !== 'string' || typeof box.s !== 'string') throw new Error('feuille');
+    const key = await subtle.importKey('raw', unb64u(pub), ECDSA, false, ['verify']);
+    const ok = await subtle.verify(SIGN, key, unb64u(box.s), enc.encode('tm-feuille:' + root + ':' + box.j));
+    if (!ok) throw new Error('signature');
+    return cleanSheets(JSON.parse(box.j));
+  }
+
   /* ---------- Serveur (API REST de Firestore) ---------- */
   function url(path) {
     return API + path + (API_KEY ? (path.indexOf('?') >= 0 ? '&' : '?') + 'key=' + encodeURIComponent(API_KEY) : '');
@@ -240,6 +345,27 @@
     }).filter((r) => typeof r.t === 'string' && typeof r.d === 'string');
   }
 
+  // Les feuilles du prof : chaque changement ajoute un document; on lit les plus récents.
+  async function putSheetsDoc(root, sid, d) {
+    await call(ROOT + ':commit', {
+      writes: [{
+        update: { name: ROOT + '/classes/' + root + '/s/' + sid, fields: { d: { stringValue: d } } },
+        updateTransforms: [{ fieldPath: 't', setToServerValue: 'REQUEST_TIME' }],
+        currentDocument: { exists: false }
+      }]
+    });
+  }
+  async function querySheets(root) {
+    const q = {
+      from: [{ collectionId: 's' }],
+      orderBy: [{ field: { fieldPath: 't' }, direction: 'DESCENDING' }],
+      limit: 50
+    };
+    const rows = await call(ROOT + '/classes/' + root + ':runQuery', { structuredQuery: q });
+    return (Array.isArray(rows) ? rows : []).filter((r) => r && r.document && r.document.fields)
+      .map((r) => r.document.fields.d && r.document.fields.d.stringValue).filter((d) => typeof d === 'string');
+  }
+
   /* ---------- Ouvrir une classe (élève ou prof) ---------- */
   // Une classe ne change jamais : une fois lue, on la garde (chiffrée) sur l'appareil.
   async function loadClass(id, k) {
@@ -256,6 +382,49 @@
     keep[id] = d;
     store.set(KEY_DOCS, keep);
     return c;
+  }
+
+  /* ---------- La feuille du prof : lire et enregistrer ---------- */
+  // La dernière feuille lue est gardée sur l'appareil : sans Internet, l'élève garde la feuille du prof.
+  function cachedSheets(root) {
+    const all = obj(store.get(KEY_SHEETS, {}));
+    return all[root] ? cleanSheets(all[root]) : null;
+  }
+  function keepSheets(root, sheets) {
+    const all = obj(store.get(KEY_SHEETS, {}));
+    const keep = {};
+    Object.keys(all).filter((x) => x !== root).slice(-7).forEach((x) => { keep[x] = all[x]; });
+    keep[root] = sheets;
+    store.set(KEY_SHEETS, keep);
+  }
+  // La plus récente des feuilles signées par le prof (selon l'heure écrite dedans : une vieille copie remise ne gagne pas).
+  // Retourne { sheets, offline } : sheets vaut null si le prof n'a jamais choisi de feuille.
+  async function loadSheets(id, k, info) {
+    const root = rootId(id, info);
+    let best = cachedSheets(root);
+    let offline = false;
+    try {
+      const docs = await querySheets(root);
+      for (let i = 0; i < docs.length; i++) {
+        try {
+          const s = await openSheets(k, info.p, root, docs[i]);
+          if (!best || s.at > best.at) best = s;
+        } catch (e) { /* document faux ou abîmé : on l'ignore */ }
+      }
+      if (best) keepSheets(root, best);
+    } catch (e) {
+      if (e.offline) offline = true; else if (e.status !== 403 && e.status !== 404) throw e;
+    }
+    return { sheets: best, offline: offline };
+  }
+  async function saveSheets(c, info, sheets) {
+    if (!READY) throw new Error('pas prêt');
+    const root = rootId(c.id, info);
+    const clean = cleanSheets(Object.assign({}, sheets, { at: Date.now() }));
+    const d = await sealSheets(c.k, info.p, c.d, root, clean);
+    await putSheetsDoc(root, b64u(random(15)), d);
+    keepSheets(root, clean);
+    return clean;
   }
 
   /* ---------- Élève : qui je suis dans cette classe ---------- */
@@ -486,6 +655,14 @@
     newer: newer,
     forget: forget,
     createClass: createClass,
-    results: results
+    results: results,
+    STRATS: STRATS,
+    MAX_RULES: MAX_RULES,
+    cleanSheet: cleanSheet,
+    cleanSheets: cleanSheets,
+    ruleFor: ruleFor,
+    sheetFor: sheetFor,
+    loadSheets: loadSheets,
+    saveSheets: saveSheets
   };
 })();

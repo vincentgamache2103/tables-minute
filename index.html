@@ -364,6 +364,11 @@ button { cursor: pointer; touch-action: manipulation; }
   transition: background-color .12s, color .12s, border-color .12s;
 }
 .opt input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+/* « Par table | Par stratégie » (× et ÷ seulement), puis les stratégies. */
+.pick-seg { gap: 6px; }
+.pick-seg .opt span { min-height: 40px; min-width: 0; padding: 0 .95rem; font-size: .95rem; }
+.strats { display: flex; flex-wrap: wrap; gap: 8px; }
+.strats .opt span { min-width: 0; }
 
 .kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .kind { display: grid; }
@@ -1006,6 +1011,7 @@ button { cursor: pointer; touch-action: manipulation; }
           <h2 class="preset-title" id="preset-title">Feuille préparée par ton prof</h2>
           <p class="preset-group" id="preset-group" hidden></p>
           <p class="preset-what" id="preset-what"></p>
+          <p class="preset-what" id="preset-note" hidden>Ton prof a choisi cette feuille pour toi.</p>
           <button type="button" class="btn btn--link" id="preset-leave">Choisir autre chose</button>
         </section>
 
@@ -1039,7 +1045,12 @@ button { cursor: pointer; touch-action: manipulation; }
             <div class="field">
               <p class="field-label" id="lbl-tables">Quelles tables?</p>
               <div class="field-body">
+                <div class="seg pick-seg" id="pick-wrap" role="radiogroup" aria-label="Choisir par table ou par stratégie" hidden>
+                  <label class="choice opt"><input type="radio" name="pick" id="pick-tables" value="tables"><span>Par table</span></label>
+                  <label class="choice opt"><input type="radio" name="pick" id="pick-strats" value="strats"><span>Par stratégie</span></label>
+                </div>
                 <div class="bubbles" id="tables" role="group" aria-labelledby="lbl-tables"></div>
+                <div class="strats" id="strats" role="group" aria-label="Stratégies" hidden></div>
                 <div class="op-tables" id="op-tables" hidden></div>
                 <p class="hint" id="tables-hint">Touche une ou plusieurs tables.</p>
                 <label class="split-toggle" id="split-wrap" hidden><input type="checkbox" id="split"><span>Choisir les tables pour chaque opération</span></label>
@@ -1323,7 +1334,7 @@ button { cursor: pointer; touch-action: manipulation; }
   </div>
 </dialog>
 
-<script src="classe.js?v=1"></script>
+<script src="classe.js?v=2"></script>
 <script>
 (() => {
   'use strict';
@@ -1346,6 +1357,23 @@ button { cursor: pointer; touch-action: manipulation; }
     sub: { sym: '−', word: 'moins', name: 'Soustraction', plural: 'soustractions', event: 'operation-soustraction' }
   };
   const DEFAULTS = { ops: ['mul'], tables: [4], minutes: 4, kind: 'mix', count: 24, name: '' };
+  // Les tables par stratégie (× et ÷ seulement), dans l'ordre où une enseignante les présente, jusqu'à 10.
+  // t : le nombre gardé comme « table » dans la question (4 × 7 : la table de 4).
+  const range10 = (t) => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((k) => ({ t: t, k: k }));
+  const STRATS = [
+    { key: 's1', name: 'Les simples (×1)', short: 'les simples', facts: range10(1) },
+    { key: 's2', name: 'Les doubles (×2)', short: 'les doubles', facts: range10(2) },
+    { key: 'sq', name: 'Les carrés', short: 'les carrés', facts: [2, 3, 4, 5].map((n) => ({ t: n, k: n })) },
+    { key: 's5', name: 'Les ×5', short: 'les ×5', facts: range10(5) },
+    { key: 's10', name: 'Les ×10', short: 'les ×10', facts: range10(10) },
+    { key: 's9', name: 'Les ×9', short: 'les ×9', facts: range10(9) },
+    { key: 'oth', name: 'Les autres', short: 'les autres', facts: [[5, 3], [5, 4], [5, 6], [5, 7], [6, 3], [6, 4], [6, 6], [6, 7], [7, 3], [7, 4], [7, 8], [8, 3], [8, 4], [8, 6], [3, 4]].map((x) => ({ t: x[0], k: x[1] })) }
+  ];
+  const STRAT_KEYS = STRATS.map((x) => x.key);
+  const factKey = (f) => Math.min(f.t, f.k) + 'x' + Math.max(f.t, f.k);
+  const STRAT_BY = {};
+  STRATS.forEach((x) => { STRAT_BY[x.key] = x; });
+  const PICKS = ['tables', 'strats'];
   const NBSP = ' ';
   const EXAMPLE_K = 7;
   const CONFIG = (window.TABLES_MINUTE && typeof window.TABLES_MINUTE === 'object') ? window.TABLES_MINUTE : {};
@@ -1356,7 +1384,8 @@ button { cursor: pointer; touch-action: manipulation; }
   // ?g=Groupe+bleu&o=mul-div&tm=6-7-8-9&td=2-3-4-5&m=2&k=x : nom, opérations, tables (t= pour toutes,
   // tm/td/ta/ts pour chaque opération), minutes, sorte de questions (r, n ou x), nombre de questions (q).
   // Les réglages de l'élève, gardés sur l'appareil, ne changent pas.
-  const GROUP_PARAMS = ['g', 'o', 't', 'tm', 'td', 'ta', 'ts', 'm', 'k', 'q'];
+  // st=s2-sq : des stratégies au lieu des tables (avec × et ÷ seulement).
+  const GROUP_PARAMS = ['g', 'o', 't', 'tm', 'td', 'ta', 'ts', 'm', 'k', 'q', 'st'];
   const OP_LETTER = { mul: 'm', div: 'd', add: 'a', sub: 's' };
   const KIND_CODE = { r: 'product', n: 'missing', x: 'mix' };
   const KIND_NAME = { product: 'Trouver la réponse', missing: 'Trouver le nombre manquant', mix: 'Les deux, mélangées' };
@@ -1373,7 +1402,23 @@ button { cursor: pointer; touch-action: manipulation; }
     const asked = Array.from(new Set(oRaw.split('-')));
     const ops = opsList(asked);
     if (!ops.length || ops.length !== asked.length) return null;
+    const stRaw = p.get('st') || '';
+    const strats = /^[a-z0-9]{2,3}(-[a-z0-9]{2,3}){0,6}$/.test(stRaw) && ops.every(stratOp)
+      ? STRAT_KEYS.filter((x) => stRaw.split('-').indexOf(x) >= 0) : [];
     const shared = parseTables(p.get('t') || '');
+    if (strats.length) {
+      const m0 = Number(p.get('m'));
+      const q0 = Number(p.get('q'));
+      const name0 = (p.get('g') || '').replace(/\s+/g, ' ').trim();
+      const tt = stratTables(strats);
+      return {
+        name: GROUP_NAME_OK.test(name0) ? name0 : '', ops: ops, tables: tt, split: false,
+        opTables: copyOpTables({ tables: tt }), strats: strats, pick: 'strats',
+        minutes: MINUTES.indexOf(m0) >= 0 ? m0 : DEFAULTS.minutes,
+        kind: KIND_CODE[p.get('k')] || DEFAULTS.kind,
+        count: COUNTS.indexOf(q0) >= 0 ? q0 : DEFAULTS.count
+      };
+    }
     const own = {};
     for (let i = 0; i < ops.length; i++) {
       const k = ops[i];
@@ -1394,6 +1439,8 @@ button { cursor: pointer; touch-action: manipulation; }
       tables: tables,
       split: ops.length > 1 && ops.some((k) => own[k] !== shared),
       opTables: opTables,
+      strats: [],
+      pick: 'tables',
       minutes: MINUTES.indexOf(m) >= 0 ? m : DEFAULTS.minutes,
       kind: KIND_CODE[p.get('k')] || DEFAULTS.kind,
       count: COUNTS.indexOf(q) >= 0 ? q : DEFAULTS.count
@@ -1470,7 +1517,7 @@ button { cursor: pointer; touch-action: manipulation; }
   // split : la case « Choisir les tables pour chaque opération ».
   // opTables : les tables de chaque opération quand la case est cochée.
   function cleanSettings(raw) {
-    const s = { ops: DEFAULTS.ops.slice(), tables: DEFAULTS.tables.slice(), split: false, opTables: {}, minutes: DEFAULTS.minutes, kind: DEFAULTS.kind, count: DEFAULTS.count, name: DEFAULTS.name };
+    const s = { ops: DEFAULTS.ops.slice(), tables: DEFAULTS.tables.slice(), split: false, opTables: {}, strats: [], pick: 'tables', minutes: DEFAULTS.minutes, kind: DEFAULTS.kind, count: DEFAULTS.count, name: DEFAULTS.name };
     const r = raw && typeof raw === 'object' ? raw : {};
     const o = opsList(r.ops);
     if (o.length) s.ops = o;
@@ -1481,6 +1528,8 @@ button { cursor: pointer; touch-action: manipulation; }
       const own = cleanTables(r.opTables && r.opTables[k]);
       s.opTables[k] = own.length ? own : s.tables.slice();
     });
+    s.strats = cleanStrats(r.strats);
+    s.pick = PICKS.indexOf(r.pick) >= 0 ? r.pick : 'tables';
     if (MINUTES.indexOf(Number(r.minutes)) >= 0) s.minutes = Number(r.minutes);
     if (KINDS.indexOf(r.kind) >= 0) s.kind = r.kind;
     if (COUNTS.indexOf(Number(r.count)) >= 0) s.count = Number(r.count);
@@ -1488,9 +1537,39 @@ button { cursor: pointer; touch-action: manipulation; }
     return s;
   }
 
+  // Les stratégies : seulement avec × et ÷, choisies avec « Par stratégie ».
+  function stratOp(k) { return k === 'mul' || k === 'div'; }
+  function cleanStrats(list) {
+    return STRAT_KEYS.filter((k) => (Array.isArray(list) ? list : []).indexOf(k) >= 0);
+  }
+  function stratsAllowed(x) {
+    const o = opsList(x && x.ops);
+    return o.length > 0 && o.every(stratOp);
+  }
+  function usesStrats(x) {
+    return !!(x && x.pick === 'strats' && stratsAllowed(x) && cleanStrats(x.strats).length);
+  }
+  // Les faits des stratégies choisies, sans doublon (5 × 5 est un carré et un ×5).
+  function stratFacts(strats) {
+    const seen = {};
+    const out = [];
+    cleanStrats(strats).forEach((key) => STRAT_BY[key].facts.forEach((f) => {
+      const id = factKey(f);
+      if (!seen[id]) { seen[id] = true; out.push({ t: f.t, k: f.k }); }
+    }));
+    return out;
+  }
+  // Les tables touchées par ces stratégies (pour les vieux tableaux du prof et l'exemple des réglages).
+  function stratTables(strats) {
+    return cleanTables(stratFacts(strats).map((f) => f.t));
+  }
+  function stratsWords(strats) {
+    return listFr(cleanStrats(strats).map((k) => STRAT_BY[k].short));
+  }
+
   // Les tables par opération comptent seulement avec la case cochée et au moins deux opérations.
   function isSplit(x) {
-    return !!(x && x.split && x.opTables && opsList(x.ops).length > 1);
+    return !!(x && x.split && !usesStrats(x) && x.opTables && opsList(x.ops).length > 1);
   }
   function tablesFor(x, op) {
     const own = isSplit(x) ? x.opTables[op] : null;
@@ -1505,15 +1584,33 @@ button { cursor: pointer; touch-action: manipulation; }
   const settings = cleanSettings(store.get(KEY_SETTINGS, null));
   // Avec un lien de groupe, la feuille du prof remplace les réglages affichés. Ceux de l'élève sont
   // gardés à part (own) et restent sur l'appareil; seul son prénom peut changer pendant ce temps.
+  // Un préréglage vient d'un lien de groupe (src 'link') ou de la feuille choisie par le prof dans
+  // le tableau de sa classe (src 'class'). Celle-ci est verrouillée et son nom n'est jamais montré.
   let own = null;
+  let preset = null;
   const inGroup = () => own !== null;
-  if (GROUP) {
-    own = JSON.parse(JSON.stringify(settings));
-    Object.assign(settings, {
-      ops: GROUP.ops.slice(), tables: GROUP.tables.slice(), split: GROUP.split, opTables: copyOpTables(GROUP),
-      minutes: GROUP.minutes, kind: GROUP.kind, count: GROUP.count
-    });
+  const fromClass = () => !!(preset && preset.src === 'class');
+  function presetFields(p) {
+    const strat = cleanStrats(p.strats).length > 0 && opsList(p.ops).every(stratOp);
+    return {
+      ops: p.ops.slice(), tables: p.tables.slice(), split: !strat && !!p.split, opTables: copyOpTables(p),
+      strats: strat ? cleanStrats(p.strats) : [], pick: strat ? 'strats' : 'tables',
+      minutes: p.minutes, kind: p.kind, count: p.count
+    };
   }
+  function applyPreset(p, src) {
+    if (!own) own = JSON.parse(JSON.stringify(settings));
+    const f = presetFields(p);
+    Object.assign(settings, f);
+    preset = { src: src, name: src === 'link' ? (p.name || '') : '', key: src + ':' + JSON.stringify(f) };
+  }
+  function dropPreset() {
+    if (!own) return;
+    Object.assign(settings, own, { name: settings.name });
+    own = null;
+    preset = null;
+  }
+  if (GROUP) applyPreset(GROUP, 'link');
   const saveSettings = () => {
     if (own) { own.name = settings.name; store.set(KEY_SETTINGS, own); return; }
     store.set(KEY_SETTINGS, settings);
@@ -1527,14 +1624,16 @@ button { cursor: pointer; touch-action: manipulation; }
     }
     return a;
   }
-  const factKey = (f) => Math.min(f.t, f.k) + 'x' + Math.max(f.t, f.k);
-
   // Chaque fait (4 et 1 à 4 et 10) revient à tour de rôle, jamais deux fois de suite.
   // Avec la table de 11 ou de 12, les faits vont jusqu'à 12 (4 et 12, 12 et 12).
-  function pickFacts(tables, count) {
+  function tableFacts(tables) {
     const pool = [];
     const kMax = tables.some((t) => t > 10) ? 12 : 10;
     tables.forEach((t) => { for (let k = 1; k <= kMax; k++) pool.push({ t: t, k: k }); });
+    return pool;
+  }
+  // Avec des stratégies, le bassin est leur liste de faits.
+  function pickFacts(pool, count) {
     let bag = [];
     while (bag.length < count) bag = bag.concat(shuffle(pool.slice()));
     bag = bag.slice(0, count);
@@ -1581,7 +1680,8 @@ button { cursor: pointer; touch-action: manipulation; }
     const need = {};
     ops.forEach((op) => { need[op] = (need[op] || 0) + 1; });
     const facts = {};
-    Object.keys(need).forEach((op) => { facts[op] = pickFacts(tablesFor(s, op), need[op]); });
+    const strat = usesStrats(s) ? stratFacts(s.strats) : null;
+    Object.keys(need).forEach((op) => { facts[op] = pickFacts(strat || tableFacts(tablesFor(s, op)), need[op]); });
     return ops.map((op, i) => makeQuestion(facts[op].shift(), kinds[i], op));
   }
 
@@ -1621,13 +1721,15 @@ button { cursor: pointer; touch-action: manipulation; }
   }
   // Titre court d'une feuille : « Tables de 6 à 9 · × ÷ », ou « × 6 à 9 · ÷ 2 à 5 » avec des tables par opération.
   function sheetShort(x) {
+    if (usesStrats(x)) return opsSymbols(x.ops) + ' · ' + stratsWords(x.strats);
     if (isSplit(x)) return opsOrDefault(x.ops).map((k) => OPS[k].sym + NBSP + tablesShort(tablesFor(x, k))).join(' · ');
     return tablesLabel(x.tables) + ' · ' + opsSymbols(x.ops);
   }
   // En mots : « multiplications · tables de 6 à 9 », ou « multiplications (tables de 6 à 9) et divisions (table de 2) ».
   function sheetWhat(x, capital) {
     let s;
-    if (isSplit(x)) s = listFr(opsOrDefault(x.ops).map((k) => OPS[k].plural + ' (' + tablesLabel(tablesFor(x, k), true) + ')'));
+    if (usesStrats(x)) s = opsLabel(x.ops) + ' · ' + stratsWords(x.strats);
+    else if (isSplit(x)) s = listFr(opsOrDefault(x.ops).map((k) => OPS[k].plural + ' (' + tablesLabel(tablesFor(x, k), true) + ')'));
     else s = opsLabel(x.ops) + ' · ' + tablesLabel(x.tables, true);
     return capital ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   }
@@ -1982,6 +2084,9 @@ button { cursor: pointer; touch-action: manipulation; }
     $('ops').innerHTML = OP_KEYS.map((k) =>
       '<label class="choice op-chip"><input type="checkbox" id="op-' + k + '" value="' + k + '"><span><b class="sym" aria-hidden="true">' + OPS[k].sym + '</b>' + OPS[k].name + '</span></label>'
     ).join('');
+    $('strats').innerHTML = STRATS.map((x) =>
+      '<label class="choice opt"><input type="checkbox" id="st-' + x.key + '" value="' + x.key + '"><span>' + x.name + '</span></label>'
+    ).join('');
     $('tables').innerHTML = TABLES.map((t) =>
       '<label class="choice bubble"><input type="checkbox" id="tbl-' + t + '" value="' + t + '" aria-label="Table de ' + t + '"><span>' + t + '</span></label>'
     ).join('');
@@ -2007,16 +2112,26 @@ button { cursor: pointer; touch-action: manipulation; }
     TABLES.forEach((t) => { $('tbl-' + t).checked = settings.tables.indexOf(t) >= 0; });
   }
   // La case n'apparaît qu'avec au moins deux opérations. Cochée, chaque opération a sa rangée de tables.
+  // Avec × et ÷ seulement : « Par table » ou « Par stratégie ». En stratégie, pas de tables par opération.
   function updateSplitUI() {
-    const on = isSplit(settings);
-    $('split-wrap').hidden = settings.ops.length < 2;
+    const allowed = stratsAllowed(settings);
+    const strat = allowed && settings.pick === 'strats';
+    const on = !strat && isSplit(settings);
+    $('pick-wrap').hidden = !allowed;
+    $('pick-tables').checked = !strat;
+    $('pick-strats').checked = strat;
+    $('strats').hidden = !strat;
+    STRAT_KEYS.forEach((k) => { $('st-' + k).checked = settings.strats.indexOf(k) >= 0; });
+    $('lbl-tables').textContent = strat ? 'Quelles stratégies?' : 'Quelles tables?';
+    $('split-wrap').hidden = strat || settings.ops.length < 2;
     $('split').checked = settings.split;
-    $('tables').hidden = on;
+    $('tables').hidden = on || strat;
     $('op-tables').hidden = !on;
     OP_KEYS.forEach((k) => { $('row-' + k).hidden = !on || settings.ops.indexOf(k) < 0; });
     const hint = $('tables-hint');
     hint.classList.remove('is-warn');
-    hint.textContent = on ? 'Choisis les tables de chaque opération.' : 'Touche une ou plusieurs tables.';
+    hint.textContent = strat ? 'Touche une ou plusieurs stratégies.'
+      : on ? 'Choisis les tables de chaque opération.' : 'Touche une ou plusieurs tables.';
   }
 
   function syncSetup() {
@@ -2034,36 +2149,43 @@ button { cursor: pointer; touch-action: manipulation; }
   }
 
   // Lien de groupe : les choix de la feuille sont verrouillés et un encadré dit ce que le prof a préparé.
+  // Feuille du prof (classe) : verrouillée, sans « Choisir autre chose », et sans le nom de la feuille.
   function lockSetup() {
     const on = inGroup();
+    const cls = fromClass();
     Array.prototype.forEach.call($('setup').querySelectorAll('.fields input'), (el) => { el.disabled = on; });
     $('preset').hidden = !on;
     $('ops-hint').hidden = on;
     $('tables-hint').hidden = on;
     if (!on) return;
-    $('preset-group').hidden = !GROUP.name;
-    $('preset-group').textContent = GROUP.name;
+    const name = cls ? '' : preset.name;
+    $('preset-group').hidden = !name;
+    $('preset-group').textContent = name;
     $('preset-what').textContent = groupSummary();
+    $('preset-note').hidden = !cls;
+    $('preset-leave').hidden = cls;
   }
   function groupSummary() {
-    return sheetWhat(settings, true) + ' · ' + settings.minutes + ' minutes · ' + KIND_NAME[settings.kind];
+    return sheetWhat(settings, true) + ' · ' + settings.minutes + ' minutes · ' + KIND_NAME[settings.kind] + ' · ' + settings.count + ' questions';
   }
+  let linkLeft = false;
   function leaveGroup() {
-    if (!own) return;
-    Object.assign(settings, own, { name: settings.name });
-    own = null;
+    if (!own || fromClass()) return;
+    dropPreset();
+    linkLeft = true;
     try {
       const u = new URL(window.location.href);
       GROUP_PARAMS.forEach((k) => u.searchParams.delete(k));
       window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash);
     } catch (e) { /* adresse inchangée */ }
+    resolvePreset();
     syncSetup();
     renderHistory();
   }
 
   function refreshSetup() {
     const op = settings.ops[0];
-    const t = tablesFor(settings, op)[0];
+    const t = usesStrats(settings) ? stratFacts(settings.strats)[0].t : tablesFor(settings, op)[0];
     $('eq-product').innerHTML = miniEq(exampleQ(op, t, EXAMPLE_K, 'product'));
     $('eq-missing').innerHTML = miniEq(exampleQ(op, t, EXAMPLE_K, 'missing'));
     $('eq-mix').innerHTML = miniEq(exampleQ(op, t, EXAMPLE_K, 'product')) + miniEq(exampleQ(op, t, EXAMPLE_K, 'missing2'));
@@ -2106,6 +2228,7 @@ button { cursor: pointer; touch-action: manipulation; }
       score: g.score, total: g.total, usedS: Math.round(g.usedMs / 1000), reason: run.reason
     };
     if (isSplit(run)) { entry.split = true; entry.opTables = run.opTables; }
+    if (usesStrats(run)) { entry.pick = 'strats'; entry.strats = run.strats; }
     list.unshift(entry);
     store.set(KEY_HISTORY, list.slice(0, 30));
   }
@@ -2121,14 +2244,16 @@ button { cursor: pointer; touch-action: manipulation; }
       fresh: true,
       practice: !!practice,
       ops: settings.ops.slice(),
-      tables: settings.tables.slice(),
+      tables: usesStrats(settings) ? stratTables(settings.strats) : settings.tables.slice(),
+      strats: usesStrats(settings) ? settings.strats.slice() : [],
+      pick: usesStrats(settings) ? 'strats' : 'tables',
       split: isSplit(settings),
       opTables: copyOpTables(settings),
       minutes: settings.minutes,
       kind: settings.kind,
       name: settings.name,
       group: inGroup(),
-      groupName: inGroup() ? GROUP.name : '',
+      groupName: inGroup() && !fromClass() ? preset.name : '',
       klass: inClass() ? { id: klass.link.id, i: klass.me, p: klass.info.p } : null,
       sent: '',
       durationMs: practice ? 0 : settings.minutes * 60000,
@@ -2142,7 +2267,9 @@ button { cursor: pointer; touch-action: manipulation; }
       track('feuille-commencee', 'Feuille commencée');
       settings.ops.forEach((k) => track(OPS[k].event, OPS[k].name));
       if (isSplit(settings)) track('tables-par-operation', 'Feuille avec des tables par opération');
-      if (inGroup()) track('feuille-groupe', 'Feuille d’un lien de groupe');
+      if (usesStrats(settings)) settings.strats.forEach((k) => track('strategie-' + k, 'Stratégie : ' + STRAT_BY[k].name));
+      if (fromClass()) track('classe-feuille-prof', 'Classe : feuille choisie par le prof');
+      else if (inGroup()) track('feuille-groupe', 'Feuille d’un lien de groupe');
     }
     renderTest();
     show('test');
@@ -2551,7 +2678,7 @@ button { cursor: pointer; touch-action: manipulation; }
   // Lien de la classe : ./#c=<classe>.<clé>. Le chiffrement et l'envoi sont dans classe.js.
   const TM = window.TMClasse || null;
   const KLASS_HASH = /^#c=/.test(window.location.hash || '');
-  const klass = { link: null, info: null, me: -1, ask: false, state: 'off' };
+  const klass = { link: null, info: null, me: -1, ask: false, state: 'off', sheets: null, sheetsOnce: false, sheetsLoading: 0 };
   const KLASS_FRESH = 60 * 60000;
   const inClass = () => klass.state === 'ready' && klass.me >= 0 && !klass.ask;
   function klassSay(text, err) {
@@ -2610,6 +2737,8 @@ button { cursor: pointer; touch-action: manipulation; }
     TM.setMyIndex(klass.link.id, i);
     klassName();
     renderKlass();
+    refreshPreset();
+    loadKlassSheets();
     track('classe-prenom', 'Classe : prénom choisi');
     $('klass-change').focus();
   }
@@ -2619,6 +2748,8 @@ button { cursor: pointer; touch-action: manipulation; }
     TM.setMyIndex(klass.link.id, klass.me);
     klassName();
     renderKlass();
+    refreshPreset();
+    loadKlassSheets();
     $('klass-change').focus();
   }
   function unpickKlass() {
@@ -2629,6 +2760,7 @@ button { cursor: pointer; touch-action: manipulation; }
     settings.name = '';
     $('name').value = '';
     saveSettings();
+    refreshPreset();
     klassName();
     renderKlass();
     const first = $('klass-names').querySelector('button');
@@ -2672,6 +2804,7 @@ button { cursor: pointer; touch-action: manipulation; }
       TM.rememberStudentClass(link, info.n);
       klassName();
       renderKlass();
+      loadKlassSheets();
     }, (e) => {
       klass.state = 'error';
       if (e && e.offline) window.addEventListener('online', () => { if (klass.state === 'error') loadKlass(); }, { once: true });
@@ -2680,11 +2813,56 @@ button { cursor: pointer; touch-action: manipulation; }
           : 'Ce lien de classe ne fonctionne pas. Demande le bon lien à ton prof.'), true);
     });
   }
+  /* ---------- La feuille choisie par le prof ---------- */
+  // Priorité : la feuille de l'élève (sa règle), puis un lien de groupe, puis la feuille de toute la classe.
+  function sheetToPreset(sh) {
+    const strat = sh.st && sh.st.length > 0;
+    const tables = strat ? stratTables(sh.st) : cleanTables(sh.t);
+    return {
+      name: '', ops: opsList(sh.o), tables: tables, split: false, opTables: copyOpTables({ tables: tables }),
+      strats: strat ? sh.st.slice() : [], pick: strat ? 'strats' : 'tables',
+      minutes: sh.m, kind: sh.k, count: sh.q
+    };
+  }
+  function resolvePreset() {
+    const sheets = inClass() && TM ? klass.sheets : null;
+    const rule = sheets && TM.ruleFor ? TM.ruleFor(sheets, klass.me) : null;
+    let want = null;
+    let src = '';
+    if (rule) { want = sheetToPreset(rule.s); src = 'class'; }
+    else if (GROUP && !linkLeft) { want = GROUP; src = 'link'; }
+    else if (sheets && sheets.all) { want = sheetToPreset(sheets.all); src = 'class'; }
+    if (want && (!want.ops.length || !want.tables.length)) want = null;
+    const key = want ? src + ':' + JSON.stringify(presetFields(want)) : '';
+    if ((preset ? preset.key : '') === key) return false;
+    dropPreset();
+    if (want) applyPreset(want, src);
+    return true;
+  }
+  function refreshPreset() {
+    if (resolvePreset() && started) { syncSetup(); klassName(); }
+  }
+  // Relue à l'ouverture de la classe et chaque fois que l'élève touche son prénom.
+  function loadKlassSheets() {
+    if (!TM || !TM.loadSheets || klass.state !== 'ready' || !klass.link) return;
+    const token = ++klass.sheetsLoading;
+    TM.loadSheets(klass.link.id, klass.link.k, klass.info).then((r) => {
+      if (token !== klass.sheetsLoading) return;
+      klass.sheets = r && r.sheets ? r.sheets : null;
+    }, () => { /* on garde la dernière feuille connue */ }).then(() => {
+      if (token !== klass.sheetsLoading) return;
+      klass.sheetsOnce = true;
+      klass.sheetsLoading = 0;
+      refreshPreset();
+    });
+  }
+
   // Avec une classe, l'élève touche d'abord son prénom.
   function klassReady() {
     if (klass.state === 'loading') { klassSay('Un instant : ta classe s’ouvre…'); klassFlash(); return false; }
     if (klass.state === 'ready' && klass.me < 0) { klassSay('Touche d’abord ton prénom.', true); klassFlash(); return false; }
     if (klass.state === 'ready' && klass.ask) { klassSay('Touche « Oui, c’est moi », ou « Non » pour choisir ton prénom.', true); klassFlash(); return false; }
+    if (klass.state === 'ready' && klass.sheetsLoading && !klass.sheetsOnce) { klassSay('Un instant : ta feuille arrive…'); klassFlash(); return false; }
     return true;
   }
   // Ce qui part au prof : la place de l'élève dans la liste (jamais son prénom), la feuille et chaque réponse.
@@ -2699,6 +2877,7 @@ button { cursor: pointer; touch-action: manipulation; }
         (it.status === 'right' ? 'r' : (it.status === 'wrong' ? 'w' : 'b')))
     };
     if (run.split) p.ot = run.opTables;
+    if (usesStrats(run)) p.st = run.strats;
     if (run.groupName) p.g = run.groupName;
     return p;
   }
@@ -2831,7 +3010,38 @@ button { cursor: pointer; touch-action: manipulation; }
         syncSharedTables();
       }
       settings.ops = chosen;
+      // Avec + ou −, les stratégies ne s'appliquent plus : on revient aux tables.
+      if (!stratsAllowed(settings)) settings.pick = 'tables';
       updateSplitUI();
+      saveSettings();
+      refreshSetup();
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="pick"]'), (el) => {
+      el.addEventListener('change', () => {
+        if (!el.checked) return;
+        settings.pick = el.value === 'strats' ? 'strats' : 'tables';
+        if (settings.pick === 'strats' && !settings.strats.length) settings.strats = [STRAT_KEYS[0]];
+        updateSplitUI();
+        saveSettings();
+        refreshSetup();
+      });
+    });
+
+    $('strats').addEventListener('change', (e) => {
+      const input = e.target;
+      if (!input || input.type !== 'checkbox') return;
+      const chosen = STRAT_KEYS.filter((k) => $('st-' + k).checked);
+      const hint = $('tables-hint');
+      if (!chosen.length) {
+        input.checked = true;
+        hint.textContent = 'Garde au moins une stratégie.';
+        hint.classList.add('is-warn');
+        return;
+      }
+      hint.textContent = 'Touche une ou plusieurs stratégies.';
+      hint.classList.remove('is-warn');
+      settings.strats = chosen;
       saveSettings();
       refreshSetup();
     });
@@ -3040,7 +3250,8 @@ button { cursor: pointer; touch-action: manipulation; }
       screen: S.screen,
       run: {
         questions: r.questions, answers: r.answers, current: r.current, practice: r.practice,
-        ops: r.ops, tables: r.tables, split: r.split, opTables: r.opTables, minutes: r.minutes, kind: r.kind, name: r.name,
+        ops: r.ops, tables: r.tables, split: r.split, opTables: r.opTables, strats: r.strats, pick: r.pick,
+        minutes: r.minutes, kind: r.kind, name: r.name,
         durationMs: r.durationMs, startedAt: r.startedAt, endsAt: r.endsAt, finishedAt: r.finishedAt,
         reason: r.reason, phase: r.phase
       }
