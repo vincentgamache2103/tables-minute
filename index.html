@@ -1329,7 +1329,7 @@ button { cursor: pointer; touch-action: manipulation; }
   </div>
 </dialog>
 
-<script src="classe.js?v=1"></script>
+<script src="classe.js?v=3"></script>
 <script>
 (() => {
   'use strict';
@@ -2756,13 +2756,14 @@ button { cursor: pointer; touch-action: manipulation; }
     el.className = 'sent' + (st === 'ok' ? '' : (st === 'err' ? ' is-err' : ' is-wait'));
     el.textContent = st === 'ok' ? '✓ Envoyé à ton prof'
       : st === 'later' ? 'Pas de connexion : ton résultat est gardé. Il partira dès que Tables minute sera ouvert avec Internet.'
+        : st === 'busy' ? 'Ton résultat est gardé sur cet appareil. Il partira tout seul plus tard, la prochaine fois que Tables minute sera ouvert.'
         : st === 'err' ? 'Ton résultat n’a pas pu partir. Montre ta feuille à ton prof.'
           : 'Envoi à ton prof…';
   }
   function sendToClass(run) {
     run.sent = 'wait';
     TM.sendResult({ id: run.klass.id, p: run.klass.p }, klassPayload(run)).then((r) => {
-      run.sent = r.sent ? 'ok' : (r.lost ? 'err' : 'later');
+      run.sent = r.sent ? 'ok' : (r.lost ? 'err' : (r.why === 'busy' ? 'busy' : 'later'));
       // Une feuille faite compte comme une confirmation du prénom.
       TM.setMyIndex(run.klass.id, run.klass.i);
       if (r.sent) track('classe-resultat', 'Classe : résultat envoyé');

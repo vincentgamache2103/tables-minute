@@ -297,6 +297,7 @@
   }
   async function flushNow() {
     let sent = 0;
+    let why = '';
     const items = queue();
     const left = [];
     for (let i = 0; i < items.length; i++) {
@@ -309,6 +310,7 @@
         if (e.exists || (!e.offline && await resultThere(it.c, it.r))) { sent += 1; continue; }
         // Hors ligne, quota du jour atteint ou serveur occupé : on réessaiera sans compter d'échec.
         const passing = e.offline || e.status === 429 || e.status >= 500;
+        if (passing) why = e.offline ? 'offline' : (why || 'busy');
         it.tries = (it.tries || 0) + (passing ? 0 : 1);
         if (it.tries < 5 && Date.now() - (it.at || 0) < 30 * 864e5) left.push(it);
       }
@@ -317,7 +319,7 @@
     const done = items.map((x) => x.r);
     const keep = left.concat(queue().filter((x) => done.indexOf(x.r) < 0)).slice(-60);
     if (keep.length) store.set(KEY_QUEUE, keep); else store.del(KEY_QUEUE);
-    return { sent: sent, left: keep.length };
+    return { sent: sent, left: keep.length, why: why };
   }
   let flushing = null;
   function flush() {
@@ -342,7 +344,8 @@
     let r = await flush();
     // Une file déjà en route ne contenait pas ce résultat : on repart une fois.
     if (queued(rid)) r = await flush();
-    return { sent: !queued(rid), queued: r.left };
+    // why : 'offline' (pas d'Internet) ou 'busy' (serveur occupé ou limite du jour atteinte).
+    return { sent: !queued(rid), queued: r.left, why: r.why };
   }
   if (READY) {
     window.addEventListener('online', () => { flush(); });
