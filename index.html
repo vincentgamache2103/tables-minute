@@ -1849,6 +1849,7 @@ button { cursor: pointer; touch-action: manipulation; }
   // La boîte à idées est en bas de l'écran affiché : on y va et on place le curseur.
   function goIdeas() {
     const box = $('ideas');
+    if (box.hidden) return;
     if (!box || box.hidden) return;
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setTimeout(() => { try { $('idea-msg').focus({ preventScroll: true }); } catch (e) { /* rien */ } }, 350);
@@ -2689,6 +2690,9 @@ button { cursor: pointer; touch-action: manipulation; }
     }
     $('klass').hidden = false;
     Array.prototype.forEach.call(document.querySelectorAll('.profs, #share'), (el) => { el.hidden = true; });
+    // Lien de la classe : pas de boîte à idées. Des élèves y écrivaient leur courriel ou y collaient leur résultat (#18).
+    $('ideas').hidden = true;
+    $('menu-idea-li').hidden = true;
     const link = TM && TM.ready ? TM.readHash(window.location.hash) : null;
     if (!link || link.kind !== 'student') {
       klass.state = 'error';
