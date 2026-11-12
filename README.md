@@ -54,7 +54,7 @@ difficiles et la progression de chaque élève.
 Événements comptés : classe-creee, classe-prenom, classe-resultat, classe-tableau (à chaque lecture du
 tableau), classe-retour (un prof qui revient un autre jour), classe-active-10 (une classe atteint 10 élèves
 actifs), classe-lien-eleves, classe-lien-prof, classe-lien-prof-courriel, classe-csv, classe-liste-modifiee,
-classe-feuille-ouverte, classe-feuille-enregistree, classe-feuille-regles (des feuilles pour certains élèves),
+classe-filtre-operation (le prof filtre les résultats par opération), classe-feuille-ouverte, classe-feuille-enregistree, classe-feuille-regles (des feuilles pour certains élèves),
 classe-feuille-prof (un élève commence la feuille du prof), strategie-<clé>.
 Trois événements de récurrence partent du navigateur du prof, une seule fois par classe et par appareil, à
 partir des résultats qu'il vient de lire (aucun code de classe ni prénom) : classe-premiere-feuille (un

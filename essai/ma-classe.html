@@ -197,6 +197,7 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
 .tile { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--key); border: 1.5px solid var(--key-edge); }
 .tile b { font-family: var(--font-display); font-weight: 900; font-size: 1.7rem; line-height: 1.1; }
 .tile span { font-size: .9rem; color: var(--ink-soft); }
+.tile small { font-size: .85rem; color: var(--ink-soft); font-weight: 700; }
 .insights { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
 .panel { display: grid; gap: 10px; align-content: start; padding: 16px; border-radius: 14px; background: var(--key); border: 1.5px solid var(--key-edge); min-width: 0; }
 .bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -551,6 +552,7 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
         <p class="updated" id="updated" role="status" aria-live="polite"></p>
         <p class="empty" id="res-empty" hidden></p>
         <div class="stack" id="res-body" hidden>
+          <div class="periods" id="ops-filter" role="group" aria-label="Opération" hidden></div>
           <div class="tiles" id="tiles"></div>
           <div class="insights">
             <section class="panel" aria-labelledby="tables-title">
@@ -797,7 +799,7 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
   const counts = (r, it) => it.st !== 'b' || (r.done && r.f >= r.q / 2);
 
   /* ---------- État de la page ---------- */
-  const S = { cls: null, info: null, list: [], days: 30, open: -1, loading: false, fresh: false, loadedAt: 0, failed: false, sheets: null, sheetsReady: false };
+  const S = { cls: null, info: null, list: [], days: 30, open: -1, loading: false, fresh: false, loadedAt: 0, failed: false, op: '', sheets: null, sheetsReady: false };
   const VIEWS = ['v-off', 'v-missing', 'v-new', 'v-class', 'v-edit', 'v-sheets'];
   function view(name) {
     VIEWS.forEach((v) => { $(v).hidden = v !== name; });
@@ -1084,6 +1086,41 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     const since = S.days ? Date.now() - S.days * 864e5 : 0;
     return S.list.filter((r) => r.at >= since).sort((a, b) => a.at - b.at);
   }
+  /* ---------- Par opération (#2) ---------- */
+  // Une feuille vue pour une seule opération : seulement ses questions de cette opération, et son score sur celles-ci.
+  // Les feuilles sans question de cette opération disparaissent de la vue.
+  const OP_NAME = { m: 'Multiplication', d: 'Division', a: 'Addition', s: 'Soustraction' };
+  function onlyOp(r, op) {
+    const x = r.x.filter((it) => it.op === op);
+    if (!x.length) return null;
+    return Object.assign({}, r, { x: x, q: x.length, s: x.filter((it) => it.st === 'r').length, f: x.filter((it) => it.st !== 'b').length, o: [OPS[op].k] });
+  }
+  function opsIn(list) {
+    const seen = {};
+    list.forEach((r) => r.x.forEach((it) => { seen[it.op] = true; }));
+    return OP_ORDER.filter((o) => seen[o]);
+  }
+  // Réussite par opération d'une liste de feuilles : [{ op, ok, tot }].
+  function opStats(list) {
+    const st = {};
+    list.forEach((r) => r.x.forEach((it) => {
+      if (!counts(r, it)) return;
+      const o = st[it.op] || (st[it.op] = { op: it.op, ok: 0, tot: 0 });
+      o.tot += 1;
+      if (it.st === 'r') o.ok += 1;
+    }));
+    return OP_ORDER.filter((o) => st[o]).map((o) => st[o]);
+  }
+  const opLine = (stats) => stats.map((o) => OPS[o.op].sym + NBSP + pct(o.ok, o.tot) + NBSP + '%').join(' · ');
+  function renderOpsFilter(all) {
+    const box = $('ops-filter');
+    const ops = opsIn(all);
+    if (S.op && ops.indexOf(S.op) < 0) S.op = '';
+    box.hidden = ops.length < 2;
+    if (box.hidden) { box.textContent = ''; return; }
+    box.innerHTML = '<button type="button" class="chip" data-op="" aria-pressed="' + (S.op === '') + '">Toutes les opérations</button>' +
+      ops.map((o) => '<button type="button" class="chip" data-op="' + o + '" aria-pressed="' + (S.op === o) + '">' + OPS[o].sym + NBSP + OP_NAME[o] + '</button>').join('');
+  }
   function analyze(list) {
     const roster = S.info.r;
     const kids = roster.map((n, i) => ({ i: i, n: n, sheets: [] }));
@@ -1127,7 +1164,9 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     return { kids: kids, tables: tables, facts: facts, kinds: kinds };
   }
   function renderResults() {
-    const list = inPeriod();
+    const period = inPeriod();
+    renderOpsFilter(period);
+    const list = S.op ? period.map((r) => onlyOp(r, S.op)).filter(Boolean) : period;
     const all = S.list.length;
     const body = $('res-body');
     const empty = $('res-empty');
@@ -1149,7 +1188,8 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
     $('tiles').innerHTML =
       '<div class="tile"><b>' + list.length + '</b><span>' + (list.length > 1 ? 'feuilles terminées' : 'feuille terminée') + '</span></div>' +
       '<div class="tile"><b>' + active + '/' + named + '</b><span>élèves ont pratiqué</span></div>' +
-      '<div class="tile"><b>' + pct(right, total) + NBSP + '%</b><span>de bonnes réponses</span></div>';
+      '<div class="tile"><b>' + pct(right, total) + NBSP + '%</b><span>de bonnes réponses' + (S.op ? ' en ' + OP_NAME[S.op].toLowerCase() : '') + '</span>' +
+        (!S.op && opsIn(list).length > 1 ? '<small>' + esc(opLine(opStats(list))) + '</small>' : '') + '</div>';
 
     // Tables : les plus difficiles d'abord (au moins 5 questions).
     const T = Object.keys(A.tables).map((k) => A.tables[k]).filter((x) => x.tot >= 5)
@@ -1214,20 +1254,26 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
       ? '<ul class="facts">' + k.facts.map((f) => '<li>' + esc(f.text) + (f.n > 1 ? ' <small>×' + f.n + '</small>' : '') + '</li>').join('') + '</ul>'
       : '<p class="hint">Aucune erreur pendant cette période.</p>';
     const mine = sheetLine(k.i);
-    return '<div class="kid-detail">' + (mine ? '<p class="hint">' + esc(mine) + '</p>' : '') + '<p class="eyebrow">À revoir</p>' + facts + '<p class="eyebrow">Ses feuilles</p><ul class="sheets">' + rows + '</ul></div>';
+    const byOp = opStats(k.sheets);
+    const opsP = !S.op && byOp.length > 1 ? '<p class="hint">Réussite par opération : ' + esc(opLine(byOp)) + '</p>' : '';
+    return '<div class="kid-detail">' + opsP + '' + (mine ? '<p class="hint">' + esc(mine) + '</p>' : '') + '<p class="eyebrow">À revoir</p>' + facts + '<p class="eyebrow">Ses feuilles</p><ul class="sheets">' + rows + '</ul></div>';
   }
 
   function csv() {
     const list = inPeriod();
     const roster = S.info.r;
     const cell = (v) => { const s = String(v == null ? '' : v); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    const head = ['Prénom', 'Date', 'Heure', 'Feuille', 'Groupe', 'Bonnes réponses', 'Questions', 'Pourcentage', 'Temps (s)', 'Temps écoulé', 'À revoir'];
+    const head = ['Prénom', 'Date', 'Heure', 'Feuille', 'Groupe', 'Bonnes réponses', 'Questions', 'Pourcentage', 'Temps (s)', 'Temps écoulé', 'À revoir']
+      .concat(OP_ORDER.map((o) => 'Réussite ' + OPS[o].sym + ' (%)'));
     const lines = [head.join(';')];
     list.forEach((r) => {
       const d = new Date(r.at);
       const miss = r.x.filter((it) => counts(r, it) && it.st !== 'r').map((it) => factText(it.op, it.t, it.k));
       lines.push([roster[r.i] || ('Élève ' + (r.i + 1)), fmtIsoDay(d), fmtTime(d), sheetWhat(r), r.g, r.s, r.q, pct(r.s, r.q), r.done ? r.u : '', r.done ? 'non' : 'oui',
-        Array.from(new Set(miss)).join(', ')].map(cell).join(';'));
+        Array.from(new Set(miss)).join(', ')].concat(OP_ORDER.map((o) => {
+        const st = opStats([r]).filter((x) => x.op === o)[0];
+        return st ? pct(st.ok, st.tot) : '';
+      })).map(cell).join(';'));
     });
     const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
@@ -1387,6 +1433,16 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
       renderResults();
     });
     $('refresh').addEventListener('click', loadResults);
+    $('ops-filter').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-op]');
+      if (!b) return;
+      S.op = b.dataset.op;
+      S.open = -1;
+      renderResults();
+      track('classe-filtre-operation', 'Classe : résultats par opération');
+      const again = $('ops-filter').querySelector('[data-op="' + S.op + '"]');
+      if (again) again.focus();
+    });
     $('kids').addEventListener('click', (e) => {
       const b = e.target.closest('[data-kid]');
       if (!b) return;
