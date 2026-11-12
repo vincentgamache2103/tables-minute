@@ -39,7 +39,10 @@ difficiles et la progression de chaque élève.
   `firestore.rules` (une classe ne change jamais, un résultat peut seulement être ajouté)
 - Lien des élèves : `./#c=<classe>.<clé>`; lien du prof : `./ma-classe.html#p=<classe>.<clé>.<clé privée>`
 - Hors ligne : le résultat chiffré attend sur l'appareil et part au retour de la connexion
-- La feuille de vos élèves (`feuilles.js`, carte du tableau du prof) : le prof choisit la feuille de toute la classe, et des
+- **En essai, seulement à `essai/` (pas encore pour tous)** : https://vincentgamache2103.github.io/tables-minute/essai/ma-classe.html.
+  Le dossier `essai/` a ses propres `index.html`, `ma-classe.html`, `classe.js` et `feuilles.js` (non indexés par Google);
+  le reste vient de la racine. Pour la mettre pour tous : recopier ces quatre fichiers à la racine (liens `../` à retirer).
+- La feuille de vos élèves (`essai/feuilles.js`, carte du tableau du prof) : le prof choisit la feuille de toute la classe, et des
   feuilles pour certains élèves (12 au plus), qu'il remplit en touchant ou en glissant leurs prénoms. Chaque enregistrement
   ajoute un document `classes/<première version>/s/<id>`, chiffré avec la clé de la classe et signé par le prof (ECDSA P-256,
   la même clé que pour les résultats); l'élève prend le plus récent qui est bien signé. Le lien des élèves ne change pas.
