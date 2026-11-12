@@ -782,6 +782,9 @@ button { cursor: pointer; touch-action: manipulation; }
 .btn--done { background: var(--key); color: var(--ink); border-color: var(--key-edge); border-bottom-width: 4px; white-space: nowrap; }
 .btn--done.is-ready { background: var(--pencil); color: var(--on-pencil); border-color: var(--pencil-deep); animation: nudge 1.4s ease-in-out infinite; }
 .btn--done.is-confirm { background: var(--red); color: var(--on-red); border-color: var(--red); animation: none; }
+.bar-end { display: flex; align-items: center; gap: 4px; }
+.btn--quit { white-space: nowrap; }
+.btn--quit.is-confirm { color: var(--red); }
 @keyframes nudge { 0%, 100% { transform: none; } 50% { transform: translateY(-3px); } }
 
 .work { display: grid; grid-template-columns: minmax(0, 1fr) clamp(230px, 27vw, 330px); gap: 16px; min-height: 0; }
@@ -1198,7 +1201,10 @@ button { cursor: pointer; touch-action: manipulation; }
         </div>
         <div class="time" id="time" role="timer"></div>
       </div>
-      <button type="button" class="btn btn--done" id="done">J’ai fini</button>
+      <div class="bar-end">
+        <button type="button" class="btn btn--link btn--quit" id="quit">Arrêter</button>
+        <button type="button" class="btn btn--done" id="done">J’ai fini</button>
+      </div>
     </header>
 
     <div class="work">
@@ -2294,6 +2300,7 @@ button { cursor: pointer; touch-action: manipulation; }
     $('overlay').hidden = true;
     $('sheet-paper').classList.remove('is-veiled');
     resetDone();
+    resetQuit();
     updateProgress();
     setClock(run.practice ? 0 : run.durationMs, 1, run.practice);
   }
@@ -2499,6 +2506,38 @@ button { cursor: pointer; touch-action: manipulation; }
     $('done').classList.toggle('is-ready', filled === n);
   }
 
+  // « Arrêter » : on quitte la feuille sans résultat (rien n'est gardé ni envoyé au prof).
+  // Avant, la seule sortie était « J'ai fini », qui comptait la feuille (par exemple 0/24).
+  let quitTimer = 0;
+  function resetQuit() {
+    clearTimeout(quitTimer);
+    const b = $('quit');
+    b.classList.remove('is-confirm');
+    b.textContent = 'Arrêter';
+  }
+  function quitRun() {
+    const run = S.run;
+    if (!run || (run.phase !== 'live' && run.phase !== 'countdown')) return;
+    const b = $('quit');
+    if (run.answers.some((v) => v !== '') && !b.classList.contains('is-confirm')) {
+      b.classList.add('is-confirm');
+      b.textContent = 'Touche encore pour arrêter';
+      clearTimeout(quitTimer);
+      quitTimer = setTimeout(resetQuit, 3000);
+      return;
+    }
+    cancelAnimationFrame(rafId);
+    clearTimeout(cdTimer);
+    run.phase = 'stopped';
+    resetQuit();
+    resetDone();
+    $('overlay').hidden = true;
+    $('sheet-paper').classList.remove('is-veiled');
+    if (!run.practice) track('feuille-arretee', 'Feuille arrêtée, sans résultat');
+    show('setup');
+    renderHistory();
+  }
+
   function resetDone() {
     clearTimeout(confirmTimer);
     const b = $('done');
@@ -2654,8 +2693,10 @@ button { cursor: pointer; touch-action: manipulation; }
 
     const missed = g.items.filter((x) => x.status !== 'right');
     const retry = $('retry');
-    retry.hidden = !missed.length;
-    retry.textContent = missed.length === 1 ? 'Reprendre la question manquée' : 'Reprendre les ' + missed.length + ' questions manquées';
+    // Une pratique réussie : on peut la refaire, mélangée (demande d'un élève).
+    retry.hidden = !missed.length && !run.practice;
+    retry.textContent = !missed.length ? 'Refaire ces questions, mélangées'
+      : missed.length === 1 ? 'Reprendre la question manquée' : 'Reprendre les ' + missed.length + ' questions manquées';
 
     const facts = reviewFacts(run);
     $('review').innerHTML = facts.map((f) => '<li>' + f.a + ' ' + OPS[f.op].sym + ' ' + f.b + ' = ' + f.c + '</li>').join('');
@@ -3118,7 +3159,9 @@ button { cursor: pointer; touch-action: manipulation; }
     $('retry').addEventListener('click', () => {
       const run = S.run;
       if (!run || !run.graded) return;
-      const qs = run.graded.items.filter((x) => x.status !== 'right').map((x) => Object.assign({}, x.q));
+      let qs = run.graded.items.filter((x) => x.status !== 'right').map((x) => Object.assign({}, x.q));
+      // Tout était bon dans une pratique : les mêmes calculs, écrits autrement et dans un autre ordre.
+      if (!qs.length && run.practice) qs = run.graded.items.map((x) => makeQuestion({ t: x.q.t, k: x.q.k }, x.q.hide === 'c' ? 'product' : 'missing', x.q.op));
       if (!qs.length) return;
       primeAudio();
       startRun(shuffle(qs), true);
@@ -3127,6 +3170,7 @@ button { cursor: pointer; touch-action: manipulation; }
     $('copy-result').addEventListener('click', copyResult);
     $('nudge-go').addEventListener('click', tryProduct);
     $('preset-leave').addEventListener('click', leaveGroup);
+    $('quit').addEventListener('click', quitRun);
     $('klass-names').addEventListener('click', (e) => {
       const b = e.target.closest('[data-i]');
       if (b) pickKlass(Number(b.getAttribute('data-i')));

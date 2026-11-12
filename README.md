@@ -68,7 +68,7 @@ Chaque semaine : (1) profs qui créent = `classe-creee`; (2) activation = `class
 2 semaines** = `classe-2-semaines`, l'indicateur à surveiller; (6) `classe-active-10`.
 
 Les autres événements, par rôle (ne rien renommer : l'historique repartirait à zéro) :
-- familles : nouvel-appareil, visite-de-retour, feuille-commencee, feuille-terminee, resultat-copie
+- familles : nouvel-appareil, visite-de-retour, feuille-commencee, feuille-terminee, feuille-arretee (« Arrêter » pendant une feuille, sans résultat), resultat-copie
   (le bouton « Copier mon résultat » du primaire), operation-* (filtre « operation- »);
 - partage : partage-* (filtre « partage- »);
 - profs, différenciation : tables-par-operation, feuille-groupe, lien-groupe-copie, trousse-creee,
