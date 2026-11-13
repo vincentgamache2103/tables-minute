@@ -1,0 +1,11 @@
+{
+  "name": "tables-minute",
+  "private": true,
+  "description": "Tables minute : site statique (GitHub Pages). Ce fichier sert seulement aux tests.",
+  "scripts": {
+    "test": "node tests/run.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

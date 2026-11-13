@@ -20,6 +20,13 @@ Badge « 60+ classes créées » (`#count-badge` dans `classe.html`) : chiffres 
 jour chaque semaine. Source : GoatCounter, événements `classe-creee` (classes) et `classe-resultat` (feuilles
 d'élèves, une par feuille, pas une par classe) depuis le 5 novembre, arrondis vers le bas.
 
+## Tests
+
+`npm install`, puis `npm test` (ou `node tests/run.js`). Chaque test sert le site en local avec un faux Firestore en
+mémoire (`tests/outils.js`, mêmes règles que `firestore.rules`) : rien ne part sur Internet. GitHub les relance à
+chaque envoi sur `main` (`.github/workflows/tests.yml`) et envoie un courriel s'ils échouent. Un correctif ou une
+nouveauté s'accompagne de son test dans `tests/`.
+
 ## Pages pour Google
 
 - `division.html` et `addition-soustraction.html` : « tables minute de division », « d'addition et de

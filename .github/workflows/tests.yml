@@ -1,0 +1,22 @@
+# Les tests de Tables minute roulent à chaque envoi sur main et à chaque demande de fusion.
+# Un échec envoie un courriel au propriétaire du dépôt (réglage par défaut de GitHub).
+name: Tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
