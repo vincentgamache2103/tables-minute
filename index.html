@@ -779,6 +779,9 @@ button { cursor: pointer; touch-action: manipulation; }
 .bar-end { display: flex; align-items: center; gap: 4px; }
 .btn--quit { white-space: nowrap; }
 .btn--quit.is-confirm { color: var(--red); }
+#setup.is-klass .history { display: none; }
+#setup.is-klass-pick .paper, #setup.is-klass-pick .preset { display: none; }
+#setup.is-klass-locked .fields { display: none; }
 @keyframes nudge { 0%, 100% { transform: none; } 50% { transform: translateY(-3px); } }
 
 .work { display: grid; grid-template-columns: minmax(0, 1fr) clamp(230px, 27vw, 330px); gap: 16px; min-height: 0; }
@@ -2042,7 +2045,19 @@ button { cursor: pointer; touch-action: manipulation; }
   }
 
   // Lien de groupe : les choix de la feuille sont verrouillés et un encadré dit ce que le prof a préparé.
+  // Lien de la classe (demande d'une prof pilote) : avant le prénom, l'élève voit seulement la liste des prénoms;
+  // avec une feuille préparée par le prof, seulement cette feuille et « Commencer », sans les réglages.
+  // Sans Internet ou avec un lien brisé, tout reste affiché : l'élève peut quand même pratiquer.
+  function klassLayout() {
+    const setup = $('setup');
+    const on = KLASS_HASH && klass.state !== 'error';
+    const picking = on && (klass.state !== 'ready' || !inClass());
+    setup.classList.toggle('is-klass', on);
+    setup.classList.toggle('is-klass-pick', picking);
+    setup.classList.toggle('is-klass-locked', on && !picking && inGroup());
+  }
   function lockSetup() {
+    klassLayout();
     const on = inGroup();
     Array.prototype.forEach.call($('setup').querySelectorAll('.fields input'), (el) => { el.disabled = on; });
     $('preset').hidden = !on;
@@ -2620,6 +2635,7 @@ button { cursor: pointer; touch-action: manipulation; }
   }
   function renderKlass() {
     const info = klass.info;
+    klassLayout();
     if (!info) return;
     $('klass-title').textContent = info.n || 'Ta classe';
     const picked = klass.me >= 0;
@@ -2697,6 +2713,7 @@ button { cursor: pointer; touch-action: manipulation; }
     const link = TM && TM.ready ? TM.readHash(window.location.hash) : null;
     if (!link || link.kind !== 'student') {
       klass.state = 'error';
+      klassLayout();
       klassSay(TM && TM.ready ? 'Ce lien de classe est incomplet. Demande le lien à ton prof.'
         : 'La version classe ne fonctionne pas sur cet appareil. Tu peux quand même pratiquer.', true);
       return;
@@ -2720,6 +2737,7 @@ button { cursor: pointer; touch-action: manipulation; }
       renderKlass();
     }, (e) => {
       klass.state = 'error';
+      klassLayout();
       if (e && e.offline) window.addEventListener('online', () => { if (klass.state === 'error') loadKlass(); }, { once: true });
       klassSay(e && e.offline ? 'Pas de connexion Internet : ta classe ne s’ouvre pas. Tu peux quand même pratiquer.'
         : (e && e.missing ? 'Cette classe est introuvable. Demande le bon lien à ton prof.'

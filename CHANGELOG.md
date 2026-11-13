@@ -17,10 +17,14 @@ Pas encore pour tous : https://vincentgamache2103.github.io/tables-minute/essai/
   pour certains élèves, en glissant ou en touchant leurs prénoms. Les élèves la trouvent prête et ne peuvent
   pas la changer ; ils ne voient jamais le nom de leur feuille. Le lien de la classe ne change pas. (#17)
 - **Les tables par stratégie** : les simples (×1), les doubles (×2), les carrés, les ×5, les ×10, les ×9,
-  les autres, dans l'ordre d'une enseignante. Pour les familles aussi. (#1)
+  les autres, dans l'ordre d'une enseignante. Les carrés vont de 2×2 à 10×10. Pour les familles aussi. (#1)
+- Avec une feuille préparée par le prof, l'élève voit seulement cette feuille et « Commencer ».
 - Règles Firebase : nouvelle collection `classes/{id}/s` (publiée le 12 novembre).
 
 ## 1.5 · 12 novembre 2026 · `19a3ffc`
+Correctifs du 13 novembre (retours de la prof pilote) :
+- Avec le lien de la classe, l'élève voit d'abord seulement la liste des prénoms; les derniers essais sont cachés.
+- « Ma classe » : une prof dont l'appareil n'a rien gardé colle son lien de prof et retrouve sa classe et ses résultats.
 - « Arrêter » pendant une feuille : retour à l'accueil sans résultat, rien n'est envoyé au prof. (#21)
 - Après une pratique réussie : « Refaire ces questions, mélangées ». (#22)
 - Tableau du prof : résultats par opération (× ÷ + −), dans le tableau, le détail de chaque élève et le CSV. (#2)

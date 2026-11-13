@@ -55,7 +55,7 @@ difficiles et la progression de chaque élève.
   la même clé que pour les résultats); l'élève prend le plus récent qui est bien signé. Le lien des élèves ne change pas.
   Ordre : la feuille de l'élève, sinon un lien de groupe, sinon la feuille de toute la classe, sinon l'élève choisit.
   L'élève ne voit jamais le nom de sa feuille, et ne peut pas la changer.
-- Stratégies (× et ÷) : les simples (×1), les doubles (×2), les carrés (2×2 à 5×5), les ×5, les ×10, les ×9, les autres
+- Stratégies (× et ÷) : les simples (×1), les doubles (×2), les carrés (2×2 à 10×10), les ×5, les ×10, les ×9, les autres
   (5×3, 5×4, 5×6, 5×7, 6×3, 6×4, 6×6, 6×7, 7×3, 7×4, 7×8, 8×3, 8×4, 8×6, 3×4), dans l'ordre d'une enseignante. Lien de groupe : `st=s2-sq`.
 
 Événements comptés : classe-creee, classe-prenom, classe-resultat, classe-tableau (à chaque lecture du

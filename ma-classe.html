@@ -136,6 +136,10 @@ h3 { margin: 0; font-size: 1.05rem; line-height: 1.25; }
 .status:empty { display: none; }
 .status.is-err { color: var(--red); }
 .stack { display: grid; gap: 14px; min-width: 0; }
+.reopen { padding: 14px 16px; border-radius: 14px; background: var(--key); border: 1.5px solid var(--key-edge); }
+.reopen-row { flex-wrap: nowrap; }
+.reopen-row .input { flex: 1 1 auto; min-width: 0; }
+@media (max-width: 560px) { .reopen-row { flex-wrap: wrap; } }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -304,11 +308,33 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
         <button type="button" class="btn btn--go" id="missing-new">Créer une classe</button>
         <span class="switch" id="missing-list"></span>
       </div>
+      <form class="stack reopen" data-reopen novalidate>
+        <div class="field">
+          <label for="reopen-missing">Vous avez déjà une classe? Collez votre lien de prof</label>
+          <div class="row reopen-row">
+            <input class="input" id="reopen-missing" type="url" autocomplete="off" spellcheck="false" placeholder="https://…/ma-classe.html#p=…">
+            <button type="submit" class="btn">Ouvrir ma classe</button>
+          </div>
+          <p class="hint">Vos élèves et leurs résultats sont gardés : votre lien de prof les retrouve sur n’importe quel appareil. Il est dans le courriel « Me l’envoyer par courriel », ou là où vous l’avez copié.</p>
+          <p class="status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
     </section>
 
     <!-- Créer une classe -->
     <section class="stack" id="v-new" hidden aria-labelledby="new-title">
       <p class="lede">Chaque élève ouvre le lien de la classe et touche son prénom. Vous voyez ensuite son score, ses tables difficiles et sa progression. Gratuit, sans compte.</p>
+      <form class="stack reopen" data-reopen novalidate>
+        <div class="field">
+          <label for="reopen-new">Vous avez déjà une classe? Collez votre lien de prof</label>
+          <div class="row reopen-row">
+            <input class="input" id="reopen-new" type="url" autocomplete="off" spellcheck="false" placeholder="https://…/ma-classe.html#p=…">
+            <button type="submit" class="btn">Ouvrir ma classe</button>
+          </div>
+          <p class="hint">Vos élèves et leurs résultats sont gardés : votre lien de prof les retrouve sur n’importe quel appareil. Il est dans le courriel « Me l’envoyer par courriel », ou là où vous l’avez copié.</p>
+          <p class="status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
       <h2 id="new-title">Créer ma classe</h2>
       <form class="stack" id="new-form" novalidate>
         <div class="field">
@@ -1134,6 +1160,23 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
 
   if (TM) {
     $('new-form').addEventListener('submit', createNew);
+    // Une prof qui revient sur un appareil qui n'a rien gardé : elle colle son lien de prof.
+    Array.prototype.forEach.call(document.querySelectorAll('[data-reopen]'), (form) => {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = form.querySelector('input');
+        const node = form.querySelector('.status');
+        let h = null;
+        try { h = TM.readHash(new URL(input.value.trim()).hash); } catch (err) { h = null; }
+        if (!h || h.kind !== 'teacher') { say(node, 'Ce n’est pas un lien de prof. Il se termine par « ma-classe.html#p=… ».', true); return; }
+        say(node, '');
+        input.value = '';
+        track('classe-lien-prof-colle', 'Classe : lien de prof collé');
+        const c = { id: h.id, k: h.k, d: h.d };
+        const newer = TM.newer(c.id);
+        openClass(newer || c, 'Votre classe est ouverte. Pour la retrouver partout, gardez votre lien de prof dans vos courriels : bouton « Me l’envoyer par courriel ».');
+      });
+    });
     $('new-names').addEventListener('input', updateCount);
     $('new-cancel').addEventListener('click', () => { route(); });
     $('missing-new').addEventListener('click', () => showNew(TM.mine().list.length > 0));

@@ -95,6 +95,7 @@ const { chromium, assert, fs, path, ROOT, server, db, now, rulesDenyS, busy, see
     assert.match(presetTxt, /3 minutes/);
     assert.ok(!/difficult/i.test(await s.content()), 'le nom de la feuille n’apparaît jamais chez l’élève');
     assert.ok(await s.locator('#preset-leave').isHidden(), 'pas de « Choisir autre chose »');
+    assert.ok(await s.locator('#setup .fields').isHidden(), 'feuille du prof : les réglages ne s’affichent pas');
     assert.ok(await s.locator('#setup .fields input:not([disabled])').count() === 0, 'réglages verrouillés');
     ok('Léa : ' + presetTxt.trim());
 
