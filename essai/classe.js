@@ -19,6 +19,7 @@
  * ajouté sous la première version de la classe (classes/<première>/s/…), à chaque changement.
  * Il est chiffré avec la clé K, comme la classe, et signé avec la clé du prof (ECDSA P-256) :
  * un élève qui a le lien de la classe peut le lire, mais pas en écrire un faux. Le plus récent gagne.
+ * Le même document dit ce que l'élève voit à la fin (res) : la note, le pourcentage ou les deux (#26).
  */
 (function () {
   'use strict';
@@ -217,6 +218,7 @@
   // all : la feuille du reste de la classe (null : ces élèves choisissent eux-mêmes).
   // rules : [{ id, n: nom, s: feuille }]. by : { place de l'élève : id de sa règle }.
   const MAX_RULES = 12;
+  const RES_MODES = ['note', 'pct', 'both'];
   const RULE_ID = /^[a-z0-9]{1,8}$/;
   function cleanSheets(raw) {
     const r = obj(raw);
@@ -233,7 +235,8 @@
       const id = r.by[i];
       if (Number.isInteger(n) && n >= 0 && n < MAX_NAMES && String(n) === i && rules.some((y) => y.id === id)) by[i] = id;
     });
-    return { v: 2, at: Number(r.at) || 0, all: cleanSheet(r.all), rules: rules, by: by };
+    // res : ce que l'élève voit à la fin (#26) : 'note' (18/24), 'pct' (75 %) ou 'both'. Absent (classes déjà créées) : 'both'.
+    return { v: 2, at: Number(r.at) || 0, all: cleanSheet(r.all), rules: rules, by: by, res: RES_MODES.indexOf(r.res) >= 0 ? r.res : 'both' };
   }
   // La feuille d'un élève : celle de sa règle, sinon celle du reste de la classe, sinon aucune.
   function ruleFor(sheets, i) {
@@ -664,6 +667,7 @@
     MAX_RULES: MAX_RULES,
     cleanSheet: cleanSheet,
     cleanSheets: cleanSheets,
+    RES_MODES: RES_MODES,
     ruleFor: ruleFor,
     sheetFor: sheetFor,
     loadSheets: loadSheets,

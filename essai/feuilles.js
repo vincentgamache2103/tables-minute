@@ -22,6 +22,10 @@
   var LETTERS = 'ABCDEFGHIJKL';
   var ID_RE = /^[a-z0-9]{1,8}$/;
   var DEFAULT_SHEET = { o: ['mul'], t: [2, 3, 4, 5], st: [], m: 2, k: 'mix', q: 24 };
+  // Ce que les élèves voient à la fin de leur feuille, pour toute la classe (#26). Absent : « Les deux ».
+  var RES = [['note', 'La note', '18/24'], ['pct', 'Le pourcentage', '75' + NB + '%'], ['both', 'Les deux', '18/24 · 75' + NB + '%']];
+  var RES_WORDS = { note: 'la note (18/24)', pct: 'le pourcentage (75' + NB + '%)', both: 'la note et le pourcentage (18/24 · 75' + NB + '%)' };
+  var cleanRes = function (v) { return RES_WORDS[v] ? v : 'both'; };
 
   /* ---------- Petits outils ---------- */
   var arr = function (v) { return Array.isArray(v) ? v : []; };
@@ -75,7 +79,7 @@
       board: $('board'), toast: $('toast'), status: $('status'), undo: $('undo'),
       bar: $('bar'), selN: $('sel-n'), placeWrap: $('place-wrap'), place: $('place'),
       save: $('save'), reset: $('reset'), dirty: $('dirty'), saveStatus: $('save-status'),
-      backStatus: $('back-status'), title: root.querySelector('h2')
+      backStatus: $('back-status'), title: root.querySelector('h2'), res: $('res')
     };
     // Une région aria-live toujours présente annonce les déplacements.
     var sr = $('sr');
@@ -106,7 +110,7 @@
     }
     function importSheets(x) {
       x = x && typeof x === 'object' ? x : {};
-      var d = { all: x.all ? inSheet(x.all) : null, rules: [], by: {} };
+      var d = { all: x.all ? inSheet(x.all) : null, rules: [], by: {}, res: cleanRes(x.res) };
       var map = {};
       arr(x.rules).slice(0, MAX_RULES).forEach(function (r) {
         if (!r || typeof r !== 'object') return;
@@ -131,7 +135,8 @@
       return {
         all: d.all ? outSheet(d.all) : null,
         rules: d.rules.map(function (r) { return { id: r.id, n: r.n.trim(), s: outSheet(r.s) }; }),
-        by: by
+        by: by,
+        res: cleanRes(d.res)
       };
     }
     var keyOf = function (d) { return JSON.stringify(exportSheets(d)); };
@@ -452,6 +457,21 @@
       ]));
     }
 
+    // « Afficher le résultat » : un seul choix pour toute la classe, gardé avec les feuilles.
+    function renderRes() {
+      if (!el.res) return;
+      var tid = uid + '-t-res';
+      var hid = uid + '-h-res';
+      var cur = cleanRes(draft.res);
+      el.res.textContent = '';
+      el.res.setAttribute('aria-labelledby', tid);
+      el.res.appendChild(h('h3', { id: tid, text: 'Afficher le résultat' }));
+      el.res.appendChild(h('div', { class: 'sh-opts sh-res-opts', role: 'radiogroup', 'aria-labelledby': tid, 'aria-describedby': hid }, RES.map(function (r) {
+        return choice('radio', uid + '-res', 'res', 'res', r[0], cur === r[0], [h('b', { text: r[1] }), h('small', { text: r[2] })], 'sh-opt');
+      })));
+      el.res.appendChild(h('p', { class: 'hint', id: hid, text: 'Ce que vos élèves voient à la fin de chaque feuille, pour toute la classe. Ils ne peuvent pas le changer. Le CSV donne toujours la note et le pourcentage.' }));
+    }
+
     function renderDock() {
       var n = sel.length;
       el.toast.hidden = !msg.text;
@@ -488,6 +508,7 @@
       el.board.textContent = '';
       el.board.appendChild(zoneAll());
       el.board.appendChild(zoneRules());
+      renderRes();
       renderDock();
       renderFoot();
       if (focusMenu) {
@@ -517,12 +538,14 @@
       var who = d.rules.length ? 'Le reste de la classe' : 'Toute la classe';
       var classLine = d.all ? h('li', null, [who + NB + ': ', h('b', { text: summary(d.all) })])
         : h('li', null, [d.rules.length ? 'Les autres élèves choisissent leur feuille.' : 'Vos élèves choisissent leur feuille.']);
+      var resLine = h('li', null, ['Résultat montré' + NB + ': ', h('b', { text: RES_WORDS[cleanRes(d.res)] })]);
       if (sum) {
         sum.textContent = '';
         lines.forEach(function (l) { sum.appendChild(h('li', null, [h('b', { text: l[0] }), ' ', h('span', { class: 'sh-sum-n', text: l[1] })])); });
         sum.appendChild(classLine);
+        sum.appendChild(resLine);
       }
-      if (btn) btn.textContent = d.all || d.rules.length ? 'Modifier' : 'Choisir la feuille';
+      if (btn) btn.textContent = d.all || d.rules.length || cleanRes(d.res) !== 'both' ? 'Modifier' : 'Choisir la feuille';
     }
 
     /* ---------- Enregistrer ---------- */
@@ -716,6 +739,15 @@
       var t = e.target;
       var f = t.getAttribute && t.getAttribute('data-f');
       if (!f || f === 'n') return;
+      if (f === 'res') {
+        if (!t.checked) return;
+        draft.res = cleanRes(t.value);
+        undoSnap = null;
+        msg = { text: '', err: false };
+        changed();
+        render();
+        return;
+      }
       var s = sheetFor(t.getAttribute('data-id'));
       if (!s) return;
       var v = t.value;

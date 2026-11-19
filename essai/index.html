@@ -533,6 +533,7 @@ button { cursor: pointer; touch-action: manipulation; }
 .h-date { color: var(--ink-soft); font-size: .9rem; }
 .h-what { min-width: 0; overflow-wrap: anywhere; }
 .h-score { font-family: var(--font-hand); font-size: 1.45rem; line-height: 1; color: var(--red); }
+.h-pct { font-size: .75em; white-space: nowrap; }
 .empty { margin: 0; color: var(--ink-soft); }
 .fine { margin: 0; padding-top: 6px; font-size: .82rem; color: var(--ink-soft); }
 .fine a { color: inherit; text-underline-offset: 3px; }
@@ -890,6 +891,7 @@ button { cursor: pointer; touch-action: manipulation; }
 .score-ring svg { position: absolute; left: -6%; top: -14%; width: 112%; height: 128%; overflow: visible; color: var(--red); pointer-events: none; }
 #score { font-family: var(--font-hand); font-size: clamp(3.4rem, 10vw, 5.2rem); line-height: 1; color: var(--red); }
 #score .of { font-size: .62em; }
+#score .pct { font-size: .5em; white-space: nowrap; }
 .score-label { margin: 0; font-weight: 700; font-size: 1.05rem; }
 .score-time { margin: 0; color: var(--ink-soft); }
 .score-next { margin: 0; font-weight: 700; color: var(--green); }
@@ -1097,6 +1099,18 @@ button { cursor: pointer; touch-action: manipulation; }
                 </div>
               </div>
             </div>
+
+            <div class="field" id="res-field">
+              <p class="field-label" id="lbl-res">Afficher le résultat</p>
+              <div class="field-body">
+                <div class="seg" role="radiogroup" aria-labelledby="lbl-res">
+                  <label class="choice opt"><input type="radio" name="res" id="res-note" value="note"><span>La note</span></label>
+                  <label class="choice opt"><input type="radio" name="res" id="res-pct" value="pct"><span>Le pourcentage</span></label>
+                  <label class="choice opt"><input type="radio" name="res" id="res-both" value="both"><span>Les deux</span></label>
+                </div>
+                <p class="hint" id="res-hint"></p>
+              </div>
+            </div>
           </div>
 
           <div class="preview">
@@ -1266,7 +1280,7 @@ button { cursor: pointer; touch-action: manipulation; }
                   <span id="score"></span>
                 </span>
               </p>
-              <p class="score-label">bonnes réponses</p>
+              <p class="score-label" id="score-label">bonnes réponses</p>
               <p class="score-time" id="r-time"></p>
               <p class="score-next" id="r-next" hidden></p>
               <p class="sent" id="r-sent" role="status" aria-live="polite" hidden></p>
@@ -1345,7 +1359,7 @@ button { cursor: pointer; touch-action: manipulation; }
   </div>
 </dialog>
 
-<script src="classe.js?v=3"></script>
+<script src="classe.js?v=4"></script>
 <script>
 (() => {
   'use strict';
@@ -1516,6 +1530,22 @@ button { cursor: pointer; touch-action: manipulation; }
     }
   };
 
+  /* ---------- Afficher le résultat : la note (18/24), le pourcentage (75 %) ou les deux (#26) ---------- */
+  // Les familles choisissent dans les réglages. Avec le lien de la classe, c'est le choix du prof
+  // (gardé avec la feuille de la classe); sans ce choix, « Les deux ».
+  const RES_MODES = ['note', 'pct', 'both'];
+  function cleanRes(v) { return RES_MODES.indexOf(v) >= 0 ? v : 'both'; }
+  function pctOf(score, total) { return total > 0 ? Math.round(score / total * 100) : null; }
+  function scoreParts(score, total, mode) {
+    const p = pctOf(score, total);
+    const m = p === null ? 'note' : cleanRes(mode);
+    return { mode: m, note: score + '/' + total, pct: p === null ? '' : p + NBSP + '%' };
+  }
+  function scoreText(score, total, mode) {
+    const x = scoreParts(score, total, mode);
+    return x.mode === 'note' ? x.note : x.mode === 'pct' ? x.pct : x.note + ' · ' + x.pct;
+  }
+
   function opsList(ops) {
     const list = Array.isArray(ops) ? ops : [];
     return OP_KEYS.filter((k) => list.indexOf(k) >= 0);
@@ -1529,7 +1559,7 @@ button { cursor: pointer; touch-action: manipulation; }
   // split : la case « Choisir les tables pour chaque opération ».
   // opTables : les tables de chaque opération quand la case est cochée.
   function cleanSettings(raw) {
-    const s = { ops: DEFAULTS.ops.slice(), tables: DEFAULTS.tables.slice(), split: false, opTables: {}, strats: [], pick: 'tables', minutes: DEFAULTS.minutes, kind: DEFAULTS.kind, count: DEFAULTS.count, name: DEFAULTS.name };
+    const s = { ops: DEFAULTS.ops.slice(), tables: DEFAULTS.tables.slice(), split: false, opTables: {}, strats: [], pick: 'tables', minutes: DEFAULTS.minutes, kind: DEFAULTS.kind, count: DEFAULTS.count, res: 'both', name: DEFAULTS.name };
     const r = raw && typeof raw === 'object' ? raw : {};
     const o = opsList(r.ops);
     if (o.length) s.ops = o;
@@ -1545,6 +1575,7 @@ button { cursor: pointer; touch-action: manipulation; }
     if (MINUTES.indexOf(Number(r.minutes)) >= 0) s.minutes = Number(r.minutes);
     if (KINDS.indexOf(r.kind) >= 0) s.kind = r.kind;
     if (COUNTS.indexOf(Number(r.count)) >= 0) s.count = Number(r.count);
+    s.res = cleanRes(r.res);
     if (typeof r.name === 'string') s.name = r.name.slice(0, 30);
     return s;
   }
@@ -1624,7 +1655,7 @@ button { cursor: pointer; touch-action: manipulation; }
   }
   if (GROUP) applyPreset(GROUP, 'link');
   const saveSettings = () => {
-    if (own) { own.name = settings.name; store.set(KEY_SETTINGS, own); return; }
+    if (own) { own.name = settings.name; own.res = settings.res; store.set(KEY_SETTINGS, own); return; }
     store.set(KEY_SETTINGS, settings);
   };
 
@@ -2147,6 +2178,20 @@ button { cursor: pointer; touch-action: manipulation; }
       : on ? 'Choisis les tables de chaque opération.' : 'Touche une ou plusieurs tables.';
   }
 
+  // Le réglage « Afficher le résultat » : pour les familles seulement. Avec le lien de la classe, le prof décide.
+  function resMode() {
+    if (KLASS_HASH) return cleanRes(klass.sheets && klass.sheets.res);
+    return cleanRes(settings.res);
+  }
+  function syncRes() {
+    $('res-field').hidden = KLASS_HASH;
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="res"]'), (el) => {
+      el.checked = el.value === settings.res;
+      el.disabled = KLASS_HASH;
+    });
+    $('res-hint').textContent = 'Exemple' + NBSP + ': ' + scoreText(18, 24, settings.res);
+  }
+
   function syncSetup() {
     OP_KEYS.forEach((k) => { $('op-' + k).checked = settings.ops.indexOf(k) >= 0; });
     syncSharedTables();
@@ -2155,6 +2200,7 @@ button { cursor: pointer; touch-action: manipulation; }
     $('min-' + settings.minutes).checked = true;
     $('kind-' + settings.kind).checked = true;
     $('count-' + settings.count).checked = true;
+    syncRes();
     $('name').value = settings.name;
     $('today').textContent = fmtLong(new Date());
     lockSetup();
@@ -2178,7 +2224,8 @@ button { cursor: pointer; touch-action: manipulation; }
     klassLayout();
     const on = inGroup();
     const cls = fromClass();
-    Array.prototype.forEach.call($('setup').querySelectorAll('.fields input'), (el) => { el.disabled = on; });
+    // « Afficher le résultat » n'est pas dans la feuille : il reste libre avec un lien de groupe, et caché avec le lien de la classe.
+    Array.prototype.forEach.call($('setup').querySelectorAll('.fields input'), (el) => { el.disabled = el.name === 'res' ? KLASS_HASH : on; });
     $('preset').hidden = !on;
     $('ops-hint').hidden = on;
     $('tables-hint').hidden = on;
@@ -2235,7 +2282,15 @@ button { cursor: pointer; touch-action: manipulation; }
       w.textContent = (h.name ? h.name + ' · ' : '') + sheetShort(h) + ' · ' + h.minutes + ' min';
       const sc = document.createElement('span');
       sc.className = 'h-score';
-      sc.textContent = h.score + '/' + h.total;
+      // Une feuille faite avec le lien de la classe garde le choix du prof.
+      const x = scoreParts(h.score, h.total, h.res || resMode());
+      sc.textContent = x.mode === 'pct' ? x.pct : x.note;
+      if (x.mode === 'both') {
+        const pc = document.createElement('span');
+        pc.className = 'h-pct';
+        pc.textContent = ' · ' + x.pct;
+        sc.appendChild(pc);
+      }
       li.appendChild(d);
       li.appendChild(w);
       li.appendChild(sc);
@@ -2252,6 +2307,7 @@ button { cursor: pointer; touch-action: manipulation; }
       at: Date.now(), name: run.name || '', ops: run.ops, tables: run.tables, minutes: run.minutes,
       score: g.score, total: g.total, usedS: Math.round(g.usedMs / 1000), reason: run.reason
     };
+    if (KLASS_HASH) entry.res = run.res;
     if (isSplit(run)) { entry.split = true; entry.opTables = run.opTables; }
     if (usesStrats(run)) { entry.pick = 'strats'; entry.strats = run.strats; }
     list.unshift(entry);
@@ -2276,6 +2332,7 @@ button { cursor: pointer; touch-action: manipulation; }
       opTables: copyOpTables(settings),
       minutes: settings.minutes,
       kind: settings.kind,
+      res: resMode(),
       name: settings.name,
       group: inGroup(),
       groupName: inGroup() && !fromClass() ? preset.name : '',
@@ -2643,7 +2700,7 @@ button { cursor: pointer; touch-action: manipulation; }
   const fmtStamp = makeDateFormat({ day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   function resultText(run) {
     const g = run.graded;
-    const parts = ['Tables minute', g.score + '/' + g.total];
+    const parts = ['Tables minute', scoreText(g.score, g.total, run.res)];
     if (run.groupName) parts.push(run.groupName);
     if (run.practice) parts.push('Pratique des questions manquées');
     else parts.push(sheetWhat(run, true), run.minutes + NBSP + 'min');
@@ -2684,6 +2741,25 @@ button { cursor: pointer; touch-action: manipulation; }
     k.classList.add('is-flash');
   }
 
+  // La note (18/24), le pourcentage (75 %) ou les deux, sans innerHTML.
+  function renderScore(g, mode) {
+    const x = scoreParts(g.score, g.total, mode);
+    const box = $('score');
+    const span = (cls, text) => { const el = document.createElement('span'); el.className = cls; el.textContent = text; return el; };
+    box.textContent = '';
+    if (x.mode === 'pct') {
+      box.appendChild(document.createTextNode(String(pctOf(g.score, g.total))));
+      box.appendChild(span('of', NBSP + '%'));
+    } else {
+      box.appendChild(document.createTextNode(String(g.score)));
+      box.appendChild(span('of', '/' + g.total));
+      if (x.mode === 'both') box.appendChild(span('pct', ' · ' + x.pct));
+    }
+    const said = g.score + ' sur ' + g.total;
+    box.setAttribute('aria-label', x.mode === 'note' ? said : x.mode === 'pct' ? x.pct : said + ', ' + x.pct);
+    $('score-label').textContent = x.mode === 'pct' ? 'de bonnes réponses' : 'bonnes réponses';
+  }
+
   function showResults() {
     const run = S.run;
     const g = run.graded;
@@ -2694,8 +2770,7 @@ button { cursor: pointer; touch-action: manipulation; }
 
     const stamp = $('stamp');
     stamp.textContent = verdictFor(g.score, g.total);
-    $('score').innerHTML = g.score + '<span class="of">/' + g.total + '</span>';
-    $('score').setAttribute('aria-label', g.score + ' sur ' + g.total);
+    renderScore(g, run.res);
 
     let line = run.practice ? 'Fait en ' + fmtDuration(g.usedMs) : (run.reason === 'time' ? 'Temps écoulé' : 'Terminé en ' + fmtDuration(g.usedMs));
     if (g.filled < g.total) line += ' · ' + g.filled + (g.filled > 1 ? ' cases remplies' : ' case remplie') + ' sur ' + g.total;
@@ -3171,6 +3246,16 @@ button { cursor: pointer; touch-action: manipulation; }
           saveSettings();
           refreshSetup();
         });
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="res"]'), (el) => {
+      el.addEventListener('change', () => {
+        if (!el.checked || KLASS_HASH) return;
+        settings.res = cleanRes(el.value);
+        saveSettings();
+        syncRes();
+        renderHistory();
       });
     });
 

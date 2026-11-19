@@ -19,6 +19,9 @@ Pas encore pour tous : https://vincentgamache2103.github.io/tables-minute/essai/
 - **Les tables par stratégie** : les simples (×1), les doubles (×2), les carrés, les ×5, les ×10, les ×9,
   les autres, dans l'ordre d'une enseignante. Les carrés vont de 2×2 à 10×10. Pour les familles aussi. (#1)
 - Avec une feuille préparée par le prof, l'élève voit seulement cette feuille et « Commencer ».
+- **Note, pourcentage ou les deux** : à la fin de la feuille, l'élève voit sa note (18/24), son pourcentage (75 %)
+  ou les deux. Le prof choisit pour toute sa classe dans « La feuille de vos élèves »; les familles, dans les
+  réglages de la feuille. Par défaut : les deux. Le CSV du prof garde toujours la note et le pourcentage. (#26)
 - Règles Firebase : nouvelle collection `classes/{id}/s` (publiée le 12 novembre).
 
 ## 1.5 · 12 novembre 2026 · `19a3ffc`

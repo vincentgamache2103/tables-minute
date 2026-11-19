@@ -379,6 +379,10 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
 .sh-bub input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .sh-opt span { display: inline-flex; align-items: center; justify-content: center; min-width: 3.4rem; min-height: 44px; padding: 0 .9rem; border-radius: 999px; border: 2px solid var(--line); background: var(--key); font-weight: 700; font-size: .95rem; text-align: center; }
 .sh-opt input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+/* Afficher le résultat (#26) */
+.sh-res h3 { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; }
+.sh-res-opts .sh-opt span { flex-direction: column; gap: 1px; padding: 6px 16px; line-height: 1.2; }
+.sh-res-opts .sh-opt small { font-weight: 400; font-size: .85rem; white-space: nowrap; }
 
 /* Suppression confirmée dans la carte */
 .sh-confirm { display: grid; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--red-soft); }
@@ -653,6 +657,8 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
 
       <div class="sh-board" data-sh="board"></div>
 
+      <section class="card card--quiet sh-card sh-res" data-sh="res"></section>
+
       <div class="sh-dock" data-sh="dock">
         <div class="sh-toast" data-sh="toast" hidden>
           <p class="status" data-sh="status"></p>
@@ -688,8 +694,8 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
 </div>
 
 <script src="../qrcode.min.js"></script>
-<script src="classe.js?v=3"></script>
-<script src="feuilles.js?v=1"></script>
+<script src="classe.js?v=4"></script>
+<script src="feuilles.js?v=2"></script>
 <script src="../compteur.js?v=1"></script>
 <script>
 (() => {
@@ -1034,6 +1040,15 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
       // Pas pu lire : on garde l'éditeur vide, la prochaine ouverture réessaiera.
     }
     S.sheetsReady = true;
+    if (S.cls === c && S.list.length) renderResults();
+  }
+  // Le résultat dans le détail d'un élève : comme le voient les élèves (choix de la classe, #26).
+  function scoreText(s, q) {
+    const mode = S.sheets && TM.RES_MODES && TM.RES_MODES.indexOf(S.sheets.res) >= 0 ? S.sheets.res : 'both';
+    const note = s + '/' + q;
+    if (!q) return note;
+    const p = pct(s, q) + NBSP + '%';
+    return mode === 'note' ? note : mode === 'pct' ? p : note + ' · ' + p;
   }
   // « Sa feuille : … » dans le détail d'un élève.
   function sheetLine(i) {
@@ -1276,7 +1291,7 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
   function detailHTML(k) {
     const rows = k.sheets.slice().reverse().slice(0, 25).map((r) =>
       '<li><span>' + esc(fmtWhen(new Date(r.at))) + '</span><span class="s-what">' + esc(sheetWhat(r) + (r.g ? ' · ' + r.g : '')) + '</span>' +
-      '<span class="s-score">' + r.s + '/' + r.q + '</span><span class="s-time">' + (r.done ? fmtSecs(r.u) : '<span class="tag">temps écoulé</span>') + '</span></li>').join('');
+      '<span class="s-score">' + esc(scoreText(r.s, r.q)) + '</span><span class="s-time">' + (r.done ? fmtSecs(r.u) : '<span class="tag">temps écoulé</span>') + '</span></li>').join('');
     const facts = k.facts.length
       ? '<ul class="facts">' + k.facts.map((f) => '<li>' + esc(f.text) + (f.n > 1 ? ' <small>×' + f.n + '</small>' : '') + '</li>').join('') + '</ul>'
       : '<p class="hint">Aucune erreur pendant cette période.</p>';
