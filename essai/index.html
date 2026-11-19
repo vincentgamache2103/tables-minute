@@ -940,8 +940,15 @@ button { cursor: pointer; touch-action: manipulation; }
 .sent.is-err { color: var(--red); }
 #name:disabled { opacity: 1; -webkit-text-fill-color: currentColor; cursor: default; }
 .klass-yes { min-height: 48px; padding: 0 1.2rem; font-size: 1.05rem; }
-.klass-back { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; padding: 8px 14px; border-radius: 12px; background: var(--note); font-size: .95rem; }
-.klass-back b { overflow-wrap: anywhere; }
+/* Retour à la classe : l'appareil a déjà servi au lien de la classe, mais on est sur le site ordinaire. */
+.klass-back-full { display: grid; gap: 10px; justify-items: start; }
+.klass-back-text { margin: 0; max-width: 52ch; font-weight: 700; font-size: 1.05rem; line-height: 1.4; }
+.klass-back-go { min-height: 52px; padding: 0 1.4rem; font-size: 1.1rem; }
+.klass-back.is-folded { padding: 8px 14px; box-shadow: none; }
+.klass-back-line { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; font-size: .95rem; }
+.klass-back-line b { overflow-wrap: anywhere; }
+.r-klass { display: grid; gap: 8px; justify-items: start; margin-top: 6px; padding: 12px 16px; background: var(--note); border-left: 6px solid var(--pencil); border-radius: 6px 14px 14px 6px; }
+.r-klass-text { margin: 0; font-weight: 700; color: var(--red); }
 
 /* ---------- Petits écrans ---------- */
 @media (orientation: portrait) {
@@ -1004,7 +1011,16 @@ button { cursor: pointer; touch-action: manipulation; }
           </div>
         </section>
 
-        <p class="klass-back" id="klass-back" hidden><span>Ta classe&nbsp;: <b id="klass-back-name"></b></span><a class="btn btn--link" id="klass-back-go" href="./">Retourner à ta classe</a></p>
+        <section class="klass klass-back" id="klass-back" aria-labelledby="klass-back-title" hidden>
+          <div class="klass-back-full" id="klass-back-full">
+            <p class="klass-eyebrow">Ta classe</p>
+            <h2 class="klass-title" id="klass-back-title"></h2>
+            <p class="klass-back-text">Pour que ton prof voie tes résultats, fais tes feuilles dans ta classe.</p>
+            <a class="btn btn--go klass-back-go" id="klass-back-go" data-back="home" href="./">Retourner à ta classe</a>
+            <button type="button" class="btn btn--link" id="klass-back-skip">Pratiquer sans ma classe</button>
+          </div>
+          <p class="klass-back-line" id="klass-back-line" hidden><span>Ta classe&nbsp;: <b id="klass-back-name"></b></span><a class="btn btn--link" id="klass-back-go2" data-back="line" href="./">Retourner à ta classe</a></p>
+        </section>
 
         <section class="klass" id="klass" aria-labelledby="klass-title" hidden>
           <p class="klass-eyebrow">Ta classe</p>
@@ -1284,6 +1300,10 @@ button { cursor: pointer; touch-action: manipulation; }
               <p class="score-time" id="r-time"></p>
               <p class="score-next" id="r-next" hidden></p>
               <p class="sent" id="r-sent" role="status" aria-live="polite" hidden></p>
+              <div class="r-klass" id="r-klass" hidden>
+                <p class="r-klass-text">Ce résultat n’est pas allé à ton prof.</p>
+                <a class="btn btn--go klass-back-go" id="r-klass-go" data-back="results" href="./">Retourner à ta classe</a>
+              </div>
             </div>
           </div>
 
@@ -1359,7 +1379,7 @@ button { cursor: pointer; touch-action: manipulation; }
   </div>
 </dialog>
 
-<script src="classe.js?v=4"></script>
+<script src="classe.js?v=5"></script>
 <script>
 (() => {
   'use strict';
@@ -2487,9 +2507,12 @@ button { cursor: pointer; touch-action: manipulation; }
     if (reason === 'time') setClock(0, 0, false);
     run.graded = grade(run);
     if (!run.practice) {
-      saveHistory(run);
+      // Appareils partagés (choix du prof) : la feuille part au prof, mais ne reste pas dans les derniers essais.
+      run.forget = !!(run.klass && klassShared());
+      if (!run.forget) saveHistory(run);
       track('feuille-terminee', 'Feuille terminée');
       if (run.klass) sendToClass(run);
+      if (run.forget) forgetKlassMe();
     }
     resetDone();
     if (reason === 'time') {
@@ -2800,6 +2823,7 @@ button { cursor: pointer; touch-action: manipulation; }
     $('nudge-go').hidden = !!run.group;
     $('copy-status').textContent = '';
     showSent(run);
+    showKlassMissed(run);
 
     $('corrected').innerHTML = g.items.map(resultCell).join('');
     show('results');
@@ -2888,7 +2912,7 @@ button { cursor: pointer; touch-action: manipulation; }
     loadKlassSheets();
     $('klass-change').focus();
   }
-  function unpickKlass() {
+  function unpickKlass(keepFocus) {
     if (!klass.link) return;
     klass.me = -1;
     klass.ask = false;
@@ -2899,19 +2923,67 @@ button { cursor: pointer; touch-action: manipulation; }
     refreshPreset();
     klassName();
     renderKlass();
+    if (keepFocus === true) return;
     const first = $('klass-names').querySelector('button');
     if (first) first.focus();
   }
+  // Appareils partagés : le prof veut que chaque élève touche son prénom avant chaque feuille.
+  function klassShared() {
+    return !!(klass.sheets && klass.sheets.shared === true);
+  }
+  // Après la feuille : l'élève est oublié sur cet appareil. Son résultat est déjà chiffré, avec sa place
+  // dans la liste, dans la file d'envoi : il part quand même au bon élève.
+  function forgetKlassMe() {
+    if (!klass.link || klass.me < 0) return;
+    unpickKlass(true);
+  }
+  /* ---------- Retour à la classe (demande d'une enseignante pilote) ---------- */
+  // Des élèves ouvraient le site ordinaire (favori, historique) au lieu du lien de la classe : leurs feuilles
+  // restaient sur l'appareil. Si cet appareil connaît une classe, un bloc bien visible les y ramène.
+  // « Pratiquer sans ma classe » le replie en une ligne, pour la session.
+  const KEY_BACK_LATER = 'tablesMinute.klassBackLater';
+  let klassBack = null;
+  function backFolded() {
+    try { return window.sessionStorage.getItem(KEY_BACK_LATER) === '1'; } catch (e) { return false; }
+  }
+  function showKlassBack(last) {
+    klassBack = { href: './?ref=classe' + last.h, n: last.n || '' };
+    $('klass-back').hidden = false;
+    $('klass-back-title').textContent = last.n || 'Ta classe';
+    $('klass-back-name').textContent = last.n || 'ta classe';
+    ['klass-back-go', 'klass-back-go2', 'r-klass-go'].forEach((id) => { $(id).href = klassBack.href; });
+    foldKlassBack(backFolded());
+  }
+  function foldKlassBack(folded) {
+    $('klass-back-full').hidden = folded;
+    $('klass-back-line').hidden = !folded;
+    $('klass-back').classList.toggle('is-folded', folded);
+  }
+  function goKlassBack(e) {
+    const a = e.currentTarget;
+    if (!klassBack || e.button > 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    track('classe-retour-bouton', 'Classe : retour à la classe (bouton)');
+    const to = new URL(a.href, window.location.href);
+    // Un court délai : l'événement part avant la page suivante.
+    setTimeout(() => {
+      const same = to.pathname === window.location.pathname && to.search === window.location.search;
+      window.location.assign(to.href);
+      // Seul le # change : la page ne se recharge pas d'elle-même.
+      if (same) window.location.reload();
+    }, 150);
+  }
+  // Écran de résultats : une feuille faite hors de la classe connue de cet appareil.
+  function showKlassMissed(run) {
+    $('r-klass').hidden = !(klassBack && !KLASS_HASH && run && !run.practice && !run.klass);
+  }
+
   function initKlass() {
     if (TM && TM.ready && TM.pending()) TM.flush();
     if (!KLASS_HASH) {
       // Ouvert sans le lien de la classe (icône de l'écran d'accueil, menu…) : on propose d'y retourner.
       const last = TM && TM.ready && !inGroup() ? TM.lastStudentClass() : null;
-      if (last) {
-        $('klass-back').hidden = false;
-        $('klass-back-name').textContent = last.n || 'ta classe';
-        $('klass-back-go').href = './?ref=classe' + last.h;
-      }
+      if (last) showKlassBack(last);
       return;
     }
     $('klass').hidden = false;
@@ -3039,8 +3111,8 @@ button { cursor: pointer; touch-action: manipulation; }
     run.sent = 'wait';
     TM.sendResult({ id: run.klass.id, p: run.klass.p }, klassPayload(run)).then((r) => {
       run.sent = r.sent ? 'ok' : (r.lost ? 'err' : (r.why === 'busy' ? 'busy' : 'later'));
-      // Une feuille faite compte comme une confirmation du prénom.
-      TM.setMyIndex(run.klass.id, run.klass.i);
+      // Une feuille faite compte comme une confirmation du prénom (sauf sur les appareils partagés).
+      if (!run.forget) TM.setMyIndex(run.klass.id, run.klass.i);
       if (r.sent) track('classe-resultat', 'Classe : résultat envoyé');
       showSent(run);
     }, () => { run.sent = 'err'; showSent(run); });
@@ -3249,6 +3321,13 @@ button { cursor: pointer; touch-action: manipulation; }
       });
     });
 
+    ['klass-back-go', 'klass-back-go2', 'r-klass-go'].forEach((id) => { $(id).addEventListener('click', goKlassBack); });
+    $('klass-back-skip').addEventListener('click', () => {
+      try { window.sessionStorage.setItem(KEY_BACK_LATER, '1'); } catch (e) { /* rien */ }
+      foldKlassBack(true);
+      $('klass-back-go2').focus();
+    });
+
     Array.prototype.forEach.call(document.querySelectorAll('input[name="res"]'), (el) => {
       el.addEventListener('change', () => {
         if (!el.checked || KLASS_HASH) return;
@@ -3265,7 +3344,11 @@ button { cursor: pointer; touch-action: manipulation; }
     });
 
     $('start').addEventListener('click', () => { if (!klassReady()) return; primeAudio(); startRun(buildQuestions(settings), false); });
-    $('again').addEventListener('click', () => { primeAudio(); startRun(buildQuestions(settings), false); });
+    $('again').addEventListener('click', () => {
+      // Appareils partagés : « Nouvelle feuille » ramène à la liste des prénoms.
+      if (KLASS_HASH && klass.state === 'ready' && (klass.me < 0 || klass.ask)) { show('setup'); renderHistory(); klassReady(); return; }
+      primeAudio(); startRun(buildQuestions(settings), false);
+    });
     $('retry').addEventListener('click', () => {
       const run = S.run;
       if (!run || !run.graded) return;

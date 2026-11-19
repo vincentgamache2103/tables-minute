@@ -22,6 +22,12 @@ Pas encore pour tous : https://vincentgamache2103.github.io/tables-minute/essai/
 - **Note, pourcentage ou les deux** : à la fin de la feuille, l'élève voit sa note (18/24), son pourcentage (75 %)
   ou les deux. Le prof choisit pour toute sa classe dans « La feuille de vos élèves »; les familles, dans les
   réglages de la feuille. Par défaut : les deux. Le CSV du prof garde toujours la note et le pourcentage. (#26)
+- **Retour à la classe** : un appareil qui a déjà servi au lien de la classe, ouvert sans ce lien (favori,
+  historique), montre en haut un gros bouton « Retourner à ta classe ». L'élève peut encore « Pratiquer sans
+  ma classe »; à la fin, il lit « Ce résultat n'est pas allé à ton prof », avec le même bouton.
+- **Appareils partagés** : dans « La feuille de vos élèves », le prof peut faire redemander le prénom après
+  chaque feuille. Le résultat part au bon élève, et ses derniers essais ne restent pas sur l'appareil.
+  Par défaut : non (le prénom est redemandé après une heure, comme avant).
 - Règles Firebase : nouvelle collection `classes/{id}/s` (publiée le 12 novembre).
 
 ## 1.5 · 12 novembre 2026 · `19a3ffc`

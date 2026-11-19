@@ -57,6 +57,11 @@ difficiles et la progression de chaque élève.
   L'élève ne voit jamais le nom de sa feuille, et ne peut pas la changer.
 - Afficher le résultat (#26) : champ `res` du même document chiffré (`note`, `pct` ou `both`; absent : `both`), pour toute
   la classe. Les familles ont le même choix dans leurs réglages (`res` dans `tablesMinute.settings.v1`).
+- Appareils partagés : champ `shared` du même document (`true` : l'élève est oublié sur l'appareil après chaque feuille et
+  sa feuille ne va pas dans les derniers essais; absent : `false`, prénom redemandé après une heure).
+- Retour à la classe : sans le lien de la classe, un appareil qui en connaît une (`TMClasse.lastStudentClass()`) montre le
+  bloc `#klass-back` (« Pratiquer sans ma classe » le replie pour la session, `sessionStorage`), et l'écran de résultats
+  rappelle que la feuille n'est pas allée au prof (`#r-klass`).
 - Stratégies (× et ÷) : les simples (×1), les doubles (×2), les carrés (2×2 à 10×10), les ×5, les ×10, les ×9, les autres
   (5×3, 5×4, 5×6, 5×7, 6×3, 6×4, 6×6, 6×7, 7×3, 7×4, 7×8, 8×3, 8×4, 8×6, 3×4), dans l'ordre d'une enseignante. Lien de groupe : `st=s2-sq`.
 
@@ -64,7 +69,8 @@ difficiles et la progression de chaque élève.
 tableau), classe-retour (un prof qui revient un autre jour), classe-active-10 (une classe atteint 10 élèves
 actifs), classe-lien-eleves, classe-lien-prof, classe-lien-prof-courriel, classe-csv, classe-liste-modifiee,
 classe-filtre-operation (le prof filtre les résultats par opération), classe-feuille-ouverte, classe-feuille-enregistree, classe-feuille-regles (des feuilles pour certains élèves),
-classe-feuille-prof (un élève commence la feuille du prof), strategie-<clé>.
+classe-feuille-prof (un élève commence la feuille du prof), strategie-<clé>, classe-retour-bouton (un élève touche
+« Retourner à ta classe » depuis le site ordinaire; à ne pas confondre avec classe-retour, le prof qui revient).
 Trois événements de récurrence partent du navigateur du prof, une seule fois par classe et par appareil, à
 partir des résultats qu'il vient de lire (aucun code de classe ni prénom) : classe-premiere-feuille (un
 premier résultat), classe-2-jours (des feuilles sur au moins 2 jours) et classe-2-semaines (sur au moins

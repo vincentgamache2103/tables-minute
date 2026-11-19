@@ -383,6 +383,10 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
 .sh-res h3 { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; }
 .sh-res-opts .sh-opt span { flex-direction: column; gap: 1px; padding: 6px 16px; line-height: 1.2; }
 .sh-res-opts .sh-opt small { font-weight: 400; font-size: .85rem; white-space: nowrap; }
+/* Appareils partagés */
+.sh-shared { display: grid; gap: 8px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.sh-check { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 700; cursor: pointer; }
+.sh-check input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--ink); }
 
 /* Suppression confirmée dans la carte */
 .sh-confirm { display: grid; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--red-soft); }
@@ -694,8 +698,8 @@ textarea.input { min-height: 11rem; resize: vertical; line-height: 1.5; }
 </div>
 
 <script src="../qrcode.min.js"></script>
-<script src="classe.js?v=4"></script>
-<script src="feuilles.js?v=2"></script>
+<script src="classe.js?v=5"></script>
+<script src="feuilles.js?v=3"></script>
 <script src="../compteur.js?v=1"></script>
 <script>
 (() => {

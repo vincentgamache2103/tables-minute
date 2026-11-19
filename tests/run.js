@@ -13,7 +13,8 @@ const RUNS = [
   ['limite-serveur.test.js', 'essai/'],
   ['feuille-du-prof.test.js'],
   ['classe-simplifiee.test.js'],
-  ['pourcentage.test.js']
+  ['pourcentage.test.js'],
+  ['retour-classe.test.js']
 ];
 let failed = 0;
 for (const [file, page] of RUNS) {

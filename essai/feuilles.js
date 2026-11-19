@@ -110,7 +110,7 @@
     }
     function importSheets(x) {
       x = x && typeof x === 'object' ? x : {};
-      var d = { all: x.all ? inSheet(x.all) : null, rules: [], by: {}, res: cleanRes(x.res) };
+      var d = { all: x.all ? inSheet(x.all) : null, rules: [], by: {}, res: cleanRes(x.res), shared: x.shared === true };
       var map = {};
       arr(x.rules).slice(0, MAX_RULES).forEach(function (r) {
         if (!r || typeof r !== 'object') return;
@@ -136,7 +136,8 @@
         all: d.all ? outSheet(d.all) : null,
         rules: d.rules.map(function (r) { return { id: r.id, n: r.n.trim(), s: outSheet(r.s) }; }),
         by: by,
-        res: cleanRes(d.res)
+        res: cleanRes(d.res),
+        shared: d.shared === true
       };
     }
     var keyOf = function (d) { return JSON.stringify(exportSheets(d)); };
@@ -470,6 +471,18 @@
         return choice('radio', uid + '-res', 'res', 'res', r[0], cur === r[0], [h('b', { text: r[1] }), h('small', { text: r[2] })], 'sh-opt');
       })));
       el.res.appendChild(h('p', { class: 'hint', id: hid, text: 'Ce que vos élèves voient à la fin de chaque feuille, pour toute la classe. Ils ne peuvent pas le changer. Le CSV donne toujours la note et le pourcentage.' }));
+      // Appareils partagés : le prénom est redemandé après chaque feuille (sinon, après une heure).
+      var sid = uid + '-h-shared';
+      el.res.appendChild(h('div', { class: 'sh-shared' }, [
+        h('h3', { text: 'Appareils partagés' }),
+        h('label', { class: 'sh-check' }, [
+          h('input', { type: 'checkbox', 'data-f': 'shared', 'data-id': 'shared', 'data-k': 'f-shared', checked: draft.shared === true, 'aria-describedby': sid }),
+          h('span', { text: 'Redemander le prénom après chaque feuille' })
+        ]),
+        h('p', { class: 'hint', id: sid, text: draft.shared
+          ? 'Après chaque feuille, l’appareil oublie l’élève : le suivant touche son prénom. Ses derniers essais ne restent pas sur l’appareil.'
+          : 'Pour des tablettes ou des ordinateurs qui passent d’un élève à l’autre. Sinon, le prénom est redemandé après une heure.' })
+      ]));
     }
 
     function renderDock() {
@@ -544,8 +557,9 @@
         lines.forEach(function (l) { sum.appendChild(h('li', null, [h('b', { text: l[0] }), ' ', h('span', { class: 'sh-sum-n', text: l[1] })])); });
         sum.appendChild(classLine);
         sum.appendChild(resLine);
+        if (d.shared) sum.appendChild(h('li', null, ['Appareils partagés' + NB + ': ', h('b', { text: 'prénom redemandé après chaque feuille' })]));
       }
-      if (btn) btn.textContent = d.all || d.rules.length || cleanRes(d.res) !== 'both' ? 'Modifier' : 'Choisir la feuille';
+      if (btn) btn.textContent = d.all || d.rules.length || cleanRes(d.res) !== 'both' || d.shared ? 'Modifier' : 'Choisir la feuille';
     }
 
     /* ---------- Enregistrer ---------- */
@@ -739,6 +753,14 @@
       var t = e.target;
       var f = t.getAttribute && t.getAttribute('data-f');
       if (!f || f === 'n') return;
+      if (f === 'shared') {
+        draft.shared = !!t.checked;
+        undoSnap = null;
+        msg = { text: '', err: false };
+        changed();
+        render();
+        return;
+      }
       if (f === 'res') {
         if (!t.checked) return;
         draft.res = cleanRes(t.value);
