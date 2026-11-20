@@ -17,6 +17,8 @@ Chaque version a son commit, noté ci-dessous. Les `?v=` des scripts servent seu
   page à part. Les mêmes questions qu'à l'écran. Pas offert avec le lien de la classe. (#27)
 - **Le prof imprime la feuille de sa classe** : dans « La feuille de vos élèves », un bouton « Imprimer » à côté
   de chaque feuille choisie (toute la classe ou certains élèves) ouvre la feuille papier et son corrigé. (#27)
+- Boîte à idées : le courriel est caché derrière « Je suis un parent ou un prof, et je veux une réponse ».
+  Un courriel d'élève (compte d'école : ele., eleve., numéro de fiche…) n'est jamais envoyé; l'idée part quand même.
 
 ## 1.6 · 20 novembre 2026 · `c956d6d`
 Pour tous depuis le 20 novembre (en essai à `essai/` depuis le 12). La page `essai/` reste en ligne, identique, pour les liens déjà partagés.

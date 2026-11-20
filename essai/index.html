@@ -635,6 +635,8 @@ button { cursor: pointer; touch-action: manipulation; }
   line-height: 1.3;
 }
 .idea-field { display: grid; gap: 6px; max-width: 420px; }
+.idea-adult summary { cursor: pointer; font-size: .92rem; color: var(--ink-soft); text-decoration: underline; text-underline-offset: 3px; min-height: 32px; display: flex; align-items: center; }
+.idea-adult[open] summary { margin-bottom: 6px; }
 .idea-field label { font-size: .92rem; font-weight: 700; }
 .idea-field label span { font-weight: 400; color: var(--ink-soft); }
 .idea-mail {
@@ -1219,10 +1221,13 @@ button { cursor: pointer; touch-action: manipulation; }
           <form class="idea-form" id="idea-form" novalidate>
             <label class="sr-only" for="idea-msg">Ton idée</label>
             <textarea class="idea-msg" id="idea-msg" name="suggestion" rows="3" maxlength="1000" placeholder="Ex. : une feuille à imprimer"></textarea>
-            <div class="idea-field">
-              <label for="idea-email">Courriel d’un adulte <span>(facultatif, pour une réponse)</span></label>
-              <input class="idea-mail" id="idea-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" maxlength="120">
-            </div>
+            <details class="idea-adult" id="idea-adult">
+              <summary>Je suis un parent ou un prof, et je veux une réponse</summary>
+              <div class="idea-field">
+                <label for="idea-email">Votre courriel <span>(facultatif)</span></label>
+                <input class="idea-mail" id="idea-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" maxlength="120">
+              </div>
+            </details>
             <input class="hp" type="checkbox" id="idea-bot" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true">
             <div class="idea-actions">
               <button type="submit" class="btn btn--alt" id="idea-send">Envoyer</button>
@@ -3213,6 +3218,16 @@ button { cursor: pointer; touch-action: manipulation; }
     const numbers = tokens.filter((t) => /^\d{1,3}$/.test(t));
     return words.length > 0 && new Set(words).size + new Set(numbers).size >= 2;
   }
+  // Comptes d'élèves des centres de services scolaires et des écoles : ele., elee., eleve., etudiant., student.…
+  // ou un numéro de fiche comme identifiant (4501268@…).
+  function isStudentMail(m) {
+    const at = m.lastIndexOf('@');
+    if (at < 1) return false;
+    const local = m.slice(0, at).toLowerCase();
+    const labels = m.slice(at + 1).toLowerCase().split('.');
+    const KID = /^(ele|elee|eleve|eleves|elev|etu|etud|etudiant|etudiants|student|students|stu|edu-eleve)$/;
+    return /^\d{5,}$/.test(local) || labels.some((x) => KID.test(x));
+  }
   async function sendIdea(e) {
     e.preventDefault();
     const msgEl = $('idea-msg');
@@ -3239,7 +3254,9 @@ button { cursor: pointer; touch-action: manipulation; }
       Contexte: ideaContext(),
       Appareil: deviceKind()
     };
-    if (mail) payload.email = mail;
+    // Un courriel d'élève (compte d'école) n'est jamais envoyé : on garde seulement l'idée.
+    const kidMail = !!mail && isStudentMail(mail);
+    if (mail && !kidMail) payload.email = mail;
     btn.disabled = true;
     btn.textContent = 'Envoi…';
     setIdeaStatus('', '');
@@ -3254,7 +3271,13 @@ button { cursor: pointer; touch-action: manipulation; }
       if (!res.ok || (data && data.success === false)) throw new Error('envoi refusé');
       lastSentAt = Date.now();
       msgEl.value = '';
-      setIdeaStatus('Merci! Ton idée est envoyée.', 'ok');
+      if (kidMail) {
+        mailEl.value = '';
+        setIdeaStatus('Merci! Ton idée est envoyée. Pas besoin de ton courriel d’école : on ne l’a pas gardé.', 'ok');
+        track('suggestion-courriel-eleve', 'Suggestion : courriel d’élève retiré');
+      } else {
+        setIdeaStatus('Merci! Ton idée est envoyée.', 'ok');
+      }
       track('suggestion-envoyee', 'Suggestion envoyée');
     } catch (err) {
       setIdeaStatus('Le message n’est pas parti. Vérifie ta connexion Internet et réessaie.', 'err');

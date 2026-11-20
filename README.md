@@ -6,7 +6,8 @@ Feuille de tables minute chronométrée, pensée pour la tablette.
 - Tables au choix (1 à 10), chrono de 2, 3 ou 4 minutes, 12, 24 ou 36 questions
 - Questions « 4 × 7 = ? », « 4 × ? = 28 », « 28 ÷ 4 = ? », « ? − 4 = 7 »…
 - Clavier à l'écran, correction à la fin, faits à revoir et reprise des erreurs
-- Boîte à idées : les suggestions arrivent par courriel (Web3Forms)
+- Boîte à idées : les suggestions arrivent par courriel (Web3Forms); le courriel est réservé aux adultes (caché par défaut) et un
+  courriel d'élève n'est jamais envoyé (`isStudentMail`, événement `suggestion-courriel-eleve`)
 - Feuille à imprimer avec son corrigé (« Imprimer cette feuille », événement `feuille-imprimee`; depuis le tableau du prof :
   « Imprimer » ouvre la page avec `&imprimer=1` et les réglages de la feuille, événement `feuille-imprimee-prof`)
 - Réglages et derniers essais gardés sur l'appareil
