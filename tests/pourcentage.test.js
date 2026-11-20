@@ -1,6 +1,7 @@
-// Note, pourcentage ou les deux (#26), page d'essai : le réglage des familles, le choix du prof imposé
+// Note, pourcentage ou les deux (#26), site public puis page d'essai : le réglage des familles, le choix du prof imposé
 // à ses élèves, une classe sans ce choix (« Les deux »), le détail de l'élève et le CSV du prof.
 const { chromium, assert, fs, server, db, setup, solve } = require('./outils');
+const PRE = process.argv[2] !== undefined ? process.argv[2] : 'essai/';
 const ok = (m) => console.log('✓ ' + m);
 const NB = ' ';
 const PCT = '75' + NB + '%';
@@ -39,7 +40,7 @@ const PCT = '75' + NB + '%';
   try {
     /* ---------- Famille : les trois choix, gardés sur l'appareil ---------- */
     const f = await newPage();
-    await f.goto(BASE + 'essai/');
+    await f.goto(BASE + PRE);
     assert.ok(await f.locator('#res-field').isVisible(), 'le réglage est dans les réglages de la feuille');
     assert.ok(await f.locator('#res-both').isChecked(), 'par défaut : Les deux');
     assert.strictEqual((await f.textContent('#res-hint')).trim(), 'Exemple' + NB + ': 18/24 · ' + PCT);
@@ -87,11 +88,11 @@ const PCT = '75' + NB + '%';
 
     /* ---------- Classe : le prof choisit « Le pourcentage » ---------- */
     const t = await newPage({ acceptDownloads: true });
-    await t.goto(BASE + 'essai/ma-classe.html');
+    await t.goto(BASE + PRE + 'ma-classe.html');
     await t.fill('#new-names', 'Léa\nNoah');
     await t.click('#new-go');
     await t.waitForSelector('#v-class:not([hidden])');
-    const kidsLink = (await t.textContent('#kids-link')).trim().replace(/^https?:\/\/[^#?]+/, BASE + 'essai/');
+    const kidsLink = (await t.textContent('#kids-link')).trim().replace(/^https?:\/\/[^#?]+/, BASE + PRE);
     await t.waitForFunction(() => !document.querySelector('#card-sheets [data-sh="open"]').disabled);
     assert.match((await t.textContent('#card-sheets')).replace(/\s+/g, ' '), /Résultat montré : la note et le pourcentage/);
     await t.click('#card-sheets [data-sh="open"]');
@@ -113,7 +114,7 @@ const PCT = '75' + NB + '%';
 
     // L'élève, sur un appareil où la famille avait choisi « La note » : c'est le choix du prof qui compte.
     const s = await newPage();
-    await s.goto(BASE + 'essai/');
+    await s.goto(BASE + PRE);
     await s.click('#res-note', { force: true });
     await s.goto(kidsLink);
     await s.locator('#klass-names button', { hasText: 'Léa' }).click();
@@ -145,16 +146,16 @@ const PCT = '75' + NB + '%';
 
     /* ---------- Classe sans le choix (enregistrée avant #26) : Les deux ---------- */
     // Le classe.js d'avant : la même feuille, sans le champ « res ».
-    const now = fs.readFileSync(require('path').join(__dirname, '..', 'essai', 'classe.js'), 'utf8');
+    const now = fs.readFileSync(require('path').join(__dirname, '..', PRE, 'classe.js'), 'utf8');
     const before = now.replace(", res: RES_MODES.indexOf(r.res) >= 0 ? r.res : 'both'", '');
     assert.notStrictEqual(before, now, 'classe.js d’avant');
     const t2 = await newPage();
-    await t2.route(/\/essai\/classe\.js/, (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: before }));
-    await t2.goto(BASE + 'essai/ma-classe.html');
+    await t2.route(new RegExp(':\\d+/' + PRE + 'classe\\.js'), (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: before }));
+    await t2.goto(BASE + PRE + 'ma-classe.html');
     await t2.fill('#new-names', 'Zoé\nSam');
     await t2.click('#new-go');
     await t2.waitForSelector('#v-class:not([hidden])');
-    const kids2 = (await t2.textContent('#kids-link')).trim().replace(/^https?:\/\/[^#?]+/, BASE + 'essai/');
+    const kids2 = (await t2.textContent('#kids-link')).trim().replace(/^https?:\/\/[^#?]+/, BASE + PRE);
     await t2.waitForFunction(() => !document.querySelector('#card-sheets [data-sh="open"]').disabled);
     await t2.click('#card-sheets [data-sh="open"]');
     await t2.locator('.sh-card--all').getByText('Je choisis la feuille').click();
@@ -162,7 +163,7 @@ const PCT = '75' + NB + '%';
     await t2.waitForFunction(() => /Enregistré/.test(document.querySelector('#v-sheets [data-sh="save-status"]').textContent));
     assert.ok(!('res' in await t2.evaluate(() => window.TMClasse.cleanSheets({}))), 'feuille enregistrée sans le champ');
     const z = await newPage();
-    await z.goto(BASE + 'essai/');
+    await z.goto(BASE + PRE);
     await z.click('#res-pct', { force: true });
     await z.goto(kids2);
     await z.locator('#klass-names button', { hasText: 'Zoé' }).click();

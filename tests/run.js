@@ -11,10 +11,13 @@ const RUNS = [
   ['resultats-par-operation.test.js', 'essai/'],
   ['limite-serveur.test.js', ''],
   ['limite-serveur.test.js', 'essai/'],
-  ['feuille-du-prof.test.js'],
+  ['feuille-du-prof.test.js', ''],
+  ['feuille-du-prof.test.js', 'essai/'],
   ['classe-simplifiee.test.js'],
-  ['pourcentage.test.js'],
-  ['retour-classe.test.js']
+  ['pourcentage.test.js', ''],
+  ['pourcentage.test.js', 'essai/'],
+  ['retour-classe.test.js', ''],
+  ['retour-classe.test.js', 'essai/']
 ];
 let failed = 0;
 for (const [file, page] of RUNS) {

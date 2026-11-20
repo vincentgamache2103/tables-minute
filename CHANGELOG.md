@@ -11,8 +11,8 @@ Chaque version a son commit, noté ci-dessous. Les `?v=` des scripts servent seu
 3. noter le commit en ligne à côté de la version (et, si on veut, créer la « Release » v1.x dans GitHub, sur ce commit) ;
 4. pour une nouveauté utile aux profs : courriel « Les nouveautés » de 3 lignes aux inscrits.
 
-## 1.6 · en essai (page `essai/`)
-Pas encore pour tous : https://vincentgamache2103.github.io/tables-minute/essai/ma-classe.html
+## 1.6 · 20 novembre 2026
+Pour tous depuis le 20 novembre (en essai à `essai/` depuis le 12). La page `essai/` reste en ligne, identique, pour les liens déjà partagés.
 - **La feuille de vos élèves** : le prof choisit la feuille de toute la classe et, au besoin, des feuilles
   pour certains élèves, en glissant ou en touchant leurs prénoms. Les élèves la trouvent prête et ne peuvent
   pas la changer ; ils ne voient jamais le nom de leur feuille. Le lien de la classe ne change pas. (#17)

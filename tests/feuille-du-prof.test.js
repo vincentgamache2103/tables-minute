@@ -1,5 +1,6 @@
-// La feuille du prof (page d'essai) : un prof, ses feuilles, trois élèves, le site public inchangé.
+// La feuille du prof : un prof, ses feuilles, trois élèves (site public, puis page d'essai).
 const { chromium, assert, fs, path, ROOT, server, db, now, rulesDenyS, busy, seenLimits, setup, solve } = require('./outils');
+const PRE = process.argv[2] !== undefined ? process.argv[2] : 'essai/';
 (async () => {
   await new Promise((r) => server.listen(8765, r));
   const BASE = 'http://localhost:8765/';
@@ -11,22 +12,13 @@ const { chromium, assert, fs, path, ROOT, server, db, now, rulesDenyS, busy, see
     const tctx = await browser.newContext({ viewport: { width: 1180, height: 820 } });
     await setup(tctx, errors);
     const t = await tctx.newPage();
-    await t.goto(BASE + 'essai/ma-classe.html');
+    await t.goto(BASE + PRE + 'ma-classe.html');
     await t.fill('#new-name', '2e année');
     await t.fill('#new-names', 'Léa\nNoah\nZoé\nSam\nMia\nLiam');
     await t.click('#new-go');
     await t.waitForSelector('#v-class:not([hidden])');
     const kidsLink = (await t.textContent('#kids-link')).trim();
-    assert.ok(/\/essai\/\?ref=classe#c=/.test(kidsLink), 'lien des élèves dans essai/ : ' + kidsLink);
-    // Le site public est resté comme avant
-    const pub = await tctx.newPage();
-    await pub.goto(BASE + 'ma-classe.html');
-    await pub.waitForSelector('#v-class:not([hidden])');
-    assert.strictEqual(await pub.locator('#card-sheets').count(), 0, 'pas de carte sur le site public');
-    await pub.goto(BASE);
-    assert.strictEqual(await pub.getByText('Par stratégie').count(), 0, 'pas de stratégies sur le site public');
-    await pub.close();
-    console.log('✓ site public inchangé, même classe visible des deux côtés');
+    assert.ok(new RegExp(':8765/' + PRE.replace('/', '\\/') + '\\?ref=classe#c=').test(kidsLink), 'lien des élèves dans ' + (PRE || 'le site public') + ' : ' + kidsLink);
     await t.waitForFunction(() => !document.querySelector('#card-sheets [data-sh="open"]').disabled);
     const cardTxt = (await t.textContent('#card-sheets')).replace(/\s+/g, ' ');
     assert.match(cardTxt, /choisissent/);
@@ -112,7 +104,7 @@ const { chromium, assert, fs, path, ROOT, server, db, now, rulesDenyS, busy, see
     /* ---- « Ce n'est pas moi » puis Zoé : la feuille de toute la classe ---- */
     // (la feuille de Léa est encore en cours sur cette tablette : on prend une autre tablette pour Zoé)
     const z2 = await (async () => { const c = await browser.newContext(); await setup(c, errors); return c.newPage(); })();
-    await z2.goto(kidsLink.replace(/^https?:\/\/[^#]+/, BASE + 'essai/?ref=classe'));
+    await z2.goto(kidsLink.replace(/^https?:\/\/[^#]+/, BASE + PRE + '?ref=classe'));
     await z2.waitForSelector('#klass-names button:visible');
     await z2.locator('#klass-names button', { hasText: 'Zoé' }).click();
     await z2.waitForFunction(() => /2 à 5/.test(document.getElementById('preset').textContent));
@@ -132,7 +124,7 @@ const { chromium, assert, fs, path, ROOT, server, db, now, rulesDenyS, busy, see
     ok('deuxième version enregistrée');
 
     const n = await sctx.newPage();
-    await n.goto(kidsLink.replace(/^https?:\/\/[^#]+/, BASE + 'essai/?ref=classe'));
+    await n.goto(kidsLink.replace(/^https?:\/\/[^#]+/, BASE + PRE + '?ref=classe'));
     await n.waitForSelector('#klass-names button:visible, #klass-change:visible');
     if (await n.locator('#klass-change').isVisible()) await n.click('#klass-change');
     await n.locator('#klass-names button', { hasText: 'Noah' }).click();
@@ -145,7 +137,7 @@ const { chromium, assert, fs, path, ROOT, server, db, now, rulesDenyS, busy, see
     db['/classes/' + root + '/s/AAAAAAAAAAAAAAAAAAAA'] = { d: db[docs[0]].d, t: now() }; // vieille version rejouée
     db['/classes/' + root + '/s/BBBBBBBBBBBBBBBBBBBB'] = { d: 'x'.repeat(200), t: now() }; // faux
     const n2 = await sctx.newPage();
-    await n2.goto(kidsLink.replace(/^https?:\/\/[^#]+/, BASE + 'essai/?ref=classe'));
+    await n2.goto(kidsLink.replace(/^https?:\/\/[^#]+/, BASE + PRE + '?ref=classe'));
     await n2.waitForSelector('#klass-names button:visible, #klass-change:visible');
     if (await n2.locator('#klass-change').isVisible()) await n2.click('#klass-change');
     await n2.locator('#klass-names button', { hasText: 'Noah' }).click();
@@ -157,7 +149,7 @@ const { chromium, assert, fs, path, ROOT, server, db, now, rulesDenyS, busy, see
     const fresh = await browser.newContext();
     await setup(fresh, errors);
     const f = await fresh.newPage();
-    await f.goto(kidsLink.replace(/^https?:\/\/[^#]+/, BASE + 'essai/?ref=classe'));
+    await f.goto(kidsLink.replace(/^https?:\/\/[^#]+/, BASE + PRE + '?ref=classe'));
     await f.locator('#klass-names button', { hasText: 'Mia' }).click();
     await f.waitForTimeout(800);
     assert.ok(await f.locator('#preset').isHidden(), 'sans règles publiées : pas de préréglage');

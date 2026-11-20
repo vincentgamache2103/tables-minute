@@ -1,7 +1,8 @@
-// Demande d'une enseignante pilote (page d'essai) :
+// Demande d'une enseignante pilote (site public, puis page d'essai) :
 // A. un appareil qui connaît une classe, ouvert sans son lien : un bloc bien visible ramène à la classe;
 // B. appareils partagés (choix du prof) : le prénom est redemandé après chaque feuille.
 const { chromium, assert, server, db, busy, setup, solve } = require('./outils');
+const PRE = process.argv[2] !== undefined ? process.argv[2] : 'essai/';
 const ok = (m) => console.log('✓ ' + m);
 (async () => {
   await new Promise((r) => server.listen(8775, r));
@@ -28,23 +29,23 @@ const ok = (m) => console.log('✓ ' + m);
   const myIndex = (p) => p.evaluate(() => window.TMClasse.myIndex(window.TMClasse.readHash(window.location.hash).id));
   const makeClass = async (name, names) => {
     const t = await newPage();
-    await t.goto(BASE + 'essai/ma-classe.html');
+    await t.goto(BASE + PRE + 'ma-classe.html');
     await t.fill('#new-name', name);
     await t.fill('#new-names', names);
     await t.click('#new-go');
     await t.waitForSelector('#v-class:not([hidden])');
     await t.waitForFunction(() => !document.querySelector('#card-sheets [data-sh="open"]').disabled);
-    return { t, kids: (await t.textContent('#kids-link')).trim().replace(/^https?:\/\/[^#?]+/, BASE + 'essai/') };
+    return { t, kids: (await t.textContent('#kids-link')).trim().replace(/^https?:\/\/[^#?]+/, BASE + PRE) };
   };
   try {
     /* ---------- A. Retour à la classe ---------- */
     const A = await makeClass('2e année', 'Léa\nNoah');
     const s = await newPage();
-    await s.goto(BASE + 'essai/');
+    await s.goto(BASE + PRE);
     assert.ok(await s.locator('#klass-back').isHidden(), 'appareil sans classe : pas de bloc');
     await s.goto(A.kids);
     await s.locator('#klass-names button', { hasText: 'Léa' }).click();
-    await s.goto(BASE + 'essai/');
+    await s.goto(BASE + PRE);
     await s.waitForSelector('#klass-back:not([hidden])');
     assert.ok(await s.locator('#klass-back-full').isVisible(), 'bloc bien visible');
     assert.strictEqual((await s.textContent('#klass-back-title')).trim(), '2e année');
