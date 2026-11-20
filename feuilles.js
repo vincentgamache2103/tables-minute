@@ -150,6 +150,17 @@
       return ops + (what ? ' ' + what : '') + ' · ' + s.m + NB + 'min';
     }
     var detail = function (s) { return KIND_NAME[s.k] + ' · ' + s.q + NB + 'questions'; };
+    // Feuille papier (#27) : la page des élèves s'ouvre avec ces réglages (comme un lien de groupe) et lance l'impression.
+    var KIND_CODE = { product: 'r', missing: 'n', mix: 'x' };
+    function printUrl(sheet) {
+      var s = outSheet(sheet);
+      var q = 'o=' + s.o.join('-') + (s.st.length ? '&st=' + s.st.join('-') : '&t=' + s.t.join('-')) +
+        '&m=' + s.m + '&k=' + KIND_CODE[s.k] + '&q=' + s.q + '&imprimer=1';
+      return (opts.printBase || './') + '?' + q;
+    }
+    function printBtn(id, label) {
+      return h('button', { type: 'button', class: 'btn btn--link sh-print', 'data-act': 'print', 'data-id': id, 'data-k': 'print-' + id, 'aria-label': label, text: 'Imprimer' });
+    }
     function problem(s) {
       if (!s.o.length) return 'choisissez au moins une opération.';
       if (s.mode === 'st' && s.o.every(isMD)) return s.st.length ? '' : 'choisissez au moins une stratégie.';
@@ -376,7 +387,10 @@
         var bad = problem(draft.all);
         body.push(h('div', { class: 'sh-line' }, [
           h('p', { class: 'sh-what' }, [h('b', { text: summary(draft.all) }), h('span', { text: detail(draft.all) })]),
-          open ? null : h('button', { type: 'button', class: 'btn sh-btn', 'data-act': 'edit', 'data-id': 'all', 'data-k': 'edit-all', 'aria-label': 'Modifier la feuille de ' + allTitle().toLowerCase(), text: 'Modifier' })
+          open ? null : h('div', { class: 'sh-actions' }, [
+            bad ? null : printBtn('all', 'Imprimer la feuille de ' + allTitle().toLowerCase()),
+            h('button', { type: 'button', class: 'btn sh-btn', 'data-act': 'edit', 'data-id': 'all', 'data-k': 'edit-all', 'aria-label': 'Modifier la feuille de ' + allTitle().toLowerCase(), text: 'Modifier' })
+          ])
         ]));
         if (bad && !open) body.push(h('p', { class: 'hint sh-warn', text: 'Pas encore complète : ' + bad }));
         if (open) body.push(form(draft.all, 'all', null));
@@ -407,6 +421,7 @@
             h('span', { class: 'sh-count sh-count--pill', text: plural(n, 'élève', 'élèves') })
           ]),
           h('div', { class: 'sh-actions' }, [
+            open || bad ? null : printBtn(id, 'Imprimer la feuille ' + LETTERS[idx]),
             open ? null : h('button', { type: 'button', class: 'btn sh-btn', 'data-act': 'edit', 'data-id': id, 'data-k': 'edit-' + id, 'aria-label': 'Modifier la feuille ' + LETTERS[idx], text: 'Modifier' }),
             h('div', { class: 'sh-menu-wrap' }, [
               h('button', { type: 'button', class: 'sh-more', 'data-act': 'more', 'data-id': id, 'data-k': 'more-' + id, 'aria-haspopup': 'menu', 'aria-expanded': String(!!moreOpen), 'aria-label': 'Autres actions pour la feuille ' + LETTERS[idx], text: '⋯' }),
@@ -623,6 +638,12 @@
           openId = 'all';
           pendingFocus = 'mode-pick';
           break;
+        case 'print':
+          r = sheetFor(id);
+          if (!r || problem(r)) return;
+          if (typeof opts.onPrint === 'function') opts.onPrint();
+          window.open(printUrl(r), '_blank', 'noopener');
+          return;
         case 'edit': openId = id; confirmDel = null; pendingFocus = id === 'all' ? 'f-all-o-mul' : 'f-' + id + '-n'; render(); return;
         case 'done': openId = null; pendingFocus = 'edit-' + id; render(); return;
         case 'more':

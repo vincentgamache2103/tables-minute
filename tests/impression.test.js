@@ -61,6 +61,35 @@ const ok = (m) => console.log('✓ ' + m);
     assert.ok(await p.locator('#print-go').isHidden(), 'pas d’impression en mode classe');
     ok('lien de la classe : pas de bouton Imprimer');
 
+    /* ---- Le prof imprime la feuille de sa classe (#27) ---- */
+    const t = await ctx.newPage();
+    await t.goto(BASE + PRE + 'ma-classe.html');
+    await t.fill('#new-names', 'Léa\nNoah\nZoé');
+    await t.click('#new-go');
+    await t.waitForSelector('#v-class:not([hidden])');
+    await t.waitForFunction(() => !document.querySelector('#card-sheets [data-sh="open"]').disabled);
+    await t.click('#card-sheets [data-sh="open"]');
+    await t.waitForSelector('#v-sheets:not([hidden])');
+    assert.strictEqual(await t.locator('[data-act="print"]').count(), 0, 'pas de bouton tant que les élèves choisissent');
+    await t.locator('.sh-card--all').getByText('Je choisis la feuille').click();
+    if (await t.locator('.sh-card--all .sh-form').count() === 0) await t.locator('.sh-card--all [data-act="edit"]').click();
+    const form = t.locator('.sh-card--all .sh-form');
+    for (const n of [6, 8]) await form.locator('input[data-f="t"][value="' + n + '"]').check({ force: true });
+    for (const n of [1, 2, 3, 4, 5, 7, 9, 10, 11, 12]) { const b = form.locator('input[data-f="t"][value="' + n + '"]'); if (await b.isChecked()) await b.uncheck({ force: true }); }
+    await form.locator('input[data-f="q"][value="12"]').check({ force: true });
+    await t.locator('.sh-card--all [data-act="done"]').click();
+    const [pop] = await Promise.all([ctx.waitForEvent('page'), t.click('.sh-card--all [data-act="print"]')]);
+    await pop.waitForLoadState();
+    assert.match(pop.url(), /[?&]imprimer=1/, 'adresse : ' + pop.url());
+    await pop.waitForFunction(() => window.__printed === 1);
+    assert.ok((await pop.evaluate(() => window.__ev || [])).includes('feuille-imprimee-prof'), 'événement feuille-imprimee-prof');
+    const pq = await pop.locator('#print .p-page').nth(0).locator('li').allTextContents();
+    assert.strictEqual(pq.length, 12, '12 questions');
+    pq.forEach((q) => assert.ok(/(^|\D)[68](\D|$)/.test(q.replace(/\u00a0/g, ' ')), 'tables de 6 et 8 : ' + q));
+    assert.ok(await pop.locator('#print-go').isVisible(), 'le bouton reste là pour réimprimer');
+    await pop.close();
+    ok('prof : « Imprimer » ouvre la feuille de la classe (tables de 6 et 8, 12 questions) et lance l’impression');
+
     assert.deepStrictEqual(errors.filter((e) => !/Firestore|404|classe/i.test(e)), []);
     ok('aucune erreur de page');
   } catch (e) {

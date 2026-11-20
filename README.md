@@ -7,7 +7,8 @@ Feuille de tables minute chronométrée, pensée pour la tablette.
 - Questions « 4 × 7 = ? », « 4 × ? = 28 », « 28 ÷ 4 = ? », « ? − 4 = 7 »…
 - Clavier à l'écran, correction à la fin, faits à revoir et reprise des erreurs
 - Boîte à idées : les suggestions arrivent par courriel (Web3Forms)
-- Feuille à imprimer avec son corrigé (« Imprimer cette feuille », événement `feuille-imprimee`)
+- Feuille à imprimer avec son corrigé (« Imprimer cette feuille », événement `feuille-imprimee`; depuis le tableau du prof :
+  « Imprimer » ouvre la page avec `&imprimer=1` et les réglages de la feuille, événement `feuille-imprimee-prof`)
 - Réglages et derniers essais gardés sur l'appareil
 
 Site : https://vincentgamache2103.github.io/tables-minute/ · Notes de version : `CHANGELOG.md`

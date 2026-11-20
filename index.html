@@ -1520,6 +1520,8 @@ button { cursor: pointer; touch-action: manipulation; }
     };
   }
   const GROUP = readGroup(window.location.search);
+  // « Imprimer » depuis le tableau du prof : la page s'ouvre avec la feuille de la classe et lance l'impression (#27).
+  const PRINT_ASK = !!GROUP && urlParam('imprimer') === '1';
 
   /* ---------- Navigateur intégré de Facebook, Messenger ou Instagram ---------- */
   // Dans ces applications, le site s'ouvre dans un navigateur à part, séparé de Safari et de Chrome :
@@ -1891,10 +1893,11 @@ button { cursor: pointer; touch-action: manipulation; }
       qs.map((q) => '<li>' + printEq(q, answers) + '</li>').join('') + '</ol>' +
       '<p class="p-foot">vincentgamache2103.github.io/tables-minute</p></div>';
   }
-  function printSheet() {
+  function printSheet(fromTeacher) {
     const qs = buildQuestions(settings);
     $('print').innerHTML = printPage(qs, false) + printPage(qs, true);
-    track('feuille-imprimee', 'Feuille imprimée');
+    if (fromTeacher === true) track('feuille-imprimee-prof', 'Feuille imprimée depuis le tableau du prof');
+    else track('feuille-imprimee', 'Feuille imprimée');
     try { window.print(); } catch (e) { /* pas d'impression sur cet appareil */ }
   }
 
@@ -3403,7 +3406,8 @@ button { cursor: pointer; touch-action: manipulation; }
     $('start').addEventListener('click', () => { if (!klassReady()) return; primeAudio(); startRun(buildQuestions(settings), false); });
     // Avec le lien de la classe, la feuille va au prof : pas de version papier.
     $('print-go').hidden = KLASS_HASH;
-    $('print-go').addEventListener('click', printSheet);
+    $('print-go').addEventListener('click', () => printSheet(false));
+    if (PRINT_ASK && !KLASS_HASH) setTimeout(() => printSheet(true), 400);
     $('again').addEventListener('click', () => {
       // Appareils partagés : « Nouvelle feuille » ramène à la liste des prénoms.
       if (KLASS_HASH && klass.state === 'ready' && (klass.me < 0 || klass.ask)) { show('setup'); renderHistory(); klassReady(); return; }
