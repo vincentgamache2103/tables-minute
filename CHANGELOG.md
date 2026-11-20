@@ -11,6 +11,11 @@ Chaque version a son commit, noté ci-dessous. Les `?v=` des scripts servent seu
 3. noter le commit en ligne à côté de la version (et, si on veut, créer la « Release » v1.x dans GitHub, sur ce commit) ;
 4. pour une nouveauté utile aux profs : courriel « Les nouveautés » de 3 lignes aux inscrits.
 
+## 1.7 · 20 novembre 2026
+- **Imprimer cette feuille** : sous « Commencer », une feuille papier avec les réglages choisis (opérations,
+  tables, nombre de questions), le nom, la date, le temps et le résultat à remplir, et le corrigé sur une
+  page à part. Les mêmes questions qu'à l'écran. Pas offert avec le lien de la classe. (#27)
+
 ## 1.6 · 20 novembre 2026 · `c956d6d`
 Pour tous depuis le 20 novembre (en essai à `essai/` depuis le 12). La page `essai/` reste en ligne, identique, pour les liens déjà partagés.
 - **La feuille de vos élèves** : le prof choisit la feuille de toute la classe et, au besoin, des feuilles

@@ -393,6 +393,31 @@ button { cursor: pointer; touch-action: manipulation; }
 .preview { display: grid; gap: 10px; }
 .start-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 .start-summary { margin: 0; color: var(--ink-soft); }
+.print-go { margin-left: auto; }
+
+/* ---------- Feuille à imprimer (#27) : rien à l'écran, seule la feuille à l'impression ---------- */
+.print { display: none; }
+@media print {
+  @page { margin: 14mm 12mm; }
+  html, body { background: #fff !important; color: #000 !important; }
+  body > *:not(#print) { display: none !important; }
+  .print { display: block; font-family: var(--font-body, system-ui, sans-serif); color: #000; }
+  .p-page + .p-page { break-before: page; page-break-before: always; }
+  .p-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 2px solid #000; padding-bottom: 6px; }
+  .p-title { margin: 0; font-size: 18pt; font-weight: 800; }
+  .p-what { margin: 0; font-size: 11pt; text-align: right; }
+  .p-lines { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 10px 0 14px; font-size: 12pt; }
+  .p-lines span { white-space: nowrap; }
+  .p-line { display: inline-block; min-width: 42mm; border-bottom: 1px solid #000; }
+  .p-line--s { min-width: 20mm; }
+  .p-grid { margin: 0; padding: 0 0 0 1.8em; columns: 3; column-gap: 10mm; font-size: 15pt; font-variant-numeric: tabular-nums; }
+  .p-grid--big { columns: 2; font-size: 17pt; }
+  .p-grid li { break-inside: avoid; padding: 2.4mm 0; }
+  .p-grid li::marker { font-size: 9pt; color: #555; }
+  .p-blank { display: inline-block; min-width: 2.2em; border-bottom: 1.5px solid #000; }
+  .p-ans { font-weight: 800; text-decoration: underline; }
+  .p-foot { margin: 10px 0 0; font-size: 9pt; color: #555; }
+}
 
 /* ---------- Boutons ---------- */
 .btn {
@@ -1139,6 +1164,7 @@ button { cursor: pointer; touch-action: manipulation; }
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <p class="start-summary" id="summary"></p>
+            <button type="button" class="btn btn--link print-go" id="print-go">Imprimer cette feuille</button>
           </div>
         </article>
 
@@ -1216,7 +1242,7 @@ button { cursor: pointer; touch-action: manipulation; }
           <a href="../addition-soustraction.html">Addition et soustraction</a>
         </nav>
         <p class="fine">Tables minute : les tables minute de l’école au Québec, à la maison. Multiplication, division, addition et soustraction, tables de 1 à 12. Gratuit, sans compte et sans pub.</p>
-        <p class="fine" id="version">Version 1.6 · essai</p>
+        <p class="fine" id="version">Version 1.7 · essai</p>
       </footer>
     </div>
   </section>
@@ -1378,6 +1404,8 @@ button { cursor: pointer; touch-action: manipulation; }
     <p class="share-status" id="sd-status" role="status" aria-live="polite"></p>
   </div>
 </dialog>
+
+<section class="print" id="print" aria-hidden="true"></section>
 
 <script src="classe.js?v=5"></script>
 <script>
@@ -1839,6 +1867,36 @@ button { cursor: pointer; touch-action: manipulation; }
     const op = OPS[q.op] || OPS.mul;
     const p = (key) => (key === q.hide ? '<span class="mini-box"></span>' : '<span>' + q[key] + '</span>');
     return '<span class="mini">' + p('a') + '<span class="op">' + op.sym + '</span>' + p('b') + '<span class="op">=</span>' + p('c') + '</span>';
+  }
+
+  /* ---------- Feuille à imprimer (#27) ---------- */
+  // Les mêmes questions qu'à l'écran (buildQuestions), une page pour l'élève et une page de corrigé.
+  const escHTML = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  function printEq(q, answers) {
+    const op = OPS[q.op] || OPS.mul;
+    const part = (key) => key !== q.hide ? String(q[key])
+      : (answers ? '<span class="p-ans">' + q[key] + '</span>' : '<span class="p-blank">' + NBSP + '</span>');
+    return part('a') + ' ' + op.sym + ' ' + part('b') + ' = ' + part('c');
+  }
+  function printPage(qs, answers) {
+    const what = sheetWhat(settings, true) + ' · ' + settings.minutes + NBSP + 'minutes';
+    const name = settings.name ? escHTML(settings.name) : '';
+    const lines = answers
+      ? '<p class="p-lines"><span>Corrigé</span></p>'
+      : '<p class="p-lines"><span>Nom&nbsp;: <span class="p-line">' + name + '</span></span>' +
+        '<span>Date&nbsp;: <span class="p-line p-line--s"></span></span>' +
+        '<span>Temps&nbsp;: <span class="p-line p-line--s"></span></span>' +
+        '<span>Résultat&nbsp;: <span class="p-line p-line--s"></span>' + NBSP + '/' + NBSP + qs.length + '</span></p>';
+    return '<div class="p-page"><header class="p-head"><h1 class="p-title">Tables minute</h1><p class="p-what">' + escHTML(what) + '</p></header>' +
+      lines + '<ol class="p-grid' + (qs.length <= 12 ? ' p-grid--big' : '') + '">' +
+      qs.map((q) => '<li>' + printEq(q, answers) + '</li>').join('') + '</ol>' +
+      '<p class="p-foot">vincentgamache2103.github.io/tables-minute</p></div>';
+  }
+  function printSheet() {
+    const qs = buildQuestions(settings);
+    $('print').innerHTML = printPage(qs, false) + printPage(qs, true);
+    track('feuille-imprimee', 'Feuille imprimée');
+    try { window.print(); } catch (e) { /* pas d'impression sur cet appareil */ }
   }
 
   /* ---------- État ---------- */
@@ -3344,6 +3402,9 @@ button { cursor: pointer; touch-action: manipulation; }
     });
 
     $('start').addEventListener('click', () => { if (!klassReady()) return; primeAudio(); startRun(buildQuestions(settings), false); });
+    // Avec le lien de la classe, la feuille va au prof : pas de version papier.
+    $('print-go').hidden = KLASS_HASH;
+    $('print-go').addEventListener('click', printSheet);
     $('again').addEventListener('click', () => {
       // Appareils partagés : « Nouvelle feuille » ramène à la liste des prénoms.
       if (KLASS_HASH && klass.state === 'ready' && (klass.me < 0 || klass.ask)) { show('setup'); renderHistory(); klassReady(); return; }

@@ -17,7 +17,9 @@ const RUNS = [
   ['pourcentage.test.js', ''],
   ['pourcentage.test.js', 'essai/'],
   ['retour-classe.test.js', ''],
-  ['retour-classe.test.js', 'essai/']
+  ['retour-classe.test.js', 'essai/'],
+  ['impression.test.js', ''],
+  ['impression.test.js', 'essai/']
 ];
 let failed = 0;
 for (const [file, page] of RUNS) {
