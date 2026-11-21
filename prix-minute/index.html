@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prix minute</title>
+<meta name="description" content="Scanne un produit à l'épicerie et vois si le spécial en est un vrai. Version d'essai gratuite, sans compte, indépendante des épiciers.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Une colonne d'appli de téléphone, centrée ; onglets en haut, cartes empilées */
+:root {
+  --bg: #f4f6f3; --surface: #ffffff; --fg: #17201a; --muted: #5b675e; --line: #d9dfd8;
+  --accent: #1f5fbf; --accent-soft: #e4ecf8; --good: #1d8a46; --good-soft: #def2e4;
+  --amber: #b76e00; --amber-soft: #fbecd2; --neutral: #5d6a73; --neutral-soft: #e8ecef;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101411; --surface: #19201b; --fg: #e9eee9; --muted: #a2aea5; --line: #2e3831;
+    --accent: #7eaaf0; --accent-soft: #1c2a40; --good: #5cc882; --good-soft: #17301f;
+    --amber: #f0b04f; --amber-soft: #382a12; --neutral: #a6b1b9; --neutral-soft: #252c30;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: calc(16px + env(safe-area-inset-top, 0px)) calc(40px + env(safe-area-inset-bottom, 0px));
+}
+[hidden] { display: none !important; }
+.app { max-width: 460px; margin: 0 auto; display: grid; gap: 14px; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+h1 { font-family: var(--font-display); font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+.tag { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; }
+.intro { margin: 0; color: var(--muted); font-size: 14px; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px; gap: 4px; }
+.tabs button { font: inherit; font-size: 13px; font-weight: 600; border: 0; border-radius: 10px; padding: 10px 4px; background: transparent; color: var(--muted); cursor: pointer; min-height: 44px; }
+.tabs button[aria-selected="true"] { background: var(--accent-soft); color: var(--fg); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card h2 { margin: 0; font-size: 17px; }
+.big { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; border-radius: 14px; border: 2px solid var(--accent); background: var(--accent-soft); color: var(--fg); font: inherit; font-weight: 700; font-size: 16px; cursor: pointer; text-align: center; padding: 8px 14px; }
+.big:focus-within, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.big input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.row { display: flex; gap: 8px; }
+input[type=text], input[type=email], input[inputmode], select, textarea { width: 100%; min-width: 0; font: inherit; font-size: 16px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+textarea { min-height: 90px; resize: vertical; }
+.btn { font: inherit; font-weight: 600; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 10px 14px; min-height: 48px; cursor: pointer; }
+.btn.primary { border: 2px solid var(--accent); background: var(--accent-soft); }
+.btn[disabled] { opacity: .6; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 999px; padding: 8px 12px; cursor: pointer; min-height: 40px; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.status { font-size: 14px; color: var(--muted); margin: 0; }
+.verdict { display: flex; align-items: center; gap: 12px; border-radius: 14px; padding: 12px 14px; border: 2px solid; }
+.verdict .ico { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--surface); font-weight: 700; flex: none; }
+.verdict strong { font-family: var(--font-display); font-size: 21px; display: block; }
+.verdict .sub { font-size: 13px; color: var(--muted); }
+.v-good { border-color: var(--good); background: var(--good-soft); } .v-good .ico { background: var(--good); }
+.v-amber { border-color: var(--amber); background: var(--amber-soft); } .v-amber .ico { background: var(--amber); }
+.v-neutral { border-color: var(--neutral); background: var(--neutral-soft); } .v-neutral .ico { background: var(--neutral); }
+.prod { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.prod h3 { margin: 0; font-size: 17px; overflow-wrap: anywhere; }
+.prod .meta { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.price { font-family: var(--font-display); font-size: 36px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gauge { display: grid; gap: 6px; }
+.gauge .track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--good-soft), var(--neutral-soft)); border: 1px solid var(--line); }
+.gauge .dot { position: absolute; top: 50%; width: 20px; height: 20px; border-radius: 50%; transform: translate(-50%, -50%); border: 2px solid var(--fg); }
+.gauge .ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.periods { display: flex; gap: 6px; }
+.periods button { font: inherit; font-size: 13px; border: 1px solid var(--line); background: transparent; color: var(--fg); border-radius: 999px; padding: 6px 12px; cursor: pointer; min-height: 36px; }
+.periods button[aria-pressed="true"] { border: 2px solid var(--accent); background: var(--accent-soft); font-weight: 600; }
+.chart { width: 100%; height: auto; display: block; touch-action: pan-y; }
+.tip { font-size: 13px; min-height: 20px; font-variant-numeric: tabular-nums; }
+.facts { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.demo-note { font-size: 12px; color: var(--amber); border: 1px dashed var(--amber); border-radius: 10px; padding: 8px 10px; margin: 0; }
+label.f { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
+label.f span.opt { font-weight: 400; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
+legend { font-size: 13px; font-weight: 600; margin-bottom: 6px; padding: 0; }
+.choices { display: flex; flex-wrap: wrap; gap: 6px; }
+.choices label { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; font-size: 14px; cursor: pointer; min-height: 40px; }
+.choices input { accent-color: var(--accent); }
+.ok-msg { background: var(--good-soft); border-radius: 10px; padding: 10px 12px; margin: 0; font-size: 14px; }
+.err-msg { background: var(--amber-soft); border-radius: 10px; padding: 10px 12px; margin: 0; font-size: 14px; }
+footer { font-size: 12px; color: var(--muted); display: grid; gap: 6px; padding-top: 4px; }
+footer p { margin: 0; }
+.hp { position: absolute; left: -9999px; }
+@media (prefers-reduced-motion: no-preference) { .gauge .dot { transition: left .4s ease; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Prix minute</h1>
+    <span class="tag">Version d'essai</span>
+  </header>
+  <p class="intro">À l'épicerie, scanne un produit en spécial : Prix minute compare son prix à toute l'année pour te dire si c'est un vrai bon prix.</p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-scan" aria-selected="true" aria-controls="pane-scan">Scanner</button>
+    <button role="tab" id="tab-prix" aria-selected="false" aria-controls="pane-prix">Ajouter un prix</button>
+    <button role="tab" id="tab-avis" aria-selected="false" aria-controls="pane-avis">Ton avis</button>
+  </div>
+
+  <!-- Scanner -->
+  <section id="pane-scan" role="tabpanel" aria-labelledby="tab-scan" class="app">
+    <div class="card">
+      <label class="big" for="barcode-photo">Prendre le code-barres en photo
+        <input id="barcode-photo" type="file" accept="image/*" capture="environment">
+      </label>
+      <div class="row">
+        <input id="code-input" type="text" inputmode="numeric" autocomplete="off" placeholder="Ou tape le code" aria-label="Code-barres">
+        <button class="btn" id="code-go">Voir</button>
+      </div>
+      <div class="hint">Exemples pour voir le résultat :</div>
+      <div class="chips" aria-label="Exemples">
+        <button data-code="2000000000015">Céréales au miel</button>
+        <button data-code="2000000000022">Café moulu</button>
+        <button data-code="2000000000039">Jus d'orange</button>
+      </div>
+      <p class="status" id="scan-status" role="status">Vise le code-barres de près, bien droit, avec assez de lumière.</p>
+    </div>
+
+    <!-- Résultat d'un exemple -->
+    <div class="card" id="result" hidden>
+      <div class="verdict" id="verdict"><div class="ico" id="v-ico" aria-hidden="true"></div><div><strong id="v-title"></strong><span class="sub" id="v-sub"></span></div></div>
+      <div class="prod">
+        <div><h3 id="p-name"></h3><div class="meta" id="p-meta"></div></div>
+        <div class="price" id="p-price"></div>
+      </div>
+      <div class="gauge">
+        <div class="hint">Sur 12 mois, au Québec</div>
+        <div class="track"><div class="dot" id="g-dot"></div></div>
+        <div class="ends"><span id="g-lo"></span><span id="g-hi"></span></div>
+      </div>
+      <div class="periods" role="group" aria-label="Période">
+        <button data-weeks="13" aria-pressed="false">3 mois</button>
+        <button data-weeks="26" aria-pressed="false">6 mois</button>
+        <button data-weeks="52" aria-pressed="true">1 an</button>
+      </div>
+      <svg class="chart" id="chart" viewBox="0 0 400 210" role="img" aria-label="Prix dans le temps"></svg>
+      <div class="tip" id="tip">Touche la courbe pour voir un prix.</div>
+      <ul class="facts" id="facts"></ul>
+      <p class="demo-note">Exemple : produit et prix inventés pour montrer à quoi ressemblera le résultat.</p>
+    </div>
+
+    <!-- Résultat d'un vrai produit -->
+    <div class="card" id="real" hidden>
+      <div class="verdict v-neutral"><div class="ico" aria-hidden="true">…</div><div><strong>Trop tôt pour juger</strong><span class="sub">On commence à peine à suivre les prix.</span></div></div>
+      <div class="prod"><div><h3 id="r-name"></h3><div class="meta" id="r-meta"></div></div></div>
+      <p class="hint">Aide à bâtir l'historique : entre le prix de l'étiquette. Ça prend 20 secondes.</p>
+      <button class="btn primary" id="r-add">Ajouter le prix de ce produit</button>
+    </div>
+  </section>
+
+  <!-- Ajouter un prix -->
+  <section id="pane-prix" role="tabpanel" aria-labelledby="tab-prix" class="app" hidden>
+    <form class="card" id="prix-form">
+      <h2>Ajouter un prix vu en magasin</h2>
+      <p class="hint">Recopie l'étiquette. Depuis mai 2025, elle montre le prix, le prix courant et le prix unitaire.</p>
+      <label class="f">Code-barres <input id="f-code" type="text" inputmode="numeric" required autocomplete="off"></label>
+      <label class="f">Produit et format <input id="f-prod" type="text" required placeholder="ex. Céréales au miel, 400 g" autocomplete="off"></label>
+      <div class="grid2">
+        <label class="f">Magasin
+          <select id="f-magasin" required>
+            <option value="">Choisir</option>
+            <option>IGA</option><option>Metro</option><option>Maxi</option><option>Super C</option><option>Provigo</option><option>Walmart</option><option>Costco</option><option>Adonis</option><option>Autre</option>
+          </select>
+        </label>
+        <label class="f">Ville <input id="f-ville" type="text" autocomplete="address-level2"></label>
+      </div>
+      <div class="grid2">
+        <label class="f">Prix payé <input id="f-prix" type="text" inputmode="decimal" required placeholder="3,49"></label>
+        <label class="f">Prix courant <span class="opt">si affiché</span><input id="f-courant" type="text" inputmode="decimal" placeholder="5,79"></label>
+      </div>
+      <label class="f">Prix membre <span class="opt">si l'étiquette en montre un</span><input id="f-membre" type="text" inputmode="decimal"></label>
+      <input type="checkbox" class="hp" tabindex="-1" autocomplete="off" id="prix-hp" aria-hidden="true">
+      <button class="btn primary" type="submit" id="prix-send">Envoyer le prix</button>
+      <p id="prix-msg" hidden></p>
+      <p class="hint">Aucun renseignement personnel : seulement le produit, le magasin et le prix.</p>
+    </form>
+  </section>
+
+  <!-- Avis -->
+  <section id="pane-avis" role="tabpanel" aria-labelledby="tab-avis" class="app" hidden>
+    <form class="card" id="avis-form">
+      <h2>Ton avis compte</h2>
+      <p class="hint">Prix minute est en construction. Ton avis décide de la suite.</p>
+      <fieldset>
+        <legend>L'utiliserais-tu à l'épicerie?</legend>
+        <div class="choices">
+          <label><input type="radio" name="usage" value="Chaque semaine" required> Chaque semaine</label>
+          <label><input type="radio" name="usage" value="Parfois"> Parfois</label>
+          <label><input type="radio" name="usage" value="Non"> Non</label>
+        </div>
+      </fieldset>
+      <label class="f">Qu'est-ce qui manque ou qui accroche? <span class="opt">facultatif</span><textarea id="a-texte" maxlength="1500"></textarea></label>
+      <label class="f">Où fais-tu ton épicerie surtout? <span class="opt">facultatif</span><input id="a-epicerie" type="text" placeholder="ex. IGA, Costco"></label>
+      <label class="f">Ton courriel, si tu veux une réponse <span class="opt">facultatif, adultes seulement</span><input id="a-email" type="email" autocomplete="email"></label>
+      <input type="checkbox" class="hp" tabindex="-1" autocomplete="off" id="avis-hp" aria-hidden="true">
+      <button class="btn primary" type="submit" id="avis-send">Envoyer mon avis</button>
+      <p id="avis-msg" hidden></p>
+    </form>
+  </section>
+
+  <footer>
+    <p>Prix minute est un projet indépendant, sans lien avec aucun épicier. Version d'essai : les verdicts affichés sont des exemples, on commence à recueillir les vrais prix.</p>
+    <p>Aucun compte. Les statistiques comptent les visites sans suivre personne. Les noms de produits viennent d'Open Food Facts. <a href="confidentialite.html" style="color:inherit">Confidentialité</a></p>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js" integrity="sha384-IkRTkdAeAAAqE2ct5zNAfMiX8+H35pGJp8j7+ZFwh7PKaJh5eunsOFAb9l6Z9R7r" crossorigin="anonymous"></script>
+<script src="compteur.js"></script>
+<script>
+(() => {
+  'use strict';
+  const FORM_KEY = 'db8f3899-adb3-4279-9a14-2e80688177d7';
+  const FORM_URL = 'https://api.web3forms.com/submit';
+  const $ = id => document.getElementById(id);
+  const ev = name => { try { window.goatcounter && window.goatcounter.count && window.goatcounter.count({ path: name, title: name, event: true }); } catch (e) { /* rien */ } };
+  /* Visites de retour, sans identifiant : une date de début et une semaine gardées sur l'appareil */
+  const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* rien */ } } };
+  const today0 = () => { const d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); };
+  function isoWeek() { const d = new Date(today0()); const day = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() + 4 - day); const y0 = Date.UTC(d.getUTCFullYear(), 0, 1); return d.getUTCFullYear() + '-' + Math.ceil(((d - y0) / 864e5 + 1) / 7); }
+  // Tes appareils : ouvrir une fois le site avec ?moi pour qu'ils ne soient plus comptés
+  if (/[?&]moi\b/.test(location.search)) store.set('skipgc', 't');
+  (function retours() {
+    const debut = Number(store.get('pm_debut'));
+    if (!debut) { store.set('pm_debut', String(today0())); setTimeout(() => ev('nouvel-appareil'), 0); return; }
+    const jours = Math.round((today0() - debut) / 864e5);
+    [['j7', 7, 13, 'retour-j7'], ['s4', 28, 34, 'retour-s4'], ['s8', 56, 62, 'retour-s8']].forEach(([k, a, b, name]) => {
+      if (jours >= a && jours <= b && !store.get('pm_' + k)) { store.set('pm_' + k, '1'); setTimeout(() => ev(name), 0); }
+    });
+  })();
+  function actif() { const w = isoWeek(); if (store.get('pm_sem') !== w) { store.set('pm_sem', w); ev('actif-semaine'); } }
+  const money = p => p.toFixed(2).replace('.', ',') + ' $';
+  const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const dayLabel = d => d.getDate() + ' ' + MOIS[d.getMonth()];
+
+  /* ---------- Onglets ---------- */
+  const tabs = ['scan', 'prix', 'avis'];
+  function show(name) {
+    tabs.forEach(t => { $('tab-' + t).setAttribute('aria-selected', String(t === name)); $('pane-' + t).hidden = t !== name; });
+    window.scrollTo({ top: 0 });
+  }
+  tabs.forEach(t => $('tab-' + t).addEventListener('click', () => show(t)));
+
+  /* ---------- Exemples (historique inventé, déterministe) ---------- */
+  const DEMO = {
+    '2000000000015': { name: 'Céréales au miel', format: '400 g', grams: 400, base: 5.79, today: 'special' },
+    '2000000000022': { name: 'Café moulu', format: '925 g', grams: 925, base: 13.99, today: 'regular' },
+    '2000000000039': { name: "Jus d'orange", format: '1,75 L', ml: 1750, base: 5.49, today: 'meh' }
+  };
+  function rng(seedStr) {
+    let h = 2166136261;
+    for (const c of seedStr) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+    return () => { h += 0x6D2B79F5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  const round99 = x => Math.max(0.99, Math.round(x) - 0.01);
+  function history(code) {
+    const r = rng(code), demo = DEMO[code], base = demo.base, weeks = [];
+    const now = new Date(); now.setHours(0, 0, 0, 0);
+    let reg = base;
+    const specials = new Set();
+    let w = 3 + Math.floor(r() * 5);
+    while (w < 50) { specials.add(w); w += 6 + Math.floor(r() * 5); }
+    for (let i = 0; i < 52; i++) {
+      if (i % 13 === 0 && i > 0) reg = r() < 0.4 ? round99(base + 0.4) : base;
+      let p = reg;
+      if (specials.has(i)) p = round99(reg * (0.58 + r() * 0.17)) + (r() < 0.5 ? 0 : -0.5);
+      p = Math.max(0.99, Math.round(p * 100) / 100);
+      const d = new Date(now); d.setDate(d.getDate() - (51 - i) * 7);
+      weeks.push({ d, p, store: r() < 0.6 ? 'IGA' : ['Metro', 'Maxi', 'Super C', 'Provigo'][Math.floor(r() * 4)] });
+    }
+    const last = weeks[51], lowAll = Math.min(...weeks.slice(0, 51).map(x => x.p));
+    if (demo.today === 'special') last.p = Math.round((Math.floor(lowAll * 1.03 * 10) / 10 + 0.09) * 100) / 100;
+    else if (demo.today === 'meh') last.p = round99(reg * 0.85);
+    else last.p = reg;
+    last.store = 'IGA';
+    return { weeks, demo };
+  }
+  function quantile(arr, q) { const s = [...arr].sort((a, b) => a - b); const i = (s.length - 1) * q; const lo = Math.floor(i); return s[lo] + (s[Math.ceil(i)] - s[lo]) * (i - lo); }
+  function verdictOf(h) {
+    const prices = h.weeks.slice(0, 51).map(w => w.p), p = h.weeks[51].p, p10 = quantile(prices, 0.10);
+    const lower = prices.filter(x => x <= p * 0.85).length;
+    if (p <= p10 * 1.05) return { cls: 'v-good', ico: '✓', title: 'Bon prix', sub: "Proche du plus bas de l'année." };
+    if (lower >= 4) return { cls: 'v-amber', ico: '!', title: 'Souvent moins cher', sub: `Vu au moins 15 % moins cher ${lower} semaines sur 51.` };
+    return { cls: 'v-neutral', ico: '=', title: 'Prix habituel', sub: "C'est à peu près le prix de tous les jours." };
+  }
+  function specialRuns(weeks) { const reg = quantile(weeks.map(w => w.p), 0.5); let n = 0; weeks.forEach((w, i) => { if (w.p < reg * 0.9 && !(i > 0 && weeks[i - 1].p < reg * 0.9)) n++; }); return n; }
+
+  let current = null, period = 52;
+  function drawChart() {
+    const svg = $('chart'), pts = current.weeks.slice(52 - period);
+    const W = 400, x0 = 40, x1 = 392, y0 = 14, y1 = 180;
+    const ps = pts.map(w => w.p), avg = current.weeks.reduce((s, w) => s + w.p, 0) / 52;
+    let lo = Math.floor(Math.min(...ps, avg) - 0.3), hi = Math.ceil(Math.max(...ps, avg) + 0.3); if (lo < 0) lo = 0;
+    const X = i => x0 + (i / pts.length) * (x1 - x0), Y = p => y1 - (p - lo) / (hi - lo) * (y1 - y0);
+    const step = (hi - lo) > 8 ? 2 : 1, reg = quantile(current.weeks.map(w => w.p), 0.5);
+    let s = '';
+    for (let v = Math.ceil(lo); v <= hi; v += step) s += `<line x1="${x0}" x2="${x1}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${x0 - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v} $</text>`;
+    pts.forEach((w, i) => { if (w.p < reg * 0.9) s += `<rect x="${X(i)}" y="${y0}" width="${X(i + 1) - X(i)}" height="${y1 - y0}" fill="var(--good)" opacity="0.18"/>`; });
+    s += `<line x1="${x0}" x2="${x1}" y1="${Y(avg)}" y2="${Y(avg)}" stroke="var(--muted)" stroke-dasharray="5 4"/>`;
+    let d = '';
+    pts.forEach((w, i) => { d += (i === 0 ? `M${X(i)} ${Y(w.p)}` : `V${Y(w.p)}`) + `H${X(i + 1)}`; });
+    s += `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+    const minI = ps.indexOf(Math.min(...ps));
+    s += `<circle cx="${(X(minI) + X(minI + 1)) / 2}" cy="${Y(ps[minI])}" r="5" fill="var(--good)" stroke="var(--fg)" stroke-width="1.2"/>`;
+    s += `<circle cx="${x1}" cy="${Y(ps[ps.length - 1])}" r="6" fill="var(--accent)" stroke="var(--fg)" stroke-width="1.2"/>`;
+    const nTicks = period === 13 ? 3 : 6;
+    for (let k = 0; k < nTicks; k++) { const i = Math.floor(k * pts.length / nTicks); s += `<text x="${X(i)}" y="${y1 + 18}" font-size="11" fill="var(--muted)">${MOIS[pts[i].d.getMonth()]}</text>`; }
+    s += `<line id="cursor" x1="0" x2="0" y1="${y0}" y2="${y1}" stroke="var(--fg)" stroke-dasharray="2 3" visibility="hidden"/>`;
+    svg.innerHTML = s;
+    const pick = e => {
+      const r = svg.getBoundingClientRect(), cx = (e.clientX - r.left) / r.width * W;
+      const i = Math.min(pts.length - 1, Math.max(0, Math.floor((cx - x0) / (x1 - x0) * pts.length))), w = pts[i];
+      const c = svg.querySelector('#cursor'); c.setAttribute('x1', X(i + 0.5)); c.setAttribute('x2', X(i + 0.5)); c.setAttribute('visibility', 'visible');
+      $('tip').textContent = `Semaine du ${dayLabel(w.d)} : ${money(w.p)}, vu chez ${w.store}`;
+    };
+    svg.onpointerdown = pick; svg.onpointermove = e => { if (e.buttons || e.pointerType === 'mouse') pick(e); };
+  }
+  document.querySelectorAll('.periods button').forEach(b => b.addEventListener('click', () => {
+    period = Number(b.dataset.weeks);
+    document.querySelectorAll('.periods button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    if (current) drawChart();
+  }));
+
+  function showDemo(code, scroll) {
+    current = history(code);
+    const h = current, v = verdictOf(h), today = h.weeks[51];
+    const prices = h.weeks.map(w => w.p), lo = Math.min(...prices), hi = Math.max(...prices), loW = h.weeks.find(w => w.p === lo);
+    $('verdict').className = 'verdict ' + v.cls; $('v-ico').textContent = v.ico; $('v-title').textContent = v.title; $('v-sub').textContent = v.sub;
+    $('p-name').textContent = h.demo.name;
+    $('p-meta').textContent = h.demo.format + ' · IGA · ' + (h.demo.grams ? money(today.p / h.demo.grams * 100) + '/100 g' : money(today.p / h.demo.ml * 100) + '/100 ml');
+    $('p-price').textContent = money(today.p);
+    $('g-dot').style.left = (hi === lo ? 50 : (today.p - lo) / (hi - lo) * 100) + '%';
+    $('g-dot').style.background = v.cls === 'v-good' ? 'var(--good)' : v.cls === 'v-amber' ? 'var(--amber)' : 'var(--neutral)';
+    $('g-lo').textContent = 'Plus bas ' + money(lo); $('g-hi').textContent = 'Plus haut ' + money(hi);
+    const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+    const facts = [`Le plus bas : ${money(lo)}, semaine du ${dayLabel(loW.d)}, chez ${loW.store}`, `Moyenne sur 12 mois : ${money(avg)}`, `Revient en spécial environ ${specialRuns(h.weeks)} fois par année`];
+    $('facts').replaceChildren(...facts.map(t => { const li = document.createElement('li'); li.textContent = t; return li; }));
+    $('tip').textContent = 'Touche la courbe pour voir un prix.';
+    $('real').hidden = true; $('result').hidden = false;
+    drawChart();
+    if (scroll) $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ---------- Vrai produit : nom par Open Food Facts, pas encore de prix ---------- */
+  let lastReal = null;
+  async function showReal(code) {
+    lastReal = { code, name: '' };
+    $('r-name').textContent = 'Produit scanné'; $('r-meta').textContent = 'Code ' + code;
+    $('result').hidden = true; $('real').hidden = false;
+    $('real').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=product_name_fr,product_name,brands,quantity`);
+      if (!res.ok) { ev('produit-inconnu'); return; }
+      const j = await res.json();
+      const p = j && j.product;
+      if (lastReal.code !== code) return;
+      if (!p) { ev('produit-inconnu'); return; }
+      const name = p.product_name_fr || p.product_name || '';
+      const meta = [p.brands, p.quantity].filter(Boolean).join(' · ');
+      if (name) { $('r-name').textContent = name; lastReal.name = [name, p.quantity].filter(Boolean).join(', '); ev('produit-trouve'); } else ev('produit-inconnu');
+      $('r-meta').textContent = (meta ? meta + ' · ' : '') + 'Code ' + code;
+    } catch (e) { ev('produit-inconnu'); }
+  }
+  function showCode(raw, how) {
+    const code = String(raw).replace(/\D/g, '');
+    if (code.length < 8 || code.length > 14) { $('scan-status').textContent = 'Il faut entre 8 et 13 chiffres.'; return; }
+    $('scan-status').textContent = 'Code ' + code;
+    if (DEMO[code]) { ev('exemple-vu'); showDemo(code, true); return; }
+    ev(how === 'photo' ? 'scan-photo-lu' : 'scan-tape');
+    actif();
+    showReal(code);
+  }
+  $('code-go').addEventListener('click', () => showCode($('code-input').value, 'tape'));
+  $('code-input').addEventListener('keydown', e => { if (e.key === 'Enter') showCode($('code-input').value, 'tape'); });
+  document.querySelectorAll('.chips button').forEach(b => b.addEventListener('click', () => showCode(b.dataset.code, 'exemple')));
+  $('r-add').addEventListener('click', () => {
+    $('f-code').value = lastReal ? lastReal.code : '';
+    $('f-prod').value = lastReal && lastReal.name ? lastReal.name : '';
+    show('prix');
+    ($('f-prod').value ? $('f-magasin') : $('f-prod')).focus();
+  });
+
+  /* ---------- Code-barres sur photo ---------- */
+  function readFile(file) { return new Promise((ok, ko) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = ko; fr.readAsDataURL(file); }); }
+  function decode(src, size) {
+    return new Promise(res => {
+      if (!window.Quagga) return res(null);
+      try {
+        Quagga.decodeSingle({ src, numOfWorkers: 0, locate: true, inputStream: { size },
+          decoder: { readers: ['ean_reader', 'upc_reader', 'upc_e_reader', 'ean_8_reader'] } },
+          r => res(r && r.codeResult ? r.codeResult.code : null));
+      } catch (e) { res(null); }
+    });
+  }
+  $('barcode-photo').addEventListener('change', async e => {
+    const file = e.target.files[0]; e.target.value = '';
+    if (!file) return;
+    $('scan-status').textContent = 'Lecture du code-barres…';
+    try {
+      const src = await readFile(file);
+      const code = await decode(src, 1280) || await decode(src, 800) || await decode(src, 1600);
+      if (code) { showCode(code, 'photo'); return; }
+    } catch (err) { /* plus bas */ }
+    ev('scan-photo-echec');
+    $('scan-status').textContent = "Code-barres illisible. Reprends la photo de plus près, ou tape les chiffres sous les barres.";
+  });
+
+  /* ---------- Envoi des formulaires (Web3Forms) ---------- */
+  async function send(subject, fields, hpId) {
+    if ($(hpId) && $(hpId).checked) return true;
+    const body = Object.assign({ access_key: FORM_KEY, subject, from_name: 'Prix minute' }, fields);
+    const res = await fetch(FORM_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) });
+    const j = await res.json().catch(() => ({}));
+    return res.ok && j.success !== false;
+  }
+  const num = s => { const n = parseFloat(String(s || '').replace(',', '.').replace(/[^\d.]/g, '')); return isFinite(n) ? n : null; };
+  function msg(id, ok, text) { const m = $(id); m.className = ok ? 'ok-msg' : 'err-msg'; m.textContent = text; m.hidden = false; }
+
+  $('prix-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const prix = num($('f-prix').value);
+    if (prix == null || prix <= 0 || prix > 500) { msg('prix-msg', false, 'Le prix payé doit être un nombre, par exemple 3,49.'); return; }
+    const b = $('prix-send'); b.disabled = true;
+    try {
+      const ok = await send('Prix minute : nouveau prix', {
+        'Code-barres': $('f-code').value.replace(/\D/g, ''), 'Produit': $('f-prod').value.trim(),
+        'Magasin': $('f-magasin').value, 'Ville': $('f-ville').value.trim(),
+        'Prix payé': prix.toFixed(2), 'Prix courant': num($('f-courant').value) ?? '', 'Prix membre': num($('f-membre').value) ?? '',
+        'Date': new Date().toISOString().slice(0, 10)
+      }, 'prix-hp');
+      if (ok) { ev('prix-envoye'); msg('prix-msg', true, 'Merci! Ton prix est reçu. Il servira à bâtir l’historique.'); ['f-code', 'f-prod', 'f-prix', 'f-courant', 'f-membre'].forEach(id => $(id).value = ''); }
+      else msg('prix-msg', false, "L'envoi n'a pas marché. Réessaie dans un moment.");
+    } catch (err) { msg('prix-msg', false, "Pas de réseau? L'envoi n'a pas marché. Réessaie dans un moment."); }
+    b.disabled = false;
+  });
+
+  $('avis-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const b = $('avis-send'); b.disabled = true;
+    try {
+      const ok = await send('Prix minute : avis', {
+        "L'utiliserait": f.get('usage') || '',
+        'Ce qui manque ou accroche': $('a-texte').value.trim(), 'Épicerie': $('a-epicerie').value.trim(),
+        'Courriel (facultatif)': $('a-email').value.trim()
+      }, 'avis-hp');
+      if (ok) { ev('avis-envoye'); if (f.get('usage') === 'Chaque semaine') ev('avis-semaine'); msg('avis-msg', true, 'Merci pour ton avis! Il aide à décider de la suite.'); e.target.reset(); }
+      else msg('avis-msg', false, "L'envoi n'a pas marché. Réessaie dans un moment.");
+    } catch (err) { msg('avis-msg', false, "Pas de réseau? L'envoi n'a pas marché. Réessaie dans un moment."); }
+    b.disabled = false;
+  });
+
+
+  showDemo('2000000000015', false);
+})();
+</script>
+</body>
+</html>
