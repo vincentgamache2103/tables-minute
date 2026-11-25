@@ -8,6 +8,17 @@ const { chromium, assert, server, setup } = require('./outils');
     const errors = [];
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
     await setup(ctx, errors);
+    // Un faux micro : « start() » répond tout de suite avec ce que dit window.__dit.
+    await ctx.addInitScript(() => {
+      window.__dit = 'chanter et jouer';
+      window.SpeechRecognition = window.webkitSpeechRecognition = function () {
+        this.start = () => setTimeout(() => {
+          this.onresult({ results: [[{ transcript: window.__dit }]] });
+          this.onend && this.onend();
+        }, 20);
+        this.stop = () => {};
+      };
+    });
     const p = await ctx.newPage();
     await p.goto(BASE);
     await p.waitForSelector('#start');
@@ -19,6 +30,40 @@ const { chromium, assert, server, setup } = require('./outils');
     const bad = await p.evaluate(() => Array.from(document.querySelectorAll('[data-verb]')).length);
     assert.ok(bad >= 20, 'au moins 20 verbes');
     console.log('✓ ' + bad + ' verbes proposés');
+
+    // Recherche : on tape le début, la liste se réduit; Entrée choisit le verbe.
+    const visible = () => p.evaluate(() => Array.from(document.querySelectorAll('[data-verb]')).filter((b) => !b.hidden && b.closest('.group') && !b.closest('.group').hidden).map((b) => b.dataset.verb));
+    await p.fill('#search', 'ma');
+    let v = await visible();
+    assert.deepStrictEqual(v.sort(), ['manger', 'marcher'], 'ma => ' + v);
+    await p.fill('#search', 'ECOUT'); // sans accent, en majuscules
+    v = await visible();
+    assert.deepStrictEqual(v, ['écouter']);
+    await p.fill('#search', 'zzz');
+    assert.ok(await p.isVisible('#none'), 'message quand rien ne correspond');
+    await p.fill('#search', 'regarder');
+    await p.press('#search', 'Enter');
+    assert.ok((await p.textContent('#find-msg')).includes('regarder'));
+    assert.strictEqual(await p.inputValue('#search'), '', 'le champ est vidé après l’ajout');
+    assert.strictEqual(await p.getAttribute('[data-verb="regarder"]', 'aria-pressed'), 'true');
+    assert.ok(await p.isVisible('[data-remove="regarder"]'), 'le verbe apparaît dans « tes verbes »');
+    await p.click('[data-remove="regarder"]');
+    assert.strictEqual(await p.getAttribute('[data-verb="regarder"]', 'aria-pressed'), 'false');
+    console.log('✓ recherche : filtre sans accent, Entrée ajoute, « × » enlève');
+
+    // Voix : « chanter et jouer » ajoute les deux; un mot qui n'est pas un verbe reste dans le champ.
+    assert.ok(await p.isVisible('#mic'), 'micro visible quand le navigateur sait écouter');
+    await p.evaluate(() => Array.from(document.querySelectorAll('[data-remove]')).forEach((b) => b.click()));
+    await p.click('#mic');
+    await p.waitForFunction(() => document.querySelector('#find-msg').textContent.includes('Ajouté'));
+    assert.strictEqual(await p.getAttribute('[data-verb="chanter"]', 'aria-pressed'), 'true');
+    assert.strictEqual(await p.getAttribute('[data-verb="jouer"]', 'aria-pressed'), 'true');
+    await p.evaluate(() => { window.__dit = 'bonjour'; });
+    await p.click('#mic');
+    await p.waitForFunction(() => document.querySelector('#find-msg').textContent.includes('entendu'));
+    assert.strictEqual(await p.inputValue('#search'), 'bonjour');
+    await p.fill('#search', '');
+    console.log('✓ voix : « chanter et jouer » ajoute les deux verbes');
 
     // Choix de verbes : aucun verbe => « Commencer » est désactivé.
     await p.click('[data-group="0"]'); // tout décocher ou cocher le groupe
