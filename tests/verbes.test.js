@@ -8,17 +8,6 @@ const { chromium, assert, server, setup } = require('./outils');
     const errors = [];
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
     await setup(ctx, errors);
-    // Un faux micro : « start() » répond tout de suite avec ce que dit window.__dit.
-    await ctx.addInitScript(() => {
-      window.__dit = 'chanter et jouer';
-      window.SpeechRecognition = window.webkitSpeechRecognition = function () {
-        this.start = () => setTimeout(() => {
-          this.onresult({ results: [[{ transcript: window.__dit }]] });
-          this.onend && this.onend();
-        }, 20);
-        this.stop = () => {};
-      };
-    });
     const p = await ctx.newPage();
     await p.goto(BASE);
     await p.waitForSelector('#start');
@@ -51,19 +40,15 @@ const { chromium, assert, server, setup } = require('./outils');
     assert.strictEqual(await p.getAttribute('[data-verb="regarder"]', 'aria-pressed'), 'false');
     console.log('✓ recherche : filtre sans accent, Entrée ajoute, « × » enlève');
 
-    // Voix : « chanter et jouer » ajoute les deux; un mot qui n'est pas un verbe reste dans le champ.
-    assert.ok(await p.isVisible('#mic'), 'micro visible quand le navigateur sait écouter');
+    // Plusieurs verbes écrits d'un coup : « chanter et jouer » ajoute les deux; pas de micro.
+    assert.ok(await p.isHidden('#mic').catch(() => true), 'pas de micro');
+    assert.strictEqual(await p.locator('#mic').count(), 0, 'le micro n’existe plus');
     await p.evaluate(() => Array.from(document.querySelectorAll('[data-remove]')).forEach((b) => b.click()));
-    await p.click('#mic');
-    await p.waitForFunction(() => document.querySelector('#find-msg').textContent.includes('Ajouté'));
+    await p.fill('#search', 'chanter et jouer');
+    await p.press('#search', 'Enter');
     assert.strictEqual(await p.getAttribute('[data-verb="chanter"]', 'aria-pressed'), 'true');
     assert.strictEqual(await p.getAttribute('[data-verb="jouer"]', 'aria-pressed'), 'true');
-    await p.evaluate(() => { window.__dit = 'bonjour'; });
-    await p.click('#mic');
-    await p.waitForFunction(() => document.querySelector('#find-msg').textContent.includes('entendu'));
-    assert.strictEqual(await p.inputValue('#search'), 'bonjour');
-    await p.fill('#search', '');
-    console.log('✓ voix : « chanter et jouer » ajoute les deux verbes');
+    console.log('✓ « chanter et jouer » écrit ajoute les deux verbes');
 
     // Choix de verbes : aucun verbe => « Commencer » est désactivé.
     await p.click('[data-group="0"]'); // tout décocher ou cocher le groupe

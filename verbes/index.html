@@ -56,8 +56,6 @@ h2 { font-size: 15px; font-weight: 700; color: var(--text-3); text-transform: up
 .find { display: flex; gap: 8px; align-items: center; }
 .find input { flex: 1; min-width: 0; min-height: 52px; padding: 8px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface); color: var(--text); font: 600 18px var(--sans); }
 .find input:focus { border-color: var(--cyan); outline: none; }
-.find .icon { min-width: 52px; min-height: 52px; border-radius: 14px; background: var(--surface); border: 2px solid var(--line); font-size: 22px; }
-.find .icon[aria-pressed="true"] { background: var(--coral); border-color: var(--coral); color: var(--on-accent); }
 .mine { margin-top: 12px; }
 .mine .chip { background: var(--surface-3); border-color: var(--cyan); min-height: 40px; padding: 4px 12px; font-size: 16px; }
 .mine .chip::after { content: " ×"; color: var(--text-3); }
@@ -105,7 +103,6 @@ h2 { font-size: 15px; font-weight: 700; color: var(--text-3); text-transform: up
   <h2>Les verbes</h2>
   <div class="find">
     <input id="search" type="search" lang="fr" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="done" placeholder="Chercher un verbe : chanter, aller…" aria-label="Chercher un verbe">
-    <button class="icon" id="mic" type="button" aria-pressed="false" aria-label="Dire un verbe avec la voix" hidden>🎤</button>
   </div>
   <p class="hint" id="find-msg" role="status" aria-live="polite"></p>
   <div class="mine" id="mine" aria-label="Tes verbes"></div>
@@ -332,7 +329,7 @@ h2 { font-size: 15px; font-weight: 700; color: var(--text-3); text-transform: up
     save(); syncChips(); updateCount();
   }
 
-  // Des mots dits ou écrits (« chanter et jouer »): chaque mot qui est un verbe de la liste est choisi.
+  // Des mots écrits (« chanter et jouer »): chaque mot qui est un verbe de la liste est choisi.
   function addByWords(text) {
     const words = norm(text).split(/[\s,;.]+/).filter((w) => w && w !== 'et' && w !== 'le' && w !== 'les' && w !== 'verbe');
     const added = [];
@@ -360,35 +357,6 @@ h2 { font-size: 15px; font-weight: 700; color: var(--text-3); text-transform: up
     const b = e.target.closest('[data-remove]');
     if (b) toggleVerb(b.dataset.remove, false);
   });
-
-  // La voix : seulement si le navigateur sait écouter (Chrome, Edge, Safari). Rien n'est gardé.
-  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (Speech) {
-    $('mic').hidden = false;
-    let rec = null;
-    const stop = () => { $('mic').setAttribute('aria-pressed', 'false'); rec = null; };
-    $('mic').addEventListener('click', () => {
-      if (rec) { try { rec.stop(); } catch (e) { /* déjà arrêté */ } stop(); return; }
-      try {
-        rec = new Speech();
-        rec.lang = 'fr-CA'; rec.interimResults = false; rec.maxAlternatives = 3; rec.continuous = false;
-        rec.onresult = (ev) => {
-          let said = '';
-          let added = [];
-          const res = ev.results[0];
-          for (let k = 0; k < res.length && !added.length; k += 1) { said = res[k].transcript; added = addByWords(said); }
-          if (added.length) { $('find-msg').textContent = 'Ajouté : ' + added.join(', '); $('search').value = ''; }
-          else { $('search').value = said; $('find-msg').textContent = 'J’ai entendu « ' + said + ' ». Touche le verbe dans la liste.'; }
-          applyFilter();
-        };
-        rec.onerror = () => { $('find-msg').textContent = 'Le micro n’a rien entendu. Essaie encore, ou écris le verbe.'; stop(); };
-        rec.onend = stop;
-        rec.start();
-        $('mic').setAttribute('aria-pressed', 'true');
-        $('find-msg').textContent = 'Je t’écoute… dis un verbe.';
-      } catch (e) { stop(); }
-    });
-  }
 
   function updateCount() {
     const n = state.verbs.length;
