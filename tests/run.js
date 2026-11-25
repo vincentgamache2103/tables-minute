@@ -4,6 +4,7 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 const RUNS = [
   ['pages.test.js'],
+  ['verbes.test.js'],
   ['arreter-et-pratique.test.js', ''],
   ['arreter-et-pratique.test.js', 'essai/'],
   ['boite-a-idees-classe.test.js'],

@@ -1,6 +1,6 @@
 // Chaque page s'ouvre sans erreur JavaScript, sur ordinateur et sur téléphone, sans défilement horizontal.
 const { chromium, assert, server, setup } = require('./outils');
-const PAGES = ['', 'ma-classe.html', 'classe.html', 'apropos.html', 'division.html', 'addition-soustraction.html', 'entiers/', 'essai/', 'essai/ma-classe.html'];
+const PAGES = ['', 'ma-classe.html', 'classe.html', 'apropos.html', 'division.html', 'addition-soustraction.html', 'entiers/', 'verbes/', 'essai/', 'essai/ma-classe.html'];
 (async () => {
   await new Promise((r) => server.listen(8771, r));
   const BASE = 'http://localhost:8771/';
