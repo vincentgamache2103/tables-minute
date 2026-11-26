@@ -20,6 +20,26 @@ const { chromium, assert, server, setup } = require('./outils');
     assert.ok(bad >= 20, 'au moins 20 verbes');
     console.log('✓ ' + bad + ' verbes proposés');
 
+    // Les incontournables (retour d'une prof de 3e-4e) : avoir, être, aimer, aller, finir, cochés à la 1re visite.
+    const five = ['avoir', 'être', 'aimer', 'aller', 'finir'];
+    const first = await p.evaluate(() => Array.from(document.querySelectorAll('.group')[0].querySelectorAll('[data-verb]')).map((b) => b.dataset.verb));
+    assert.deepStrictEqual(first, five, 'incontournables : ' + first);
+    const on = await p.evaluate(() => Array.from(document.querySelectorAll('[data-remove]')).map((b) => b.dataset.remove));
+    assert.deepStrictEqual(on, five, 'cochés par défaut : ' + on);
+    assert.strictEqual(await p.locator('[data-verb="faire"]').count(), 1, '« faire » est encore offert');
+    // « aimer » est aussi dans les -er : décocher l'un décoche l'autre.
+    assert.strictEqual(await p.locator('[data-verb="aimer"]').count(), 2);
+    await p.locator('[data-verb="aimer"]').first().click();
+    assert.deepStrictEqual(await p.$$eval('[data-verb="aimer"]', (bs) => bs.map((b) => b.getAttribute('aria-pressed'))), ['false', 'false']);
+    await p.locator('[data-verb="aimer"]').last().click();
+    assert.deepStrictEqual(await p.$$eval('[data-verb="aimer"]', (bs) => bs.map((b) => b.getAttribute('aria-pressed'))), ['true', 'true']);
+    console.log('✓ incontournables : avoir, être, aimer, aller, finir (cochés par défaut, « aimer » synchronisé)');
+
+    // « j’ » ne doit pas se lire « i’ » : la question n'est pas dans la police Unbounded.
+    const qFont = await p.evaluate(() => getComputedStyle(document.getElementById('q')).fontFamily);
+    assert.ok(!/Unbounded/.test(qFont), 'police de la question : ' + qFont);
+    console.log('✓ question en Onest (« j’ » lisible)');
+
     // Recherche : on tape le début, la liste se réduit; Entrée choisit le verbe.
     const visible = () => p.evaluate(() => Array.from(document.querySelectorAll('[data-verb]')).filter((b) => !b.hidden && b.closest('.group') && !b.closest('.group').hidden).map((b) => b.dataset.verb));
     await p.fill('#search', 'ma');

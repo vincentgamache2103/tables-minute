@@ -69,7 +69,8 @@ h2 { font-size: 15px; font-weight: 700; color: var(--text-3); text-transform: up
 .stop { color: var(--text-3); font-size: 15px; padding: 8px; text-decoration: underline; }
 .card { background: var(--surface); border: 2px solid var(--line); border-radius: 22px; padding: 28px 18px 22px; text-align: center; }
 .qn { color: var(--text-3); font-size: 15px; margin-bottom: 8px; }
-.q { font-family: var(--display); font-size: clamp(26px, 7vw, 40px); line-height: 1.3; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 10px 14px; }
+/* La question est en Onest : dans Unbounded, le « j » de « j’ » se lit comme un « i ». */
+.q { font-family: var(--sans); font-weight: 700; font-size: clamp(30px, 8vw, 46px); line-height: 1.3; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 10px 14px; }
 .q .pro { color: var(--cyan); }
 .q .inf { color: var(--text-2); font-size: .6em; font-family: var(--sans); font-weight: 600; }
 .answer { width: min(100%, 360px); margin-top: 20px; min-height: 60px; padding: 10px 14px; border-radius: 14px; border: 3px solid var(--violet); background: var(--bg); color: var(--text); font: 600 28px var(--sans); text-align: center; }
@@ -163,11 +164,14 @@ h2 { font-size: 15px; font-weight: 700; color: var(--text-3); text-transform: up
   ];
 
   const GROUPS = [
+    // Les 5 verbes les plus utilisés en 3e et 4e année (retour d'une prof pilote).
+    // « aimer » et « finir » sont aussi dans leur section : cocher l'un coche l'autre.
     { title: 'Les incontournables', verbs: [
-      ['être', ['suis', 'es', 'est', 'sommes', 'êtes', 'sont']],
       ['avoir', ['ai', 'as', 'a', 'avons', 'avez', 'ont']],
+      ['être', ['suis', 'es', 'est', 'sommes', 'êtes', 'sont']],
+      ['aimer', ['aime', 'aimes', 'aime', 'aimons', 'aimez', 'aiment']],
       ['aller', ['vais', 'vas', 'va', 'allons', 'allez', 'vont']],
-      ['faire', ['fais', 'fais', 'fait', 'faisons', 'faites', 'font']]
+      ['finir', ['finis', 'finis', 'finit', 'finissons', 'finissez', 'finissent']]
     ] },
     { title: 'Verbes en -er', verbs: [
       ['chanter', ['chante', 'chantes', 'chante', 'chantons', 'chantez', 'chantent']],
@@ -191,6 +195,7 @@ h2 { font-size: 15px; font-weight: 700; color: var(--text-3); text-transform: up
       ['réussir', ['réussis', 'réussis', 'réussit', 'réussissons', 'réussissez', 'réussissent']]
     ] },
     { title: 'Autres verbes fréquents', verbs: [
+      ['faire', ['fais', 'fais', 'fait', 'faisons', 'faites', 'font']],
       ['dire', ['dis', 'dis', 'dit', 'disons', 'dites', 'disent']],
       ['voir', ['vois', 'vois', 'voit', 'voyons', 'voyez', 'voient']],
       ['prendre', ['prends', 'prends', 'prend', 'prenons', 'prenez', 'prennent']],
@@ -209,7 +214,7 @@ h2 { font-size: 15px; font-weight: 700; color: var(--text-3); text-transform: up
   const PRONOUNS = [['je'], ['tu'], ['il', 'elle', 'on'], ['nous'], ['vous'], ['ils', 'elles']];
   const SIZE = 24;
   const DURATIONS = [1, 2, 3, 4];
-  const DEFAULT_VERBS = ['être', 'avoir', 'aller', 'faire', 'chanter', 'jouer', 'manger'];
+  const DEFAULT_VERBS = ['avoir', 'être', 'aimer', 'aller', 'finir'];
 
   const $ = (id) => document.getElementById(id);
   const state = { tense: 'present', verbs: DEFAULT_VERBS.slice(), minutes: 2, run: null };
